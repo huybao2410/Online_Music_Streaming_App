@@ -1,0 +1,122 @@
+/* Container */
+.login-container {
+  height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: #121212; /* Spotify dark background */
+  font-family: "Segoe UI", Tahoma, sans-serif;
+}
+
+/* Box */
+.login-box {
+  width: 380px;
+  background: #181818; /* slightly lighter than background */
+  border-radius: 12px;
+  padding: 40px 30px;
+  box-shadow: 0px 8px 25px rgba(0, 0, 0, 0.5);
+  text-align: center;
+  color: #fff;
+}
+
+/* Logo */
+.app-logo {
+  font-size: 40px;
+  font-weight: bold;
+  color: #1db954; /* Spotify green */
+  margin-bottom: 20px;
+}
+
+/* Title */
+.login-box h2 {
+  margin-bottom: 20px;
+  color: #fff;
+}
+
+/* Error message */
+.error-msg {
+  color: #ff4d4d;
+  margin-bottom: 10px;
+  font-size: 14px;
+}
+
+/* Input fields */
+.login-box input {
+  width: 100%;
+  padding: 12px 40px 12px 12px; /* chừa bên phải để không bị chữ "Hiện" đè lên */
+  margin: 8px 0;
+  border: none;
+  border-radius: 8px;
+  font-size: 16px;
+  box-sizing: border-box;
+}
+
+
+.login-box input:focus {
+  border-color: #1db954;
+  box-shadow: 0 0 5px rgba(29, 185, 84, 0.5);
+}
+
+/* Password wrapper */
+.password-wrapper {
+  position: relative;
+}
+
+.show-pass-btn {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  border: none;
+  background: none;
+  color: #1db954;
+  font-size: 14px;
+  cursor: pointer;
+  padding: 0;
+}
+
+.show-pass-btn:hover {
+  text-decoration: underline;
+}
+
+/* Login button */
+.login-btn {
+  width: 100%;
+  padding: 12px;
+  background: #1db954;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 16px;
+  margin-top: 10px;
+  transition: background 0.3s;
+}
+
+.login-btn:hover {
+  background: #1ed760;
+}
+
+/* Divider */
+.divider {
+  height: 1px;
+  background: #333;
+  margin: 20px 0;
+}
+
+/* Signup button */
+.signup-btn {
+  width: 100%;
+  padding: 12px;
+  background: #333;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 16px;
+  transition: background 0.3s;
+}
+
+.signup-btn:hover {
+  background: #444;
+}

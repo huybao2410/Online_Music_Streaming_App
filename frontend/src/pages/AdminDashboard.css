@@ -1,0 +1,66 @@
+/* Spotify-style Admin Dashboard */
+.admin-dashboard {
+  min-height: 100vh;
+  background: #121212;
+  color: #fff;
+  font-family: "Helvetica Neue", Arial, sans-serif;
+  padding: 20px 40px;
+}
+
+/* Header */
+.dashboard-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 40px;
+}
+
+.dashboard-header h1 {
+  font-size: 28px;
+  color: #1db954; /* Spotify green */
+}
+
+/* Logout button */
+.logout-btn {
+  background: #1db954;
+  color: #fff;
+  border: none;
+  padding: 10px 18px;
+  border-radius: 25px;
+  font-size: 16px;
+  cursor: pointer;
+  transition: background 0.3s;
+}
+
+.logout-btn:hover {
+  background: #1ed760;
+}
+
+/* Content */
+.dashboard-content {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 20px;
+}
+
+/* Cards */
+.card {
+  background: #181818;
+  border-radius: 12px;
+  padding: 25px;
+  text-align: center;
+  font-size: 18px;
+  transition: transform 0.2s, box-shadow 0.2s;
+  cursor: pointer;
+}
+
+.card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0px 8px 20px rgba(0, 0, 0, 0.4);
+  background: #282828;
+}
+
+.card p {
+  margin: 0;
+  color: #fff;
+}
