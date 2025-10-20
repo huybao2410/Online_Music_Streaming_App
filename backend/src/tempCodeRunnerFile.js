@@ -16,33 +16,30 @@ async function seedAdmin() {
   try {
     const email = 'admin1@example.com';
     const username = 'admin1';
-    const plainPassword = 'admin123'; // mật khẩu test
+    const plainPassword = 'admin123'; // mật khẩu test bạn muốn dùng
     const dob = '1990-01-01';
-    const phoneNumber = '0329944649'; // ✅ thêm số điện thoại
 
-    // Tạo hash bcrypt
+    // Tạo hash bằng bcrypt (same lib as backend)
     const hash = await bcrypt.hash(plainPassword, 10);
 
     // Kiểm tra user đã tồn tại chưa
     const [rows] = await pool.query('SELECT id FROM users WHERE email = ?', [email]);
 
     if (rows.length) {
-      // ✅ Update user hiện tại, thêm cập nhật phone_number
+      // Update user hiện tại (set password_hash, role, status)
       await pool.query(
-        `UPDATE users 
-         SET username = ?, password_hash = ?, role = ?, status = ?, phone_number = ?
-         WHERE email = ?`,
-        [username, hash, 'admin', 'active', phoneNumber, email]
+        'UPDATE users SET username = ?, password_hash = ?, role = ?, status = ? WHERE email = ?',
+        [username, hash, 'admin', 'active', email]
       );
-      console.log(`✅ Updated existing admin (${email}). Password: '${plainPassword}', Phone: ${phoneNumber}`);
+      console.log(`✅ Updated existing admin (${email}). Password set to '${plainPassword}'`);
     } else {
-      // ✅ Insert mới có phone_number
+      // Insert mới
       await pool.query(
-        `INSERT INTO users (username, email, phone_number, password_hash, avatar_url, date_of_birth, role, status)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
-        [username, email, phoneNumber, hash, null, dob, 'admin', 'active']
+        `INSERT INTO users (username, email, password_hash, avatar_url, date_of_birth, role, status)
+         VALUES (?, ?, ?, ?, ?, ?, ?)`,
+        [username, email, hash, null, dob, 'admin', 'active']
       );
-      console.log(`✅ Inserted new admin (${email}) with password '${plainPassword}' and phone '${phoneNumber}'`);
+      console.log(`✅ Inserted admin (${email}) with password '${plainPassword}'`);
     }
   } catch (err) {
     console.error('❌ Seed admin failed:', err);

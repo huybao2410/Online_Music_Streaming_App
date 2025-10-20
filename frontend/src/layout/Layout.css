@@ -1,0 +1,530 @@
+/* ===========================
+   THEME VARIABLES
+=========================== */
+:root {
+  --bg-primary: #181a1f;      /* nền tổng thể */
+  --bg-secondary: #22262e;    /* header, sidebar, footer */
+  --panel: #2a2f38;           /* ô, input */
+  --border: #2a2f38;
+  --accent: #00c4cc;          /* màu nhấn nhất quán */
+  --accent-strong: #009ba6;
+  --success: #1db954;         /* upload button */
+  --text: #ffffff;
+  --muted: #8a8f98;
+  --shadow: 0 10px 25px rgba(0,0,0,.4);
+}
+
+/* ===========================
+   RESET & BASE
+=========================== */
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html, body { height: 100%; }
+body {
+  background: var(--bg-primary);
+  color: var(--text);
+  font-family: "Poppins", system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+  overflow-x: hidden;
+}
+a { color: inherit; text-decoration: none; }
+button { font: inherit; }
+
+/* ===========================
+   APP SHELL
+=========================== */
+.homepage {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ===========================
+   HEADER
+=========================== */
+.homepage-header {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  z-index: 1000;
+  background: var(--bg-secondary);
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 20px;
+}
+
+.header-left,
+.header-center,
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.logo {
+  font-size: 20px;
+  font-weight: 700;
+}
+
+/* Hamburger for mobile feel */
+.menu-btn {
+  display: none;
+  background: none;
+  border: 0;
+  color: var(--text);
+  font-size: 24px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+/* Search */
+.search-bar {
+  display: flex;
+  align-items: center;
+  background: var(--panel);
+  border-radius: 22px;
+  overflow: hidden;
+}
+.search-bar input {
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: var(--text);
+  padding: 10px 14px;
+  width: 320px;
+  font-size: 14px;
+}
+.search-bar input::placeholder { color: var(--muted); }
+.search-btn {
+  border: 0;
+  background: var(--accent);
+  color: #fff;
+  padding: 10px 14px;
+  cursor: pointer;
+  transition: background .25s ease;
+}
+.search-btn:hover { background: var(--accent-strong); }
+
+/* Auth / Avatar */
+.login-btn {
+  background: var(--accent);
+  color: #fff;
+  border: 0;
+  padding: 8px 14px;
+  border-radius: 10px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background .25s ease;
+}
+.login-btn:hover { background: var(--accent-strong); }
+
+.avatar-btn {
+  width: 40px; height: 40px;
+  border-radius: 50%;
+  border: 0;
+  background: var(--panel);
+  color: #fff;
+  font-size: 20px;
+  cursor: pointer;
+  transition: background .25s ease;
+}
+.avatar-btn:hover { background: #3a3f48; }
+
+.dropdown { position: relative; }
+.dropdown-menu {
+  position: absolute;
+  top: 50px; right: 0;
+  min-width: 160px;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  overflow: hidden;
+  box-shadow: 0 6px 18px rgba(0,0,0,.35);
+}
+.dropdown-item {
+  padding: 12px 16px;
+  color: var(--text);
+  transition: background .2s ease;
+  border-bottom: 1px solid rgba(255,255,255,.03);
+  cursor: pointer;
+}
+.dropdown-item:last-child { border-bottom: 0; }
+.dropdown-item:hover { background: #2f343d; }
+.dropdown-item.logout { color: #ff6b6b; }
+
+/* ===========================
+   SIDEBAR
+=========================== */
+.sidebar {
+  position: fixed;
+  top: 60px;               /* ngay dưới header */
+  left: 0;
+  bottom: 60px;            /* khớp với footer */
+  width: 200px;            /* giảm từ 240px → 200px */
+  background: var(--bg-secondary);
+  border-right: 1px solid var(--border);
+  padding: 14px 10px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+/* cuộn gọn gàng */
+.sidebar::-webkit-scrollbar {
+  width: 6px;
+}
+.sidebar::-webkit-scrollbar-thumb {
+  background: var(--panel);
+  border-radius: 3px;
+}
+
+/* Mục menu */
+.sidebar-menu {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.sidebar-menu div {
+  color: var(--muted);
+  padding: 10px 12px;
+  font-size: 14px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.sidebar-menu div:hover {
+  background: var(--panel);
+  color: var(--text);
+}
+
+/* Upload nút */
+.upload-btn {
+  width: 100%;
+  background: var(--success);
+  color: #fff;
+  border: none;
+  padding: 10px 0;
+  border-radius: 8px;
+  margin-top: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.3s;
+}
+.upload-btn:hover {
+  background: #17a84b;
+}
+
+/* === MAIN CONTENT chỉnh lại để fit với sidebar mới === */
+.main-content {
+  flex: 1;
+  padding: 20px;
+  margin-left: 200px; /* khớp width sidebar */
+  overflow-y: auto;
+}
+
+/* === FOOTER (fix chiều cao & căn khớp) === */
+.footer {
+  background: var(--bg-secondary);
+  border-top: 1px solid var(--border);
+  position: fixed;
+  bottom: 0;
+  width: 100%;
+  height: 60px; /* xác định chiều cao cố định */
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 20px;
+  z-index: 1000;
+}
+
+.player-controls {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.player-controls span {
+  color: var(--muted);
+  font-size: 14px;
+}
+
+.controls {
+  display: flex;
+  gap: 10px;
+}
+
+.controls button {
+  background: none;
+  border: none;
+  color: var(--muted);
+  font-size: 18px;
+  cursor: pointer;
+  transition: color 0.2s;
+}
+.controls button:hover {
+  color: var(--text);
+}
+
+/* === RESPONSIVE SIDEBAR === */
+@media (max-width: 768px) {
+  .sidebar {
+    position: fixed;
+    top: 60px;
+    bottom: auto;
+    width: 100%;
+    height: auto;
+    flex-direction: row;
+    align-items: center;
+    overflow-x: auto;
+    padding: 10px;
+    border-right: none;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .sidebar-menu {
+    flex-direction: row;
+    gap: 10px;
+  }
+
+  .main-content {
+    margin-left: 0;
+    margin-top: 110px;
+  }
+}
+
+/* ===========================
+   MAIN LAYOUT + CONTENT
+=========================== */
+/* ====== MAIN LAYOUT ====== */
+.main-layout {
+  display: flex;
+  flex: 1;
+  margin-top: 60px;    /* trừ phần header */
+  margin-bottom: 60px; /* trừ phần footer */
+  min-height: calc(100vh - 120px); /* tránh bị tràn */
+  background: var(--bg-primary);
+}
+
+.main-content {
+  flex: 1;
+  padding: 30px 40px;
+  margin-left: 240px; /* khớp với width sidebar */
+  color: var(--text);
+  overflow-y: auto;
+  display: flex;
+  justify-content: center; /* căn giữa ngang */
+  align-items: flex-start; /* căn từ trên xuống (đẹp hơn center tuyệt đối) */
+  box-sizing: border-box;
+}
+
+/* Sections / cards (nếu dùng) */
+.greeting { font-size: 28px; font-weight: 700; margin-bottom: 16px; }
+.section-title { font-size: 22px; color: var(--muted); margin: 16px 0 12px; }
+
+.playlist-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 16px;
+}
+.playlist-card {
+  background: var(--panel);
+  border-radius: 12px;
+  overflow: hidden;
+  text-align: center;
+  cursor: pointer;
+  transition: transform .25s ease, box-shadow .25s ease;
+}
+.playlist-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 10px 20px rgba(0,0,0,.25);
+}
+.playlist-card img { width: 100%; height: 160px; object-fit: cover; display: block; }
+.playlist-card p { padding: 10px; font-weight: 600; }
+
+/* ===========================
+   FOOTER / PLAYER
+=========================== */
+.footer {
+  position: fixed;
+  left: 0; right: 0; bottom: 0;
+  z-index: 1000;
+  background: var(--bg-secondary);
+  border-top: 1px solid var(--border);
+  padding: 10px 16px;
+}
+.player-controls {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+.player-controls span { color: var(--muted); font-size: 14px; }
+.controls { display: flex; align-items: center; gap: 10px; }
+.controls button {
+  background: none; border: 0; color: var(--muted);
+  font-size: 18px; cursor: pointer; transition: color .2s ease, transform .1s ease;
+}
+.controls button:hover { color: var(--text); transform: translateY(-1px); }
+
+/* ===========================
+   DIALOGS (Login/Signup)
+=========================== */
+.dialog-overlay {
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,.6);
+  display: flex; align-items: center; justify-content: center;
+  z-index: 1500;
+}
+.dialog-box {
+  width: 400px; max-width: 90%;
+  background: #fff; color: #000;
+  padding: 24px; border-radius: 12px; box-shadow: var(--shadow);
+  position: relative;
+}
+.dialog-box h2 { font-size: 22px; margin-bottom: 16px; text-align: center; }
+.dialog-box input {
+  width: 100%;
+  padding: 12px; margin-bottom: 12px;
+  border: 1px solid #ccc; border-radius: 8px; font-size: 16px;
+}
+.dialog-box button[type="submit"] {
+  width: 100%; padding: 12px;
+  background: var(--accent); color: #fff;
+  border: 0; border-radius: 8px; font-weight: 700; cursor: pointer;
+  transition: background .25s ease;
+}
+.dialog-box button[type="submit"]:hover { background: var(--accent-strong); }
+.dialog-close {
+  position: absolute; top: 10px; right: 14px;
+  background: none; border: 0; font-size: 24px; cursor: pointer; color: #000;
+}
+.error-msg { color: #ff4d4d; text-align: center; margin-bottom: 8px; }
+
+/* ===========================
+   RESPONSIVE — MOBILE FIRST
+=========================== */
+@media (max-width: 1024px) {
+  .search-bar input { width: 260px; }
+}
+
+@media (max-width: 768px) {
+  .menu-btn { display: block; }
+
+  .homepage-header {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
+  }
+
+  .header-left { justify-content: space-between; }
+  .header-center { width: 100%; }
+
+  .search-bar { width: 100%; }
+  .search-bar input { width: 100%; font-size: 14px; }
+
+  .sidebar {
+    top: 60px; left: 0; right: 0;
+    width: 100%;
+    height: auto;
+    display: flex;
+    padding: 10px;
+    border-right: 0;
+    border-bottom: 1px solid var(--border);
+    overflow-x: auto; overflow-y: hidden;
+    gap: 10px;
+  }
+  .sidebar-menu {
+    flex-direction: row;
+    gap: 10px;
+    width: max-content;
+  }
+  .sidebar-menu div { white-space: nowrap; }
+
+  .main-layout { margin-top: 106px; } /* header (2 dòng) + sidebar ngang */
+  .main-content { margin-left: 0; padding: 16px; }
+
+  .playlist-grid { grid-template-columns: repeat(2, 1fr); gap: 12px; }
+  .playlist-card img { height: 140px; }
+
+  .footer { padding: 12px 16px; }
+  .player-controls { flex-direction: column; gap: 8px; }
+  .player-controls span { display: none; } /* giống mobile: tiết kiệm không gian */
+  .controls button { font-size: 22px; }
+}
+
+@media (max-width: 420px) {
+  .playlist-grid { grid-template-columns: 1fr 1fr; }
+  .search-bar input { font-size: 13px; }
+}
+
+/* ==== USER MENU (giống UploadSong) ==== */
+.user-menu {
+  position: relative;
+}
+
+.user-icon {
+  background: linear-gradient(145deg, #1db954, #00c4cc);
+  color: white;
+  border: none;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  font-size: 18px;
+  cursor: pointer;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.user-icon:hover {
+  transform: scale(1.1);
+  box-shadow: 0 0 10px rgba(0, 255, 128, 0.5);
+}
+
+.dropdown-menu {
+  position: absolute;
+  top: 50px;
+  right: 0;
+  background: #2a2f38;
+  border-radius: 8px;
+  min-width: 160px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+  z-index: 1000;
+}
+
+.dropdown-item {
+  padding: 10px 14px;
+  color: #fff;
+  cursor: pointer;
+  border-bottom: 1px solid #1a1e24;
+  transition: background 0.2s;
+}
+
+.dropdown-item:last-child {
+  border-bottom: none;
+}
+
+.dropdown-item:hover {
+  background: #3a3f48;
+}
+
+.dropdown-item.logout {
+  color: #ff6b6b;
+}
+.main-content > * {
+  width: 100%;
+  max-width: 1100px;
+}
+/* ==== FIX: Chuẩn hoá kích thước sidebar & canh lề nội dung ==== */
+:root { --sidebar-w: 200px; }          /* dùng 200px như bạn đang set ở trên */
+
+.sidebar { width: var(--sidebar-w); }
+.main-content { margin-left: var(--sidebar-w); }
+
+/* đảm bảo vùng hiển thị giữa 2 thanh cố định */
+.main-layout { 
+  margin-top: 60px;     /* header cao ~60px */
+  margin-bottom: 60px;  /* footer cao ~60px */
+}

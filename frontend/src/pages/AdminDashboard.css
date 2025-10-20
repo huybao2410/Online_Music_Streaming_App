@@ -1,66 +1,384 @@
-/* Spotify-style Admin Dashboard */
+/* === GENERAL === */
 .admin-dashboard {
   min-height: 100vh;
-  background: #121212;
+  background: #0f1419;
   color: #fff;
-  font-family: "Helvetica Neue", Arial, sans-serif;
-  padding: 20px 40px;
+  font-family: 'Poppins', sans-serif;
 }
 
-/* Header */
-.dashboard-header {
+/* === HEADER === */
+.admin-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 40px;
+  background: linear-gradient(135deg, #12171f 0%, #1a1e24 100%);
+  padding: 30px 40px;
+  border-bottom: 2px solid #00c4cc;
+  box-shadow: 0 4px 12px rgba(0, 196, 204, 0.1);
 }
 
-.dashboard-header h1 {
-  font-size: 28px;
-  color: #1db954; /* Spotify green */
+.header-left h1 {
+  font-size: 32px;
+  margin: 0;
+  font-weight: 700;
+  background: linear-gradient(135deg, #00c4cc, #ffd700);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
 }
 
-/* Logout button */
+.header-left p {
+  margin: 5px 0 0 0;
+  color: #8a8f98;
+  font-size: 14px;
+}
+
 .logout-btn {
-  background: #1db954;
+  background: linear-gradient(135deg, #ff6b6b, #ff5252);
   color: #fff;
   border: none;
-  padding: 10px 18px;
-  border-radius: 25px;
-  font-size: 16px;
+  padding: 12px 25px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
   cursor: pointer;
-  transition: background 0.3s;
+  transition: all 0.3s;
 }
 
 .logout-btn:hover {
-  background: #1ed760;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(255, 107, 107, 0.3);
 }
 
-/* Content */
-.dashboard-content {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-  gap: 20px;
+/* === NAVIGATION === */
+.admin-nav {
+  display: flex;
+  gap: 10px;
+  padding: 20px 40px;
+  background: #12171f;
+  border-bottom: 1px solid #2a2f38;
+  overflow-x: auto;
 }
 
-/* Cards */
-.card {
-  background: #181818;
-  border-radius: 12px;
-  padding: 25px;
-  text-align: center;
-  font-size: 18px;
-  transition: transform 0.2s, box-shadow 0.2s;
+.nav-btn {
+  background: #1a1e24;
+  color: #8a8f98;
+  border: 2px solid transparent;
+  padding: 10px 20px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
   cursor: pointer;
+  transition: all 0.3s;
+  white-space: nowrap;
 }
 
-.card:hover {
-  transform: translateY(-5px);
-  box-shadow: 0px 8px 20px rgba(0, 0, 0, 0.4);
-  background: #282828;
-}
-
-.card p {
-  margin: 0;
+.nav-btn:hover {
   color: #fff;
+  border-color: #00c4cc;
+}
+
+.nav-btn.active {
+  background: #00c4cc;
+  color: #000;
+  border-color: #00c4cc;
+}
+
+/* === CONTENT === */
+.admin-content {
+  padding: 40px;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.tab-content h2 {
+  font-size: 28px;
+  margin-bottom: 30px;
+  color: #fff;
+}
+
+/* === STATS GRID === */
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 20px;
+  margin-bottom: 40px;
+}
+
+.stat-card {
+  background: linear-gradient(135deg, #1a1e24, #242933);
+  padding: 20px;
+  border-radius: 12px;
+  border-left: 4px solid #00c4cc;
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  transition: all 0.3s;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.stat-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+}
+
+.stat-icon {
+  font-size: 40px;
+}
+
+.stat-label {
+  color: #8a8f98;
+  font-size: 14px;
+  margin: 0;
+}
+
+.stat-value {
+  font-size: 28px;
+  font-weight: 700;
+  margin: 5px 0 0 0;
+  color: #fff;
+}
+
+/* === CHARTS SECTION === */
+.charts-section {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+  margin-bottom: 40px;
+}
+
+.chart-card {
+  background: linear-gradient(135deg, #1a1e24, #242933);
+  padding: 25px;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.chart-card h3 {
+  margin: 0 0 20px 0;
+  font-size: 16px;
+  color: #fff;
+}
+
+/* Chart Bars */
+.chart-placeholder {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-around;
+  height: 200px;
+  gap: 10px;
+}
+
+.bar {
+  width: 30px;
+  background: linear-gradient(180deg, #00c4cc, #009ba6);
+  border-radius: 6px 6px 0 0;
+  transition: all 0.3s;
+}
+
+.bar:hover {
+  background: linear-gradient(180deg, #ffd700, #ffed4e);
+  transform: scaleY(1.1);
+}
+
+/* Top Songs List */
+.top-songs-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.top-item {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  padding: 12px;
+  background: #0f1419;
+  border-radius: 8px;
+  transition: all 0.3s;
+}
+
+.top-item:hover {
+  background: #1a1e24;
+  transform: translateX(5px);
+}
+
+.rank {
+  font-size: 18px;
+  font-weight: 700;
+  color: #00c4cc;
+  min-width: 30px;
+}
+
+.title {
+  flex: 1;
+  color: #fff;
+  font-weight: 500;
+}
+
+.plays {
+  color: #8a8f98;
+  font-size: 13px;
+}
+
+/* === TAB HEADER === */
+.tab-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 25px;
+}
+
+.add-btn {
+  background: linear-gradient(135deg, #00c4cc, #009ba6);
+  color: #fff;
+  border: none;
+  padding: 12px 25px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.add-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(0, 196, 204, 0.3);
+}
+
+/* === TABLE === */
+.table-container {
+  background: linear-gradient(135deg, #1a1e24, #242933);
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.admin-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.admin-table thead {
+  background: #0f1419;
+  border-bottom: 2px solid #2a2f38;
+}
+
+.admin-table th {
+  padding: 18px 15px;
+  text-align: left;
+  font-weight: 600;
+  color: #00c4cc;
+  font-size: 13px;
+  text-transform: uppercase;
+}
+
+.admin-table td {
+  padding: 15px;
+  border-bottom: 1px solid #2a2f38;
+  color: #fff;
+  font-size: 14px;
+}
+
+.admin-table tbody tr {
+  transition: all 0.2s;
+}
+
+.admin-table tbody tr:hover {
+  background: #242933;
+}
+
+/* Status Badge */
+.status-badge {
+  display: inline-block;
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.status-badge.active {
+  background: rgba(0, 196, 204, 0.2);
+  color: #00c4cc;
+}
+
+.status-badge.inactive {
+  background: rgba(255, 107, 107, 0.2);
+  color: #ff6b6b;
+}
+
+/* Action Buttons */
+.action-btn {
+  padding: 6px 12px;
+  border: none;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  margin-right: 8px;
+  transition: all 0.3s;
+}
+
+.action-btn.edit {
+  background: rgba(0, 196, 204, 0.2);
+  color: #00c4cc;
+}
+
+.action-btn.edit:hover {
+  background: rgba(0, 196, 204, 0.3);
+  transform: scale(1.05);
+}
+
+.action-btn.delete {
+  background: rgba(255, 107, 107, 0.2);
+  color: #ff6b6b;
+}
+
+.action-btn.delete:hover {
+  background: rgba(255, 107, 107, 0.3);
+  transform: scale(1.05);
+}
+
+/* === RESPONSIVE === */
+@media (max-width: 768px) {
+  .admin-header {
+    flex-direction: column;
+    text-align: center;
+    gap: 15px;
+  }
+
+  .header-left h1 {
+    font-size: 24px;
+  }
+
+  .admin-nav {
+    flex-wrap: wrap;
+  }
+
+  .charts-section {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-table {
+    font-size: 12px;
+  }
+
+  .admin-table th,
+  .admin-table td {
+    padding: 10px;
+  }
+
+  .tab-header {
+    flex-direction: column;
+    gap: 15px;
+    align-items: stretch;
+  }
+
+  .add-btn {
+    width: 100%;
+  }
+}
+
+/* === ARTISTS TABLE === */
+.admin-table td:nth-child(4) {
+  text-align: right;
 }

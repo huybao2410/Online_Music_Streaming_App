@@ -11,43 +11,61 @@ const router = express.Router();
 
 // Register
 router.post('/register',
-  body('username').isLength({ min: 3 }),
-  body('email').isEmail(),
-  body('password').isLength({ min: 6 }),
+  body('phone_number').isMobilePhone(), // kiểm tra số điện thoại hợp lệ
+  body('password').isLength({ min: 6 }), // password tối thiểu 6 ký tự
   async (req, res) => {
-    const errors = validationResult(req); if (!errors.isEmpty()) return res.status(400).json({ errors: errors.array() });
+    const errors = validationResult(req); 
+    if (!errors.isEmpty()) return res.status(400).json({ errors: errors.array() });
 
-    const { username, email, password, date_of_birth, avatar_url } = req.body;
+    const { phone_number, password } = req.body;
+
     try {
-      const [exists] = await pool.query('SELECT id FROM users WHERE email = ? OR username = ?', [email, username]);
-      if (exists.length) return res.status(400).json({ message: 'Email or username already used' });
+      // Kiểm tra số điện thoại đã tồn tại chưa
+      const [exists] = await pool.query('SELECT id FROM users WHERE phone_number = ?', [phone_number]);
+      if (exists.length) return res.status(400).json({ message: 'Phone number have already used' });
 
+      // Hash password
       const hash = await bcrypt.hash(password, 10);
+
+      // Thêm user mới
       const [result] = await pool.query(
-        `INSERT INTO users (username, email, password_hash, avatar_url, date_of_birth)
-         VALUES (?, ?, ?, ?, ?)`,
-        [username, email, hash, avatar_url || null, date_of_birth || null]
+        `INSERT INTO users (phone_number, password_hash, status) VALUES (?, ?, ?)`,
+        [phone_number, hash, 'active']
       );
 
-      const token = jwt.sign({ id: result.insertId, username, role: 'user' }, process.env.JWT_SECRET, { expiresIn: process.env.JWT_EXPIRES_IN });
-      return res.status(201).json({ token, user: { id: result.insertId, username, email, role: 'user' } });
+      // Tạo token
+      const token = jwt.sign(
+        { id: result.insertId, phone_number, role: 'user' },
+        process.env.JWT_SECRET,
+        { expiresIn: process.env.JWT_EXPIRES_IN }
+      );
+
+      return res.status(201).json({
+        token,
+        user: { id: result.insertId, phone_number, role: 'user' }
+      });
+
     } catch (err) {
-      console.error(err);
-      return res.status(500).json({ message: 'Server error' });
+      console.error('Register error: ', err.message);
+      return res.status(500).json({ message: err.message });
     }
   }
 );
 
-// Login
-router.post('/login',
-  body('email').isEmail(),
-  body('password').notEmpty(),
-  async (req, res) => {
-    const errors = validationResult(req); if (!errors.isEmpty()) return res.status(400).json({ errors: errors.array() });
 
-    const { email, password } = req.body;
+// Login bằng phone_number
+router.post('/login',
+  body('phone_number').isMobilePhone(), // kiểm tra số điện thoại hợp lệ
+  body('password').notEmpty(),           // password không rỗng
+  async (req, res) => {
+    const errors = validationResult(req); 
+    if (!errors.isEmpty()) return res.status(400).json({ errors: errors.array() });
+
+    const { phone_number, password } = req.body;
+
     try {
-      const [rows] = await pool.query('SELECT * FROM users WHERE email = ?', [email]);
+      // Tìm user theo số điện thoại
+      const [rows] = await pool.query('SELECT * FROM users WHERE phone_number = ?', [phone_number]);
       if (!rows.length) return res.status(400).json({ message: 'User not found' });
 
       const user = rows[0];
@@ -55,14 +73,25 @@ router.post('/login',
       if (!ok) return res.status(400).json({ message: 'Invalid credentials' });
       if (user.status !== 'active') return res.status(403).json({ message: `User ${user.status}` });
 
-      const token = jwt.sign({ id: user.id, username: user.username, role: user.role }, process.env.JWT_SECRET, { expiresIn: process.env.JWT_EXPIRES_IN });
-      return res.json({ token, user: { id: user.id, username: user.username, email: user.email, role: user.role, avatar_url: user.avatar_url } });
+      // Tạo token JWT
+      const token = jwt.sign(
+        { id: user.id, phone_number: user.phone_number, role: user.role },
+        process.env.JWT_SECRET,
+        { expiresIn: process.env.JWT_EXPIRES_IN }
+      );
+
+      return res.json({
+        token,
+        user: { id: user.id, phone_number: user.phone_number, role: user.role, avatar_url: user.avatar_url }
+      });
+
     } catch (err) {
-      console.error(err);
-      return res.status(500).json({ message: 'Server error' });
+      console.error('Login error:', err.message);
+      return res.status(500).json({ message: err.message });
     }
   }
 );
+
 
 // Current user profile (protected)
 router.get('/me', verifyToken, async (req, res) => {

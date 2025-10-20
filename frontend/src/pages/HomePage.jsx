@@ -1,50 +1,37 @@
 import React from "react";
-import { useNavigate } from "react-router-dom";
-import "./HomePage.css";
+import "../layout/Layout.css"; // nếu cần style
 
-const Homepage = () => {
-  const navigate = useNavigate();
-
-  const handleLogout = () => {
-    localStorage.removeItem("token");
-    localStorage.removeItem("user");
-    navigate("/login");
-  };
+export default function HomePage() {
+  const playlists = [
+    { name: "Gen Z Hits", img: "https://placehold.co/200x200" },
+    { name: "TikTok Virals", img: "https://placehold.co/200x200" },
+    { name: "K-Pop", img: "https://placehold.co/200x200" },
+  ];
 
   return (
-    <div className="homepage">
-      {/* Header */}
-      <div className="homepage-header">
-        <h1>🎧 My Music App</h1>
-        <button className="logout-btn" onClick={handleLogout}>
-          Đăng xuất
-        </button>
+    <div>
+      <h1 className="greeting">Good evening</h1>
+
+      <div className="banner-section">
+        <div className="banner-card">
+          <img src="https://placehold.co/600x200" alt="Chill vibes" />
+          <div className="banner-title">Cười Tươi Nhạc Chill</div>
+        </div>
+        <div className="banner-card">
+          <img src="https://placehold.co/600x200" alt="Buồn ngủ" />
+          <div className="banner-title">Ngủ ngon cùng nhạc buồn</div>
+        </div>
       </div>
 
-      {/* Content */}
-      <div className="homepage-content">
-        <h2>🔥 Playlist nổi bật</h2>
-        <div className="playlist-grid">
-          <div className="playlist-card">
-            <img src="https://placehold.co/200x200" alt="playlist1" />
-            <p>Top Hits 2025</p>
+      <h2 className="section-title">Charts</h2>
+      <div className="playlist-grid">
+        {playlists.map((p, i) => (
+          <div key={i} className="playlist-card">
+            <img src={p.img} alt={p.name} />
+            <p>{p.name}</p>
           </div>
-          <div className="playlist-card">
-            <img src="https://placehold.co/200x200" alt="playlist2" />
-            <p>Acoustic Chill</p>
-          </div>
-          <div className="playlist-card">
-            <img src="https://placehold.co/200x200" alt="playlist3" />
-            <p>Rap Việt</p>
-          </div>
-          <div className="playlist-card">
-            <img src="https://placehold.co/200x200" alt="playlist4" />
-            <p>K-Pop Hot</p>
-          </div>
-        </div>
+        ))}
       </div>
     </div>
   );
-};
-
-export default Homepage;
+}
