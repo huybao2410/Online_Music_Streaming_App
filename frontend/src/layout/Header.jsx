@@ -1,9 +1,12 @@
 import React, { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { HiHome, HiMagnifyingGlass } from "react-icons/hi2";
+import { IoDownload } from "react-icons/io5";
+import { FaChevronDown } from "react-icons/fa";
+import { CgProfile } from "react-icons/cg";
 
 export default function Header({ isLoginOpen, setIsLoginOpen }) {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const dropdownRef = useRef(null);
   const navigate = useNavigate();
 
@@ -18,7 +21,7 @@ export default function Header({ isLoginOpen, setIsLoginOpen }) {
     setIsLoggedIn(false);
     setIsDropdownOpen(false);
     setUsername("Người dùng");
-    window.dispatchEvent(new Event("storage")); // để Sidebar cập nhật lại
+    window.dispatchEvent(new Event("storage"));
   };
 
   const handleSearch = () => {
@@ -37,67 +40,84 @@ export default function Header({ isLoginOpen, setIsLoginOpen }) {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  // ✅ Cập nhật khi localStorage thay đổi (đăng nhập/đăng xuất)
   useEffect(() => {
     const handleStorageChange = () => {
       setIsLoggedIn(!!localStorage.getItem("token"));
-      setUsername(localStorage.getItem("username") || "Người dùng");
+      setUsername(localStorage.getItem("username") || "User");
     };
     window.addEventListener("storage", handleStorageChange);
     return () => window.removeEventListener("storage", handleStorageChange);
   }, []);
 
   return (
-    <header className="homepage-header">
+    <header className="header">
       <div className="header-left">
-        <button
-          className="menu-btn"
-          onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-        >
-          ☰
+        <button className="header-btn" onClick={() => navigate("/")}>
+          <HiHome size={24} />
         </button>
-        <div className="logo">🎵 MusicDBG</div>
+        <div className="brand">
+          <span className="logo-icon">🎵</span>
+          <span className="logo-text">MusicDBG</span>
+        </div>
       </div>
 
       <div className="header-center">
         <div className="search-bar">
+          <HiMagnifyingGlass className="search-icon" size={24} />
           <input
             type="text"
-            placeholder="Tìm kiếm bài hát, nghệ sĩ..."
+            placeholder="Bạn muốn nghe gì?"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && handleSearch()}
           />
-          <button className="search-btn" onClick={handleSearch}>
-            🔍
-          </button>
         </div>
       </div>
 
       <div className="header-right" ref={dropdownRef}>
+        <a href="#premium" className="premium-btn">
+          Dùng Premium
+        </a>
+        
+        <button className="install-btn">
+          <IoDownload size={20} />
+          <span>Cài đặt ứng dụng</span>
+        </button>
+
         {isLoggedIn ? (
           <div className="user-menu">
             <button
-              className="user-icon"
+              className="profile-btn"
               onClick={() => setIsDropdownOpen(!isDropdownOpen)}
             >
-              👤
+              <div className="avatar">
+                <CgProfile size={24} />
+              </div>
+              <span className="username">{username}</span>
+              <FaChevronDown 
+                size={12}
+                style={{ 
+                  transform: isDropdownOpen ? 'rotate(180deg)' : 'rotate(0)',
+                  transition: 'transform 0.2s ease' 
+                }}
+              />
             </button>
 
             {isDropdownOpen && (
-              <div className="dropdown-menu">
-                {/* ✅ Hiển thị đúng tên user */}
-                <div className="dropdown-item">{username}</div>
-                <div className="dropdown-item">Thông tin tài khoản</div>
-                <div className="dropdown-item logout" onClick={handleLogout}>
+              <div className="profile-menu">
+                <a href="#account" className="menu-item">Tài khoản</a>
+                <a href="#profile" className="menu-item">Hồ sơ</a>
+                <a href="#settings" className="menu-item">Cài đặt</a>
+                <div className="menu-separator"></div>
+                <button className="menu-item" onClick={handleLogout}>
                   Đăng xuất
-                </div>
+                </button>
               </div>
             )}
           </div>
         ) : (
-          <button className="login-btn" onClick={() => setIsLoginOpen(true)}>
-            Log in
+          <button className="signup-btn" onClick={() => setIsLoginOpen(true)}>
+            Đăng ký
           </button>
         )}
       </div>

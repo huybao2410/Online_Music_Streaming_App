@@ -1,0 +1,164 @@
+.footer {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: #181818;
+  border-top: 1px solid #282828;
+  padding: 16px;
+  height: 90px;
+  display: grid;
+  grid-template-columns: 1fr 2fr 1fr;
+  align-items: center;
+  gap: 16px;
+  z-index: 100;
+}
+
+.now-playing {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 180px;
+}
+
+.now-playing img {
+  width: 56px;
+  height: 56px;
+  object-fit: cover;
+  border-radius: 4px;
+}
+
+.track-info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.track-info .title {
+  color: #fff;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.track-info .artist {
+  color: #a7a7a7;
+  font-size: 12px;
+}
+
+.player-controls {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+
+.control-buttons {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.control-button {
+  background: none;
+  border: none;
+  color: #a7a7a7;
+  cursor: pointer;
+  padding: 4px;
+  transition: color 0.2s ease;
+}
+
+.control-button:hover {
+  color: #fff;
+}
+
+.control-button.play {
+  color: #fff;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.control-button.play svg {
+  color: #000;
+}
+
+.control-button.play:hover {
+  transform: scale(1.05);
+}
+
+.progress-bar {
+  width: 100%;
+  max-width: 600px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.time {
+  color: #a7a7a7;
+  font-size: 12px;
+  min-width: 40px;
+}
+
+.progress-slider {
+  flex: 1;
+  height: 4px;
+  background: #4d4d4d;
+  border-radius: 2px;
+  cursor: pointer;
+  position: relative;
+}
+
+.progress-slider:hover .progress-value {
+  background: #1db954;
+}
+
+.progress-value {
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  background: #fff;
+  border-radius: 2px;
+}
+
+.extra-controls {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 16px;
+}
+
+.volume-control {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 125px;
+}
+
+.volume-slider {
+  flex: 1;
+  height: 4px;
+  background: #4d4d4d;
+  border-radius: 2px;
+  cursor: pointer;
+  position: relative;
+}
+
+.volume-slider:hover .volume-value {
+  background: #1db954;
+}
+
+.volume-value {
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  background: #fff;
+  border-radius: 2px;
+  width: 70%;
+}

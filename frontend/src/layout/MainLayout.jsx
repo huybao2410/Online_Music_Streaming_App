@@ -17,18 +17,14 @@ export default function MainLayout() {
   };
 
   return (
-    <div className="homepage">
+    <div className="app-shell">
       <Header isLoginOpen={isLoginOpen} setIsLoginOpen={setIsLoginOpen} />
-
-      <div className="main-layout">
+      <div className="app-layout">
         <Sidebar isLoginOpen={isLoginOpen} setIsLoginOpen={setIsLoginOpen} />
-
-        <main className="main-content">
-          {/* 👇 Tại đây sẽ hiển thị HomePage hoặc PremiumRegis */}
+        <div className="main-view">
           <Outlet />
-        </main>
+        </div>
       </div>
-
       <Footer />
 
       {isLoginOpen && (
