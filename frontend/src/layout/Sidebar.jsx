@@ -1,12 +1,21 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { HiHome, HiMagnifyingGlass, HiPlus, HiArrowRight, HiHeart, HiChevronDown } from "react-icons/hi2";
-import { BiLibrary } from "react-icons/bi";
+import {
+  HiMagnifyingGlass,
+  HiHeart,
+  HiChevronDown,
+} from "react-icons/hi2";
+import { getAllArtists } from "../services/artistService"; // 🟢 Gọi API nghệ sĩ
 
 export default function Sidebar({ isLoginOpen, setIsLoginOpen }) {
   const [isLoggedIn, setIsLoggedIn] = useState(!!localStorage.getItem("token"));
+  const [activeTab, setActiveTab] = useState("playlist");
+  const [artists, setArtists] = useState([]);
+  const [loadingArtists, setLoadingArtists] = useState(false);
+
   const navigate = useNavigate();
 
+  // Kiểm tra token đăng nhập thay đổi
   useEffect(() => {
     const handleStorageChange = () => {
       setIsLoggedIn(!!localStorage.getItem("token"));
@@ -14,6 +23,23 @@ export default function Sidebar({ isLoginOpen, setIsLoginOpen }) {
     window.addEventListener("storage", handleStorageChange);
     return () => window.removeEventListener("storage", handleStorageChange);
   }, []);
+
+  // 🟣 Khi nhấn vào tab Nghệ sĩ
+  const handleArtistClick = async () => {
+    console.log("🎵 Nhấn tab Nghệ sĩ");
+    setActiveTab("artist");
+    setLoadingArtists(true);
+    try {
+      const data = await getAllArtists();
+      console.log("✅ Danh sách nghệ sĩ:", data);
+      setArtists(data);
+    } catch (err) {
+      console.error("❌ Lỗi tải nghệ sĩ:", err);
+      setArtists([]);
+    } finally {
+      setLoadingArtists(false);
+    }
+  };
 
   return (
     <aside className="sidebar">
@@ -24,12 +50,29 @@ export default function Sidebar({ isLoginOpen, setIsLoginOpen }) {
           </div>
         </div>
 
+        {/* Tabs */}
         <div className="filter-tabs">
-          <button className="filter-tab active">Playlist</button>
-          <button className="filter-tab">Nghệ sĩ</button>
-          <button className="filter-tab">Album</button>
+          <button
+            className={`filter-tab ${activeTab === "playlist" ? "active" : ""}`}
+            onClick={() => setActiveTab("playlist")}
+          >
+            Playlist
+          </button>
+          <button
+            className={`filter-tab ${activeTab === "artist" ? "active" : ""}`}
+            onClick={handleArtistClick}
+          >
+            Nghệ sĩ
+          </button>
+          <button
+            className={`filter-tab ${activeTab === "album" ? "active" : ""}`}
+            onClick={() => setActiveTab("album")}
+          >
+            Album
+          </button>
         </div>
 
+        {/* Controls */}
         <div className="library-controls">
           <button className="control-btn" title="Tìm trong thư viện">
             <HiMagnifyingGlass size={16} />
@@ -40,39 +83,62 @@ export default function Sidebar({ isLoginOpen, setIsLoginOpen }) {
           </button>
         </div>
 
+        {/* Nội dung hiển thị */}
         <div className="library-content">
           {isLoggedIn ? (
             <>
-              <button onClick={() => navigate("/favorite")} className="library-item">
-                <div className="item-cover liked-songs">
-                  <HiHeart size={32} />
-                </div>
-                <div className="item-info">
-                  <span className="item-title">Bài hát đã thích</span>
-                  <span className="item-subtitle">
-                    <span className="item-type">Playlist</span>
-                  </span>
-                </div>
-              </button>
+              {/* Tab Playlist */}
+              {activeTab === "playlist" && (
+                <button
+                  onClick={() => navigate("/favorite")}
+                  className="library-item"
+                >
+                  <div className="item-cover liked-songs">
+                    <HiHeart size={32} />
+                  </div>
+                  <div className="item-info">
+                    <span className="item-title">Bài hát đã thích</span>
+                    <span className="item-subtitle">
+                      <span className="item-type">Playlist</span>
+                    </span>
+                  </div>
+                </button>
+              )}
 
-              {/* Example items - replace with real data */}
-              <button className="library-item">
-                <div className="item-cover playlist">
-                  <img src="https://via.placeholder.com/48" alt="Ảnh playlist" />
+              {/* Tab Nghệ sĩ */}
+              {activeTab === "artist" && (
+                <div className="artist-list">
+                  <h4>Danh sách nghệ sĩ</h4>
+                  {loadingArtists ? (
+                    <p>Đang tải nghệ sĩ...</p>
+                  ) : artists.length > 0 ? (
+                    artists.map((artist, i) => (
+                      <div key={i} className="artist-item">
+                        <span>🎤 {artist}</span>
+                      </div>
+                    ))
+                  ) : (
+                    <p>Không có nghệ sĩ nào.</p>
+                  )}
                 </div>
-                <div className="item-info">
-                  <span className="item-title">Playlist của tôi #1</span>
-                  <span className="item-subtitle">
-                    <span className="item-type">Playlist</span> • <span className="item-owner">Bạn</span>
-                  </span>
+              )}
+
+              {/* Tab Album */}
+              {activeTab === "album" && (
+                <div className="album-placeholder">
+                  <p>Chức năng album sẽ cập nhật sau 🎧</p>
                 </div>
-              </button>
+              )}
             </>
           ) : (
+            // Nếu chưa đăng nhập
             <div className="login-prompt">
               <h3>Tạo playlist đầu tiên</h3>
               <p>Rất đơn giản, chúng tôi sẽ hướng dẫn bạn</p>
-              <button onClick={() => setIsLoginOpen(true)} className="create-playlist-btn">
+              <button
+                onClick={() => setIsLoginOpen(true)}
+                className="create-playlist-btn"
+              >
                 Tạo playlist
               </button>
 
@@ -80,7 +146,10 @@ export default function Sidebar({ isLoginOpen, setIsLoginOpen }) {
 
               <h3>Khám phá podcast yêu thích</h3>
               <p>Chúng tôi sẽ cập nhật các tập mới cho bạn</p>
-              <button onClick={() => setIsLoginOpen(true)} className="browse-btn">
+              <button
+                onClick={() => setIsLoginOpen(true)}
+                className="browse-btn"
+              >
                 Duyệt podcast
               </button>
             </div>
