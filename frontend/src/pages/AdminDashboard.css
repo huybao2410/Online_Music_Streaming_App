@@ -379,6 +379,172 @@
 }
 
 /* === ARTISTS TABLE === */
-.admin-table td:nth-child(4) {
-  text-align: right;
+.artist-avatar {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #2d5f5f 0%, #1a3838 100%);
+  margin: 0 auto;
+}
+
+.artist-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.avatar-placeholder {
+  font-size: 24px;
+  opacity: 0.5;
+}
+
+.artist-name {
+  font-weight: 600;
+  color: #00c4cc;
+}
+
+.action-cell {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+  align-items: center;
+}
+
+/* Loading & Empty States */
+.loading-state,
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 20px;
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.spinner {
+  width: 50px;
+  height: 50px;
+  border: 4px solid rgba(74, 155, 155, 0.2);
+  border-top-color: #4a9b9b;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-bottom: 16px;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.empty-state p {
+  font-size: 16px;
+  margin-bottom: 20px;
+}
+
+/* === USER MANAGEMENT === */
+.header-actions {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.search-input {
+  padding: 10px 15px;
+  background: #1a1e24;
+  border: 1px solid #2a2f38;
+  border-radius: 8px;
+  color: #fff;
+  font-size: 14px;
+  width: 300px;
+  transition: all 0.3s;
+}
+
+.search-input:focus {
+  outline: none;
+  border-color: #4a9b9b;
+  box-shadow: 0 0 0 3px rgba(74, 155, 155, 0.1);
+}
+
+.search-input::placeholder {
+  color: #6a6f7a;
+}
+
+.search-btn {
+  padding: 10px 20px;
+  background: linear-gradient(135deg, #4a9b9b, #3a8b8b);
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.search-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(74, 155, 155, 0.3);
+}
+
+.role-select,
+.status-select {
+  padding: 6px 12px;
+  background: #1a1e24;
+  border: 1px solid #2a2f38;
+  border-radius: 6px;
+  color: #fff;
+  font-size: 13px;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.role-select:hover,
+.status-select:hover {
+  border-color: #4a9b9b;
+}
+
+.role-select.admin {
+  color: #ffd700;
+  font-weight: 600;
+}
+
+.role-select.user {
+  color: #8a8f98;
+}
+
+.status-select.active {
+  color: #4ade80;
+}
+
+.status-select.inactive {
+  color: #fbbf24;
+}
+
+.status-select.banned {
+  color: #ff6b6b;
+}
+
+.admin-table td select {
+  margin: 0;
+}
+
+.admin-table td:nth-child(4),
+.admin-table td:nth-child(5) {
+  min-width: 120px;
+}
+
+@media (max-width: 768px) {
+  .header-actions {
+    flex-direction: column;
+    width: 100%;
+  }
+
+  .search-input {
+    width: 100%;
+  }
 }

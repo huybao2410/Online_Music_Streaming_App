@@ -1,27 +1,202 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import ArtistModal from "../components/ArtistModal";
+import axios from "axios";
 import "./AdminDashboard.css";
 
 const AdminDashboard = () => {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState("overview");
+  const [showArtistModal, setShowArtistModal] = useState(false);
+  const [selectedArtist, setSelectedArtist] = useState(null);
+  const [artists, setArtists] = useState([]);
+  const [isLoadingArtists, setIsLoadingArtists] = useState(false);
 
-  const [users] = useState([
-    { id: 1, name: "Nguyễn Văn A", email: "nguyena@example.com", joinDate: "2024-01-15", status: "Active" },
-    { id: 2, name: "Trần Thị B", email: "tranb@example.com", joinDate: "2024-02-20", status: "Active" },
-    { id: 3, name: "Lê Văn C", email: "levc@example.com", joinDate: "2024-03-10", status: "Inactive" },
-  ]);
+  // Get token once
+  const token = localStorage.getItem("token");
+
+  // Check admin permission
+  useEffect(() => {
+    const role = localStorage.getItem("role");
+
+    if (!token) {
+      alert("Vui lòng đăng nhập");
+      navigate("/");
+      return;
+    }
+
+    if (role !== "admin") {
+      alert("Bạn không có quyền truy cập trang này");
+      navigate("/");
+      return;
+    }
+  }, [navigate]);
+
+  // Fetch artists when tab changes
+  useEffect(() => {
+    if (activeTab === "artists") {
+      fetchArtists();
+    }
+  }, [activeTab]);
+
+  const fetchArtists = async () => {
+    setIsLoadingArtists(true);
+    try {
+      const response = await axios.get("http://localhost:5000/api/artists");
+      if (response.data.success) {
+        setArtists(response.data.artists);
+      }
+    } catch (error) {
+      console.error("Error fetching artists:", error);
+      alert("Lỗi khi tải danh sách nghệ sĩ");
+    } finally {
+      setIsLoadingArtists(false);
+    }
+  };
+
+  const handleAddArtist = () => {
+    setSelectedArtist(null);
+    setShowArtistModal(true);
+  };
+
+  const handleEditArtist = (artist) => {
+    setSelectedArtist(artist);
+    setShowArtistModal(true);
+  };
+
+  const handleDeleteArtist = async (id, name) => {
+    if (!window.confirm(`Bạn có chắc muốn xóa nghệ sĩ "${name}"?`)) {
+      return;
+    }
+
+    try {
+      const token = localStorage.getItem("token");
+      const response = await axios.delete(
+        `http://localhost:5000/api/artists/${id}`,
+        {
+          headers: { Authorization: `Bearer ${token}` }
+        }
+      );
+
+      if (response.data.success) {
+        alert("Xóa nghệ sĩ thành công");
+        fetchArtists();
+      }
+    } catch (error) {
+      alert(error.response?.data?.message || "Lỗi khi xóa nghệ sĩ");
+    }
+  };
+
+  const handleArtistModalSuccess = () => {
+    fetchArtists();
+  };
+
+  // User Management
+  const [users, setUsers] = useState([]);
+  const [isLoadingUsers, setIsLoadingUsers] = useState(false);
+  const [searchUser, setSearchUser] = useState('');
+
+  const fetchUsers = async () => {
+    try {
+      setIsLoadingUsers(true);
+      console.log('Fetching users with token:', token);
+      
+      const response = await axios.get('/api/admin/users', {
+        params: { search: searchUser || undefined },
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      
+      console.log('Users response:', response.data);
+      
+      if (response.data.success) {
+        setUsers(response.data.users);
+      }
+    } catch (error) {
+      console.error('Error fetching users:', error);
+      console.error('Error response:', error.response?.data);
+      console.error('Error status:', error.response?.status);
+      
+      if (error.response?.status === 401) {
+        alert('Session hết hạn. Vui lòng đăng nhập lại.');
+        localStorage.removeItem('token');
+        localStorage.removeItem('role');
+        navigate('/login');
+      } else {
+        alert(`Lỗi khi tải danh sách người dùng: ${error.response?.data?.message || error.message}`);
+      }
+    } finally {
+      setIsLoadingUsers(false);
+    }
+  };
+
+  const handleUpdateUserRole = async (userId, newRole) => {
+    if (!window.confirm(`Bạn có chắc muốn đổi role thành "${newRole}"?`)) {
+      return;
+    }
+
+    try {
+      const response = await axios.patch(
+        `/api/admin/users/${userId}/role`,
+        { role: newRole },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+
+      if (response.data.success) {
+        alert('Cập nhật role thành công!');
+        fetchUsers();
+      }
+    } catch (error) {
+      console.error('Error updating role:', error);
+      alert(error.response?.data?.message || 'Lỗi khi cập nhật role');
+    }
+  };
+
+  const handleUpdateUserStatus = async (userId, newStatus) => {
+    if (!window.confirm(`Bạn có chắc muốn đổi trạng thái thành "${newStatus}"?`)) {
+      return;
+    }
+
+    try {
+      const response = await axios.patch(
+        `/api/admin/users/${userId}/status`,
+        { status: newStatus },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+
+      if (response.data.success) {
+        alert('Cập nhật trạng thái thành công!');
+        fetchUsers();
+      }
+    } catch (error) {
+      console.error('Error updating status:', error);
+      alert(error.response?.data?.message || 'Lỗi khi cập nhật trạng thái');
+    }
+  };
+
+  const handleDeleteUser = async (userId, username) => {
+    if (!window.confirm(`Bạn có chắc muốn xóa người dùng "${username}"?\nHành động này không thể hoàn tác!`)) {
+      return;
+    }
+
+    try {
+      const response = await axios.delete(`/api/admin/users/${userId}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+
+      if (response.data.success) {
+        alert('Xóa người dùng thành công!');
+        fetchUsers();
+      }
+    } catch (error) {
+      console.error('Error deleting user:', error);
+      alert(error.response?.data?.message || 'Lỗi khi xóa người dùng');
+    }
+  };
 
   const [songs] = useState([
     { id: 1, title: "Chill Vibes", artist: "Artist A", plays: 2450, uploaded: "2024-01-20", status: "Active" },
     { id: 2, title: "Summer Hits", artist: "Artist B", plays: 3120, uploaded: "2024-02-15", status: "Active" },
     { id: 3, title: "Night Drive", artist: "Artist C", plays: 1890, uploaded: "2024-03-05", status: "Inactive" },
-  ]);
-
-  const [artists] = useState([
-    { id: 1, name: "Artist A", genre: "Pop", followers: 5200, joined: "2023-10-01", status: "Active" },
-    { id: 2, name: "Artist B", genre: "Rock", followers: 4100, joined: "2023-12-12", status: "Active" },
-    { id: 3, name: "Artist C", genre: "Indie", followers: 2750, joined: "2024-01-08", status: "Inactive" },
   ]);
 
   const stats = [
@@ -37,12 +212,17 @@ const AdminDashboard = () => {
     navigate("/login");
   };
 
-  const handleDeleteUser = (id) => alert(`Xóa người dùng #${id}`);
   const handleDeleteSong = (id) => alert(`Xóa bài hát #${id}`);
-  const handleDeleteArtist = (id) => alert(`Xóa nghệ sĩ #${id}`);
-  const handleAddUser = () => alert("Mở form thêm người dùng mới");
   const handleAddSong = () => alert("Mở form thêm bài hát mới");
-  const handleAddArtist = () => alert("Mở form thêm nghệ sĩ mới");
+
+  // Fetch data when tab changes
+  useEffect(() => {
+    if (activeTab === 'users') {
+      fetchUsers();
+    } else if (activeTab === 'artists') {
+      fetchArtists();
+    }
+  }, [activeTab]);
 
   return (
     <div className="admin-dashboard">
@@ -140,38 +320,90 @@ const AdminDashboard = () => {
         {activeTab === "users" && (
           <div className="tab-content">
             <div className="tab-header">
-              <h2>👥 Quản Lý Người Dùng</h2>
-              <button className="add-btn" onClick={handleAddUser}>➕ Thêm Người Dùng</button>
+              <h2>👥 Quản Lý Người Dùng ({users.length})</h2>
+              <div className="header-actions">
+                <input
+                  type="text"
+                  className="search-input"
+                  placeholder="Tìm kiếm theo tên hoặc email..."
+                  value={searchUser}
+                  onChange={(e) => setSearchUser(e.target.value)}
+                  onKeyDown={(e) => e.key === 'Enter' && fetchUsers()}
+                />
+                <button className="search-btn" onClick={fetchUsers}>🔍 Tìm</button>
+              </div>
             </div>
-            <div className="table-container">
-              <table className="admin-table">
-                <thead>
-                  <tr>
-                    <th>ID</th>
-                    <th>Tên Người Dùng</th>
-                    <th>Email</th>
-                    <th>Ngày Tham Gia</th>
-                    <th>Trạng Thái</th>
-                    <th>Hành Động</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {users.map((u) => (
-                    <tr key={u.id}>
-                      <td>#{u.id}</td>
-                      <td>{u.name}</td>
-                      <td>{u.email}</td>
-                      <td>{u.joinDate}</td>
-                      <td><span className={`status-badge ${u.status.toLowerCase()}`}>{u.status}</span></td>
-                      <td>
-                        <button className="action-btn edit">✏️ Sửa</button>
-                        <button className="action-btn delete" onClick={() => handleDeleteUser(u.id)}>🗑️ Xóa</button>
-                      </td>
+
+            {isLoadingUsers ? (
+              <div className="loading-state">
+                <div className="spinner"></div>
+                <p>Đang tải danh sách người dùng...</p>
+              </div>
+            ) : users.length === 0 ? (
+              <div className="empty-state">
+                <p>Không tìm thấy người dùng nào</p>
+              </div>
+            ) : (
+              <div className="table-container">
+                <table className="admin-table">
+                  <thead>
+                    <tr>
+                      <th>ID</th>
+                      <th>Tên Người Dùng</th>
+                      <th>Email</th>
+                      <th>Role</th>
+                      <th>Trạng Thái</th>
+                      <th>Playlist</th>
+                      <th>Yêu Thích</th>
+                      <th>Ngày Tham Gia</th>
+                      <th>Hành Động</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+                  </thead>
+                  <tbody>
+                    {users.map((u) => (
+                      <tr key={u.id}>
+                        <td>#{u.id}</td>
+                        <td><strong>{u.username}</strong></td>
+                        <td>{u.email}</td>
+                        <td>
+                          <select
+                            className={`role-select ${u.role}`}
+                            value={u.role}
+                            onChange={(e) => handleUpdateUserRole(u.id, e.target.value)}
+                          >
+                            <option value="user">User</option>
+                            <option value="admin">Admin</option>
+                          </select>
+                        </td>
+                        <td>
+                          <select
+                            className={`status-select ${u.status}`}
+                            value={u.status}
+                            onChange={(e) => handleUpdateUserStatus(u.id, e.target.value)}
+                          >
+                            <option value="active">Active</option>
+                            <option value="inactive">Inactive</option>
+                            <option value="banned">Banned</option>
+                          </select>
+                        </td>
+                        <td>{u.playlist_count || 0}</td>
+                        <td>{u.favorite_count || 0}</td>
+                        <td>{new Date(u.created_at).toLocaleDateString('vi-VN')}</td>
+                        <td>
+                          <button 
+                            className="action-btn delete" 
+                            onClick={() => handleDeleteUser(u.id, u.username)}
+                            title="Xóa người dùng"
+                          >
+                            🗑️
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
           </div>
         )}
 
@@ -223,40 +455,78 @@ const AdminDashboard = () => {
               <h2>🎤 Quản Lý Nghệ Sĩ</h2>
               <button className="add-btn" onClick={handleAddArtist}>➕ Thêm Nghệ Sĩ</button>
             </div>
-            <div className="table-container">
-              <table className="admin-table">
-                <thead>
-                  <tr>
-                    <th>ID</th>
-                    <th>Tên Nghệ Sĩ</th>
-                    <th>Thể Loại</th>
-                    <th>Lượt Theo Dõi</th>
-                    <th>Ngày Gia Nhập</th>
-                    <th>Trạng Thái</th>
-                    <th>Hành Động</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {artists.map((a) => (
-                    <tr key={a.id}>
-                      <td>#{a.id}</td>
-                      <td>{a.name}</td>
-                      <td>{a.genre}</td>
-                      <td>{a.followers.toLocaleString()}</td>
-                      <td>{a.joined}</td>
-                      <td><span className={`status-badge ${a.status.toLowerCase()}`}>{a.status}</span></td>
-                      <td>
-                        <button className="action-btn edit">✏️ Sửa</button>
-                        <button className="action-btn delete" onClick={() => handleDeleteArtist(a.id)}>🗑️ Xóa</button>
-                      </td>
+            
+            {isLoadingArtists ? (
+              <div className="loading-state">
+                <div className="spinner"></div>
+                <p>Đang tải...</p>
+              </div>
+            ) : artists.length === 0 ? (
+              <div className="empty-state">
+                <p>Chưa có nghệ sĩ nào</p>
+                <button className="add-btn" onClick={handleAddArtist}>➕ Thêm nghệ sĩ đầu tiên</button>
+              </div>
+            ) : (
+              <div className="table-container">
+                <table className="admin-table">
+                  <thead>
+                    <tr>
+                      <th>ID</th>
+                      <th>Ảnh</th>
+                      <th>Tên Nghệ Sĩ</th>
+                      <th>Số Bài Hát</th>
+                      <th>Hành Động</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+                  </thead>
+                  <tbody>
+                    {artists.map((artist) => (
+                      <tr key={artist.id}>
+                        <td>#{artist.id}</td>
+                        <td>
+                          <div className="artist-avatar">
+                            {artist.avatar_url ? (
+                              <img src={artist.avatar_url} alt={artist.name} />
+                            ) : (
+                              <div className="avatar-placeholder">👤</div>
+                            )}
+                          </div>
+                        </td>
+                        <td className="artist-name">{artist.name}</td>
+                        <td>{artist.song_count || 0} bài hát</td>
+                        <td className="action-cell">
+                          <button 
+                            className="action-btn edit"
+                            onClick={() => handleEditArtist(artist)}
+                          >
+                            ✏️ Sửa
+                          </button>
+                          <button 
+                            className="action-btn delete"
+                            onClick={() => handleDeleteArtist(artist.id, artist.name)}
+                          >
+                            🗑️ Xóa
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
           </div>
         )}
       </div>
+
+      {/* Artist Modal */}
+      <ArtistModal
+        isOpen={showArtistModal}
+        onClose={() => {
+          setShowArtistModal(false);
+          setSelectedArtist(null);
+        }}
+        artist={selectedArtist}
+        onSuccess={handleArtistModalSuccess}
+      />
     </div>
   );
 };

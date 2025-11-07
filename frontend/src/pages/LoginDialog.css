@@ -1,81 +1,359 @@
-/* LoginDialog.css hoặc dùng chung với SignupDialog.css */
-.dialog-overlay {
+/* LoginDialog.css - NCT Style */
+
+.login-overlay {
   position: fixed;
   top: 0;
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(0,0,0,0.5); /* nền mờ */
+  background: rgba(0, 0, 0, 0.85);
   display: flex;
-  justify-content: center;
   align-items: center;
-  z-index: 1000;
+  justify-content: center;
+  z-index: 9999;
+  backdrop-filter: blur(4px);
 }
 
-.dialog-box {
-  background-color: #fff;
-  padding: 30px 20px;
-  border-radius: 10px;
-  width: 350px;
-  max-width: 90%;
+.login-dialog {
   position: relative;
-  text-align: center;
-  box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+  background: #2a2a2a;
+  border-radius: 12px;
+  padding: 40px 45px;
+  width: 90%;
+  max-width: 480px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6);
+  animation: slideIn 0.3s ease-out;
 }
 
-.dialog-close {
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.login-close-btn {
   position: absolute;
-  top: 10px;
-  right: 15px;
-  border: none;
+  top: 16px;
+  right: 16px;
   background: none;
-  font-size: 22px;
-  font-weight: bold;
+  border: none;
+  color: #999;
   cursor: pointer;
-  color: #555;
+  padding: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   transition: color 0.2s;
 }
 
-.dialog-close:hover {
-  color: #000;
+.login-close-btn:hover {
+  color: #fff;
 }
 
-.dialog-box h2 {
+.login-title {
+  color: #fff;
+  font-size: 28px;
+  font-weight: 600;
+  margin: 0 0 24px 0;
+  text-align: center;
+}
+
+.login-error {
+  background: rgba(255, 59, 48, 0.15);
+  border: 1px solid rgba(255, 59, 48, 0.4);
+  color: #ff6b6b;
+  padding: 12px 16px;
+  border-radius: 8px;
   margin-bottom: 20px;
-  font-size: 24px;
-  color: #1DB954; /* màu xanh nổi bật */
-}
-
-.dialog-box input {
-  width: 100%;
-  padding: 10px 12px;
-  margin: 8px 0;
-  border-radius: 6px;
-  border: 1px solid #ccc;
-  font-size: 16px;
-  box-sizing: border-box;
-}
-
-.dialog-box button[type="submit"] {
-  width: 12%;
-  padding: 10px;
-  margin-top: 15px;
-  border: none;
-  border-radius: 6px;
-  background-color: #1DB954; /* màu xanh Spotify */
-  color: white;
-  font-weight: bold;
-  font-size: 16px;
-  cursor: pointer;
-  transition: background 0.2s;
-}
-
-.dialog-box button[type="submit"]:hover {
-  background-color: #17a44c;
-}
-
-.error-msg {
-  color: red;
-  margin-bottom: 10px;
   font-size: 14px;
+  text-align: center;
+}
+
+.login-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.input-group {
+  position: relative;
+}
+
+.login-input {
+  width: 100%;
+  padding: 14px 16px;
+  background: #1a1a1a;
+  border: 1px solid #404040;
+  border-radius: 8px;
+  color: #fff;
+  font-size: 15px;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.login-input:focus {
+  border-color: #00d9ff;
+}
+
+.login-input::placeholder {
+  color: #666;
+}
+
+.password-toggle {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  color: #999;
+  cursor: pointer;
+  padding: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: color 0.2s;
+}
+
+.password-toggle:hover {
+  color: #fff;
+}
+
+.login-options {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 4px;
+}
+
+.checkbox-label {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  color: #ccc;
+  font-size: 14px;
+  cursor: pointer;
+  user-select: none;
+}
+
+.checkbox-label input[type="checkbox"] {
+  margin-top: 2px;
+  cursor: pointer;
+  accent-color: #00d9ff;
+}
+
+.checkbox-label span {
+  flex: 1;
+  line-height: 1.5;
+}
+
+.forgot-password {
+  color: #00d9ff;
+  font-size: 14px;
+  text-decoration: none;
+  transition: opacity 0.2s;
+}
+
+.forgot-password:hover {
+  opacity: 0.8;
+}
+
+.terms-checkbox {
+  background: rgba(0, 217, 255, 0.05);
+  border: 1px solid rgba(0, 217, 255, 0.2);
+  border-radius: 8px;
+  padding: 12px;
+  margin-top: 4px;
+}
+
+.terms-checkbox .checkbox-label {
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.terms-link {
+  color: #00d9ff;
+  text-decoration: none;
+  transition: opacity 0.2s;
+}
+
+.terms-link:hover {
+  opacity: 0.8;
+  text-decoration: underline;
+}
+
+.login-submit-btn {
+  width: 100%;
+  padding: 14px;
+  background: linear-gradient(135deg, #00d9ff 0%, #00a8cc 100%);
+  border: none;
+  border-radius: 8px;
+  color: #fff;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  margin-top: 8px;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.login-submit-btn:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(0, 217, 255, 0.4);
+}
+
+.login-submit-btn:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.login-submit-btn:disabled {
+  background: #404040;
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.login-divider {
+  position: relative;
+  text-align: center;
+  margin: 28px 0 20px;
+}
+
+.login-divider::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 50%;
+  height: 1px;
+  background: #404040;
+}
+
+.login-divider span {
+  position: relative;
+  display: inline-block;
+  background: #2a2a2a;
+  padding: 0 16px;
+  color: #999;
+  font-size: 14px;
+}
+
+.social-login-buttons {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.social-login-buttons:last-child {
+  margin-bottom: 0;
+}
+
+.social-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px 16px;
+  border: 1px solid #404040;
+  border-radius: 8px;
+  background: #1a1a1a;
+  color: #fff;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.social-btn:hover {
+  background: #333;
+  border-color: #555;
+  transform: translateY(-2px);
+}
+
+.facebook-btn {
+  border-color: #1877f2;
+}
+
+.facebook-btn:hover {
+  background: rgba(24, 119, 242, 0.15);
+  border-color: #1877f2;
+}
+
+.google-btn {
+  border-color: #ea4335;
+}
+
+.google-btn:hover {
+  background: rgba(234, 67, 53, 0.15);
+  border-color: #ea4335;
+}
+
+.phone-btn {
+  border-color: #10b981;
+}
+
+.phone-btn:hover {
+  background: rgba(16, 185, 129, 0.15);
+  border-color: #10b981;
+}
+
+.qr-btn {
+  border-color: #8b5cf6;
+}
+
+.qr-btn:hover {
+  background: rgba(139, 92, 246, 0.15);
+  border-color: #8b5cf6;
+}
+
+/* Responsive Design */
+@media (max-width: 600px) {
+  .login-dialog {
+    padding: 32px 24px;
+    max-width: 95%;
+  }
+
+  .login-title {
+    font-size: 24px;
+  }
+
+  .social-login-buttons {
+    grid-template-columns: 1fr;
+  }
+
+  .login-options {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+}
+
+/* Signup Link */
+.signup-link {
+  text-align: center;
+  margin-top: 24px;
+  padding-top: 24px;
+  border-top: 1px solid #404040;
+  color: #ccc;
+  font-size: 14px;
+}
+
+.signup-link button {
+  background: none;
+  border: none;
+  color: #00d9ff;
+  font-weight: 600;
+  cursor: pointer;
+  font-size: 14px;
+  transition: opacity 0.2s;
+  padding: 0;
+  text-decoration: underline;
+}
+
+.signup-link button:hover {
+  opacity: 0.8;
 }

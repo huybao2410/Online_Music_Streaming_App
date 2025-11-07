@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Outlet } from "react-router-dom";
 import Header from "./Header";
 import Sidebar from "./Sidebar";
@@ -15,6 +15,27 @@ export default function MainLayout() {
     setIsLoginOpen(false);
     window.location.reload();
   };
+
+  // Listen for custom events to switch between dialogs
+  useEffect(() => {
+    const handleOpenSignup = () => {
+      setIsLoginOpen(false);
+      setIsSignupOpen(true);
+    };
+
+    const handleOpenLogin = () => {
+      setIsSignupOpen(false);
+      setIsLoginOpen(true);
+    };
+
+    window.addEventListener('openSignup', handleOpenSignup);
+    window.addEventListener('openLogin', handleOpenLogin);
+
+    return () => {
+      window.removeEventListener('openSignup', handleOpenSignup);
+      window.removeEventListener('openLogin', handleOpenLogin);
+    };
+  }, []);
 
   return (
     <div className="app-shell">

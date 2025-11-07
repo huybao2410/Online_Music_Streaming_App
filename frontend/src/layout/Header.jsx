@@ -4,6 +4,9 @@ import { HiHome, HiMagnifyingGlass } from "react-icons/hi2";
 import { IoDownload } from "react-icons/io5";
 import { FaChevronDown } from "react-icons/fa";
 import { CgProfile } from "react-icons/cg";
+import { MdSettings, MdLogout } from "react-icons/md";
+import { RiUserLine } from "react-icons/ri";
+import axios from "axios";
 
 export default function Header({ isLoginOpen, setIsLoginOpen }) {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
@@ -13,6 +16,30 @@ export default function Header({ isLoginOpen, setIsLoginOpen }) {
   const [isLoggedIn, setIsLoggedIn] = useState(!!localStorage.getItem("token"));
   const [searchQuery, setSearchQuery] = useState("");
   const [username, setUsername] = useState(localStorage.getItem("username") || "Người dùng");
+  const [userAvatar, setUserAvatar] = useState(null);
+
+  useEffect(() => {
+    if (isLoggedIn) {
+      fetchUserProfile();
+    }
+  }, [isLoggedIn]);
+
+  const fetchUserProfile = async () => {
+    try {
+      const token = localStorage.getItem("token");
+      if (!token) return;
+
+      const response = await axios.get("http://localhost:5000/api/users/profile", {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+
+      if (response.data.success) {
+        setUserAvatar(response.data.user.avatar_url);
+      }
+    } catch (error) {
+      console.error("Error fetching user profile:", error);
+    }
+  };
 
   const handleLogout = () => {
     localStorage.removeItem("token");
@@ -21,6 +48,7 @@ export default function Header({ isLoginOpen, setIsLoginOpen }) {
     setIsLoggedIn(false);
     setIsDropdownOpen(false);
     setUsername("Người dùng");
+    setUserAvatar(null);
     window.dispatchEvent(new Event("storage"));
   };
 
@@ -42,8 +70,14 @@ export default function Header({ isLoginOpen, setIsLoginOpen }) {
 
   useEffect(() => {
     const handleStorageChange = () => {
-      setIsLoggedIn(!!localStorage.getItem("token"));
+      const loggedIn = !!localStorage.getItem("token");
+      setIsLoggedIn(loggedIn);
       setUsername(localStorage.getItem("username") || "User");
+      if (loggedIn) {
+        fetchUserProfile();
+      } else {
+        setUserAvatar(null);
+      }
     };
     window.addEventListener("storage", handleStorageChange);
     return () => window.removeEventListener("storage", handleStorageChange);
@@ -76,7 +110,7 @@ export default function Header({ isLoginOpen, setIsLoginOpen }) {
 
       <div className="header-right" ref={dropdownRef}>
         <a href="#premium" className="premium-btn">
-          Dùng Premium
+          Trải nghiệm Premium
         </a>
         
         <button className="install-btn">
@@ -91,7 +125,11 @@ export default function Header({ isLoginOpen, setIsLoginOpen }) {
               onClick={() => setIsDropdownOpen(!isDropdownOpen)}
             >
               <div className="avatar">
-                <CgProfile size={24} />
+                {userAvatar ? (
+                  <img src={userAvatar} alt={username} />
+                ) : (
+                  <CgProfile size={24} />
+                )}
               </div>
               <span className="username">{username}</span>
               <FaChevronDown 
@@ -105,19 +143,31 @@ export default function Header({ isLoginOpen, setIsLoginOpen }) {
 
             {isDropdownOpen && (
               <div className="profile-menu">
-                <a href="#account" className="menu-item">Tài khoản</a>
-                <a href="#profile" className="menu-item">Hồ sơ</a>
-                <a href="#settings" className="menu-item">Cài đặt</a>
+                <button 
+                  className="menu-item" 
+                  onClick={() => {
+                    setIsDropdownOpen(false);
+                    navigate("/profile");
+                  }}
+                >
+                  <RiUserLine size={18} />
+                  <span>Hồ sơ</span>
+                </button>
+                <a href="#settings" className="menu-item">
+                  <MdSettings size={18} />
+                  <span>Cài đặt</span>
+                </a>
                 <div className="menu-separator"></div>
                 <button className="menu-item" onClick={handleLogout}>
-                  Đăng xuất
+                  <MdLogout size={18} />
+                  <span>Đăng xuất</span>
                 </button>
               </div>
             )}
           </div>
         ) : (
           <button className="signup-btn" onClick={() => setIsLoginOpen(true)}>
-            Đăng ký
+            Đăng nhập
           </button>
         )}
       </div>

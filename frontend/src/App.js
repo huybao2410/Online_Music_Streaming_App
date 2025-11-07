@@ -7,6 +7,10 @@ import AdminDashboard from "./pages/AdminDashboard";
 import LoginDialog from "./pages/LoginDialog";
 import SignupDialog from "./pages/SignupDialog";
 import UploadSong from "./pages/UploadSong";
+import UserProfile from "./pages/UserProfile";
+import PlaylistDetail from "./pages/PlaylistDetail";
+import EditPlaylist from "./pages/EditPlaylist";
+import FavoriteSongs from "./pages/FavoriteSongs";
 
 function App() {
   return (
@@ -14,8 +18,12 @@ function App() {
       <Routes>
         <Route element={<MainLayout />}>
           <Route index element={<HomePage />} />       
-          <Route path="/home" element={<HomePage />} />      
+          <Route path="/home" element={<HomePage />} />
+          <Route path="/favorites" element={<FavoriteSongs />} />      
           <Route path="/premium" element={<PremiumRegis />} />
+          <Route path="/profile" element={<UserProfile />} />
+          <Route path="/playlist/:id" element={<PlaylistDetail />} />
+          <Route path="/playlist/:id/edit" element={<EditPlaylist />} />
         </Route>
 
         <Route path="/upload" element={<UploadSong />} />

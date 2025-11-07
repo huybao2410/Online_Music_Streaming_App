@@ -2,9 +2,12 @@ import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { HiHome, HiMagnifyingGlass, HiPlus, HiArrowRight, HiHeart, HiChevronDown } from "react-icons/hi2";
 import { BiLibrary } from "react-icons/bi";
+import CreatePlaylistModal from "../components/CreatePlaylistModal";
 
 export default function Sidebar({ isLoginOpen, setIsLoginOpen }) {
   const [isLoggedIn, setIsLoggedIn] = useState(!!localStorage.getItem("token"));
+  const [showCreatePlaylist, setShowCreatePlaylist] = useState(false);
+  const [playlists, setPlaylists] = useState([]);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -14,6 +17,41 @@ export default function Sidebar({ isLoginOpen, setIsLoginOpen }) {
     window.addEventListener("storage", handleStorageChange);
     return () => window.removeEventListener("storage", handleStorageChange);
   }, []);
+
+  useEffect(() => {
+    if (isLoggedIn) {
+      fetchUserPlaylists();
+    }
+  }, [isLoggedIn]);
+
+  const fetchUserPlaylists = async () => {
+    try {
+      const token = localStorage.getItem("token");
+      if (!token) return;
+
+      const response = await fetch("http://localhost:5000/api/playlists/my-playlists", {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      });
+
+      const data = await response.json();
+      if (data.success) {
+        setPlaylists(data.playlists);
+      }
+    } catch (error) {
+      console.error("Error fetching playlists:", error);
+    }
+  };
+
+  const handleCreatePlaylist = () => {
+    setShowCreatePlaylist(true);
+  };
+
+  const handlePlaylistCreated = (newPlaylist) => {
+    // Refresh playlist list
+    fetchUserPlaylists();
+  };
 
   return (
     <aside className="sidebar">
@@ -43,7 +81,15 @@ export default function Sidebar({ isLoginOpen, setIsLoginOpen }) {
         <div className="library-content">
           {isLoggedIn ? (
             <>
-              <button onClick={() => navigate("/favorite")} className="library-item">
+              {/* Nút tạo playlist */}
+              <div className="create-playlist-section">
+                <button className="create-playlist-btn-logged" onClick={handleCreatePlaylist}>
+                  <HiPlus size={20} />
+                  <span>Tạo playlist</span>
+                </button>
+              </div>
+
+              <button onClick={() => navigate("/favorites")} className="library-item">
                 <div className="item-cover liked-songs">
                   <HiHeart size={32} />
                 </div>
@@ -55,18 +101,43 @@ export default function Sidebar({ isLoginOpen, setIsLoginOpen }) {
                 </div>
               </button>
 
-              {/* Example items - replace with real data */}
-              <button className="library-item">
-                <div className="item-cover playlist">
-                  <img src="https://via.placeholder.com/48" alt="Ảnh playlist" />
-                </div>
-                <div className="item-info">
-                  <span className="item-title">Playlist của tôi #1</span>
-                  <span className="item-subtitle">
-                    <span className="item-type">Playlist</span> • <span className="item-owner">Bạn</span>
-                  </span>
-                </div>
-              </button>
+              {/* User's playlists */}
+              {playlists.map((playlist) => {
+                // Get cover URL - prioritize playlist cover, fallback to song covers
+                let coverUrl = null;
+                if (playlist.cover_url) {
+                  coverUrl = playlist.cover_url.startsWith('http') 
+                    ? playlist.cover_url 
+                    : `http://localhost:5000${playlist.cover_url}`;
+                } else if (playlist.cover_images && playlist.cover_images[0]) {
+                  coverUrl = playlist.cover_images[0];
+                }
+
+                return (
+                  <button
+                    key={playlist.id}
+                    className="library-item"
+                    onClick={() => navigate(`/playlist/${playlist.id}`)}
+                  >
+                    <div className="item-cover playlist">
+                      {coverUrl ? (
+                        <img src={coverUrl} alt={playlist.name} />
+                      ) : (
+                        <div className="playlist-placeholder">
+                          <HiPlus size={24} />
+                        </div>
+                      )}
+                    </div>
+                    <div className="item-info">
+                      <span className="item-title">{playlist.name}</span>
+                      <span className="item-subtitle">
+                        <span className="item-type">Playlist</span> • 
+                        <span className="item-owner"> {playlist.song_count || 0} bài hát</span>
+                      </span>
+                    </div>
+                  </button>
+                );
+              })}
             </>
           ) : (
             <div className="login-prompt">
@@ -87,6 +158,13 @@ export default function Sidebar({ isLoginOpen, setIsLoginOpen }) {
           )}
         </div>
       </div>
+
+      {/* Create Playlist Modal */}
+      <CreatePlaylistModal
+        isOpen={showCreatePlaylist}
+        onClose={() => setShowCreatePlaylist(false)}
+        onSuccess={handlePlaylistCreated}
+      />
     </aside>
   );
 }
