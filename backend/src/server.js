@@ -1,4 +1,17 @@
 // backend/src/server.js
+  import { OAuth2Client } from "google-auth-library";
+const client = new OAuth2Client(GOOGLE_CLIENT_ID);
+
+app.post("/api/auth/google-login", async (req, res) => {
+  const { token } = req.body;
+  const ticket = await client.verifyIdToken({
+    idToken: token,
+    audience: GOOGLE_CLIENT_ID,
+  });
+  const payload = ticket.getPayload();
+  // payload chứa: name, email, picture, sub (id)
+  res.json({ user: payload });
+});
 const express = require('express');
 const cors = require('cors');
 const path = require('path');
@@ -120,5 +133,7 @@ const pool = require('./config/db');
   } catch (err) {
     console.error("MySQL connection error:", err.message);
   }
+
+
 })();
 
