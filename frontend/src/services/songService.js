@@ -1,13 +1,13 @@
 import axios from "axios";
 
 // Use PHP API for songs (existing system)
-const PHP_API_URL = "http://localhost/music_API/online_music";
+const PHP_API_URL = "http://localhost/music_API/online_music/song";
 const NODE_API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
 
 // Get songs from PHP API (original system)
 export const getSongs = async (params = {}) => {
   try {
-    const response = await axios.get(`${PHP_API_URL}/list_songs_web.php`, { params });
+    const response = await axios.get(`${PHP_API_URL}/get_songs.php`, { params });
     return response.data || [];
   } catch (error) {
     console.error("Lỗi khi lấy danh sách bài hát từ PHP API:", error);

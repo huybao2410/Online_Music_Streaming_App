@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { getMyPlaylists, addSongToPlaylist, createPlaylist } from '../services/playlistService';
 import './AddToPlaylistModal.css';
-import { upsertExternalSong } from '../services/songService';
+import { getSongs, upsertExternalSong } from '../services/songService';
 
 function AddToPlaylistModal({ isOpen, onClose, song }) {
   const [playlists, setPlaylists] = useState([]);

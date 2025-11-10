@@ -11,6 +11,9 @@ import UserProfile from "./pages/UserProfile";
 import PlaylistDetail from "./pages/PlaylistDetail";
 import EditPlaylist from "./pages/EditPlaylist";
 import FavoriteSongs from "./pages/FavoriteSongs";
+import Artists from "./pages/Artists";
+
+
 
 function App() {
   return (
@@ -30,6 +33,7 @@ function App() {
         <Route path="/login" element={<LoginDialog />} />
         <Route path="/signup" element={<SignupDialog />} />
         <Route path="/admin" element={<AdminDashboard />} />
+         <Route path="/artists" element={<Artists />} />
       </Routes>
     </Router>
   );

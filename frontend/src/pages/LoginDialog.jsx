@@ -1,11 +1,9 @@
-// LoginDialog.jsx
 import React, { useState } from "react";
 import axios from "axios";
 import { AiOutlineClose, AiOutlineEye, AiOutlineEyeInvisible } from "react-icons/ai";
-import { FaFacebookF, FaGoogle, FaPhone, FaQrcode } from "react-icons/fa";
-import "./LoginDialog.css";
 import { GoogleLogin } from "@react-oauth/google";
 import { jwtDecode } from "jwt-decode";
+import "./LoginDialog.css";
 
 export default function LoginDialog({ onClose, onSuccess }) {
   const [identifier, setIdentifier] = useState("");
@@ -26,7 +24,7 @@ export default function LoginDialog({ onClose, onSuccess }) {
 
     try {
       const res = await axios.post("http://localhost:5000/api/auth/login", {
-        identifier: identifier,
+        identifier,
         password,
       });
 
@@ -38,7 +36,6 @@ export default function LoginDialog({ onClose, onSuccess }) {
         return;
       }
 
-      // Lưu thông tin
       localStorage.setItem("token", token);
       localStorage.setItem("role", user.role);
       localStorage.setItem("username", user.username || "User");
@@ -47,16 +44,12 @@ export default function LoginDialog({ onClose, onSuccess }) {
         localStorage.setItem("rememberMe", "true");
       }
 
-      // Phát sự kiện để Header & Sidebar biết
       window.dispatchEvent(new Event("storage"));
-
-      // Gọi callback (nếu có)
       onSuccess?.();
       onClose?.();
 
-      // Redirect admin đến dashboard
-      if (user.role === 'admin') {
-        window.location.href = '/admin';
+      if (user.role === "admin") {
+        window.location.href = "/admin";
       }
     } catch (error) {
       setErr(error.response?.data?.message || "Đăng nhập thất bại");
@@ -140,7 +133,6 @@ export default function LoginDialog({ onClose, onSuccess }) {
                 <a href="#" className="terms-link">
                   Điều khoản sử dụng
                 </a>
-                , cũng như các chính sách khác do NCT ban hành
               </span>
             </label>
           </div>
@@ -151,54 +143,37 @@ export default function LoginDialog({ onClose, onSuccess }) {
         </form>
 
         <div className="login-divider">
-          <span>Hoặc đăng nhập bằng</span>
+          <span>Hoặc đăng nhập bằng Google</span>
         </div>
 
-        <div className="social-login-buttons">
-          <button className="social-btn facebook-btn">
-            <FaFacebookF size={18} />
-            <span>Facebook</span>
-          </button>
-          <div className="social-btn google-btn" style={{ display: "flex", justifyContent: "center" }}>
-            <GoogleLogin
-              onSuccess={(credentialResponse) => {
-                const data = jwtDecode(credentialResponse.credential);
-                console.log("Google user:", data);
+        <div className="google-login-wrapper" style={{ display: "flex", justifyContent: "center" }}>
+          <GoogleLogin
+            onSuccess={(credentialResponse) => {
+              const data = jwtDecode(credentialResponse.credential);
+              console.log("Google user:", data);
 
-                // 👉 Giả lập đăng nhập thành công
-                localStorage.setItem("token", credentialResponse.credential);
-                localStorage.setItem("username", data.name);
-                localStorage.setItem("email", data.email);
-                localStorage.setItem("picture", data.picture);
+              localStorage.setItem("token", credentialResponse.credential);
+              localStorage.setItem("username", data.name);
+              localStorage.setItem("email", data.email);
+              localStorage.setItem("picture", data.picture);
 
-                window.dispatchEvent(new Event("storage"));
-                onSuccess?.();
-                onClose?.();
-              }}
-              onError={() => console.log("Đăng nhập Google thất bại")}
-              useOneTap
-            />
-          </div>
-        </div>
-
-        <div className="social-login-buttons">
-          <button className="social-btn phone-btn">
-            <FaPhone size={16} />
-            <span>Số điện thoại</span>
-          </button>
-          <button className="social-btn qr-btn">
-            <FaQrcode size={18} />
-            <span>Mã QR</span>
-          </button>
+              window.dispatchEvent(new Event("storage"));
+              onSuccess?.();
+              onClose?.();
+            }}
+            onError={() => console.log("Đăng nhập Google thất bại")}
+            useOneTap
+          />
         </div>
 
         <div className="signup-link">
           <span>Bạn chưa có tài khoản? </span>
-          <button onClick={() => {
-            onClose();
-            // Trigger signup dialog - will be handled by parent
-            window.dispatchEvent(new CustomEvent('openSignup'));
-          }}>
+          <button
+            onClick={() => {
+              onClose();
+              window.dispatchEvent(new CustomEvent("openSignup"));
+            }}
+          >
             Đăng ký ngay
           </button>
         </div>
