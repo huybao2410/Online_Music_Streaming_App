@@ -4,6 +4,8 @@ import axios from "axios";
 import { AiOutlineClose, AiOutlineEye, AiOutlineEyeInvisible } from "react-icons/ai";
 import { FaFacebookF, FaGoogle, FaPhone, FaQrcode } from "react-icons/fa";
 import "./LoginDialog.css";
+import { GoogleLogin } from "@react-oauth/google";
+import { jwtDecode } from "jwt-decode";
 
 export default function LoginDialog({ onClose, onSuccess }) {
   const [identifier, setIdentifier] = useState("");
@@ -157,10 +159,26 @@ export default function LoginDialog({ onClose, onSuccess }) {
             <FaFacebookF size={18} />
             <span>Facebook</span>
           </button>
-          <button className="social-btn google-btn">
-            <FaGoogle size={18} />
-            <span>Google</span>
-          </button>
+          <div className="social-btn google-btn" style={{ display: "flex", justifyContent: "center" }}>
+            <GoogleLogin
+              onSuccess={(credentialResponse) => {
+                const data = jwtDecode(credentialResponse.credential);
+                console.log("Google user:", data);
+
+                // 👉 Giả lập đăng nhập thành công
+                localStorage.setItem("token", credentialResponse.credential);
+                localStorage.setItem("username", data.name);
+                localStorage.setItem("email", data.email);
+                localStorage.setItem("picture", data.picture);
+
+                window.dispatchEvent(new Event("storage"));
+                onSuccess?.();
+                onClose?.();
+              }}
+              onError={() => console.log("Đăng nhập Google thất bại")}
+              useOneTap
+            />
+          </div>
         </div>
 
         <div className="social-login-buttons">
