@@ -30,6 +30,7 @@ function App() {
         <Route path="/login" element={<LoginDialog />} />
         <Route path="/signup" element={<SignupDialog />} />
         <Route path="/admin" element={<AdminDashboard />} />
+     
       </Routes>
     </Router>
   );
