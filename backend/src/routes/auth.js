@@ -9,62 +9,57 @@ require('dotenv').config();
 
 const router = express.Router();
 
-// Register
-router.post('/register',
-  body('phone_number').isMobilePhone().withMessage('Số điện thoại không hợp lệ'),
-  body('email').optional().isEmail().withMessage('Email không hợp lệ'),
-  body('password').isLength({ min: 6 }).withMessage('Mật khẩu phải có ít nhất 6 ký tự'),
-  async (req, res) => {
-    const errors = validationResult(req); 
-    if (!errors.isEmpty()) return res.status(400).json({ errors: errors.array() });
-
+router.post("/register", async (req, res) => {
+  try {
     const { phone_number, email, password } = req.body;
 
-    try {
-      // Kiểm tra số điện thoại đã tồn tại chưa
-      const [existsPhone] = await pool.query('SELECT id FROM users WHERE phone_number = ?', [phone_number]);
-      if (existsPhone.length) return res.status(400).json({ message: 'Số điện thoại đã được sử dụng' });
-
-      // Kiểm tra email đã tồn tại chưa (nếu có email)
-      if (email) {
-        const [existsEmail] = await pool.query('SELECT id FROM users WHERE email = ?', [email]);
-        if (existsEmail.length) return res.status(400).json({ message: 'Email đã được sử dụng' });
-      }
-
-      // Hash password
-      const hash = await bcrypt.hash(password, 10);
-
-      // Thêm user mới
-      const [result] = await pool.query(
-        `INSERT INTO users (phone_number, email, password_hash, status) VALUES (?, ?, ?, ?)`,
-        [phone_number, email || null, hash, 'active']
-      );
-
-      // Tạo token
-      const token = jwt.sign(
-        { id: result.insertId, phone_number, email: email || null, role: 'user' },
-        process.env.JWT_SECRET,
-        { expiresIn: process.env.JWT_EXPIRES_IN }
-      );
-
-      return res.status(201).json({
-        message: 'Đăng ký thành công',
-        token,
-        user: { 
-          id: result.insertId, 
-          phone_number, 
-          email: email || null,
-          role: 'user' 
-        }
-      });
-
-    } catch (err) {
-      console.error('Register error: ', err.message);
-      return res.status(500).json({ message: err.message });
+    if (!phone_number || !password) {
+      return res.status(400).json({ success: false, message: "Thiếu số điện thoại hoặc mật khẩu" });
     }
-  }
-);
 
+    const [exists] = await pool.query(
+      "SELECT id FROM users WHERE phone_number = ? OR email = ?",
+      [phone_number, email]
+    );
+
+    if (exists.length > 0) {
+      return res.status(400).json({ success: false, message: "Tài khoản đã tồn tại" });
+    }
+
+    const hashed = await bcrypt.hash(password, 10);
+
+    const [result] = await pool.query(
+      "INSERT INTO users (phone_number, email, password_hash, is_premium) VALUES (?, ?, ?, 0)",
+      [phone_number, email || null, hashed]
+    );
+
+    const userId = result.insertId;
+
+    // ✅ Kiểm tra JWT_SECRET
+    if (!process.env.JWT_SECRET) {
+      console.error("🚨 JWT_SECRET chưa được thiết lập trong .env");
+      return res.status(500).json({ success: false, message: "Lỗi máy chủ (thiếu JWT_SECRET)" });
+    }
+
+    const token = jwt.sign({ id: userId, phone_number, email }, process.env.JWT_SECRET, {
+      expiresIn: process.env.JWT_EXPIRES_IN || "7d",
+    });
+
+    res.json({
+      success: true,
+      message: "Đăng ký thành công",
+      token,
+      user: {
+        id: userId,
+        phone_number,
+        email,
+      },
+    });
+  } catch (error) {
+    console.error("❌ Lỗi đăng ký:", error);
+    res.status(500).json({ success: false, message: "Đăng ký thất bại" });
+  }
+});
 
 // Login bằng phone_number hoặc email
 router.post('/login',

@@ -1,10 +1,11 @@
-/* eslint-disable no-unused-vars */
 import { useContext, useEffect, useRef, useState } from "react";
 import { PlayerContext } from "../context/PLayerContext";
 import { FaPlay, FaPause, FaStepBackward, FaStepForward } from "react-icons/fa";
 import { AiOutlineHeart, AiFillHeart } from "react-icons/ai";
 import { IoVolumeHigh, IoVolumeMute } from "react-icons/io5";
-import AdOverlay from "../components/AdOverlay"; // ✅ Fullscreen Ad
+import AdOverlay from "../components/AdOverlay";
+import axios from "axios";
+import "./Footer.css";
 
 export default function Footer() {
   const { currentSong, playlist, setCurrentSong } = useContext(PlayerContext);
@@ -16,8 +17,6 @@ export default function Footer() {
   const [volume, setVolume] = useState(1);
   const [isMuted, setIsMuted] = useState(false);
   const [isLiked, setIsLiked] = useState(false);
-  const [playCount, setPlayCount] = useState(0);
-  const [showAd, setShowAd] = useState(false);
   const [favorites, setFavorites] = useState(() => {
     try {
       const saved = localStorage.getItem("favorites");
@@ -27,10 +26,27 @@ export default function Footer() {
     }
   });
 
+  const [playCount, setPlayCount] = useState(0);
+  const [showAd, setShowAd] = useState(false);
+  const [adTriggered, setAdTriggered] = useState(false);
+
+  // 📈 Cập nhật lượt phát bài hát (PHP API)
+  const updatePlayCount = async (songId) => {
+    if (!songId) return;
+    try {
+      await axios.post("http://localhost:8081/music_API/song/update_play_count.php", {
+        song_id: songId,
+      });
+      console.log("✅ Đã tăng lượt phát cho bài:", songId);
+    } catch (err) {
+      console.error("❌ Lỗi khi cập nhật play_count:", err);
+    }
+  };
+
+  // ❤️ Đồng bộ yêu thích
   useEffect(() => {
-    if (currentSong && currentSong.url) {
-      const isFavorited = favorites.some((fav) => fav.url === currentSong.url);
-      setIsLiked(isFavorited);
+    if (currentSong?.url) {
+      setIsLiked(favorites.some((fav) => fav.url === currentSong.url));
     } else {
       setIsLiked(false);
     }
@@ -40,6 +56,7 @@ export default function Footer() {
     localStorage.setItem("favorites", JSON.stringify(favorites));
   }, [favorites]);
 
+  // 🎵 Cập nhật tiến độ phát nhạc
   useEffect(() => {
     const audio = audioRef.current;
     if (!audio) return;
@@ -49,18 +66,35 @@ export default function Footer() {
       setProgress(audio.duration ? (audio.currentTime / audio.duration) * 100 : 0);
     };
 
-    const onLoaded = () => {
-      setDuration(audio.duration || 0);
-    };
+    const onLoaded = () => setDuration(audio.duration || 0);
 
+    // ✅ Khi bài hát phát xong
     const onEnded = () => {
-      if (!playlist || playlist.length === 0) return;
-      const idx = playlist.findIndex((s) => s.url === (currentSong && currentSong.url));
+      if (!playlist?.length) return;
+
+      // 🧠 Tăng playCount khi hết bài
+      setPlayCount((prev) => {
+        const newCount = prev + 1;
+
+        // 📈 Gọi API tăng lượt phát
+        updatePlayCount(currentSong?.id);
+
+        // 🎬 Quảng cáo sau mỗi 2 bài (nếu không premium)
+        const isPremium = localStorage.getItem("isPremium") === "true";
+        if (!isPremium && newCount % 2 === 0 && !adTriggered) {
+          setTimeout(() => {
+            if (audio) audio.pause();
+            setShowAd(true);
+            setAdTriggered(true);
+          }, 300);
+        }
+        return newCount;
+      });
+
+      // Tự chuyển sang bài kế tiếp
+      const idx = playlist.findIndex((s) => s.url === currentSong?.url);
       const next = playlist[(idx + 1) % playlist.length];
-      if (next) {
-        setCurrentSong(next);
-        setPlayCount((prev) => prev + 1); // 🔥 tăng đếm bài phát
-      }
+      if (next) setCurrentSong(next);
     };
 
     audio.addEventListener("timeupdate", onTimeUpdate);
@@ -72,17 +106,16 @@ export default function Footer() {
       audio.removeEventListener("loadedmetadata", onLoaded);
       audio.removeEventListener("ended", onEnded);
     };
-  }, [currentSong, playlist, setCurrentSong]);
+  }, [currentSong, playlist, setCurrentSong, adTriggered]);
 
-  // 🔥 Sau mỗi 2 bài, bật quảng cáo & tạm dừng nhạc
-  useEffect(() => {
-    if (playCount > 0 && playCount % 2 === 0) {
-      const audio = audioRef.current;
-      if (audio) audio.pause();
-      setShowAd(true);
-    }
-  }, [playCount]);
+  const handleCloseAd = () => {
+    setShowAd(false);
+    setAdTriggered(false);
+    const audio = audioRef.current;
+    if (audio) audio.play();
+  };
 
+  // 🎧 Điều khiển phát nhạc
   useEffect(() => {
     const audio = audioRef.current;
     if (!audio) return;
@@ -91,11 +124,11 @@ export default function Footer() {
     if (currentSong) {
       if (audio.src !== currentSong.url) {
         audio.src = currentSong.url;
-        audio.play().then(() => setIsPlaying(true)).catch(() => setIsPlaying(false));
+        audio
+          .play()
+          .then(() => setIsPlaying(true))
+          .catch(() => setIsPlaying(false));
       }
-    } else {
-      audio.pause();
-      setIsPlaying(false);
     }
   }, [currentSong, volume, isMuted]);
 
@@ -111,23 +144,24 @@ export default function Footer() {
   };
 
   const playPrev = () => {
-    if (!playlist || playlist.length === 0) return;
+    if (!playlist?.length) return;
     const idx = playlist.findIndex((s) => s.url === currentSong.url);
     const prev = playlist[(idx - 1 + playlist.length) % playlist.length];
-    if (prev) {
-      setCurrentSong(prev);
-      setPlayCount((p) => p + 1);
-    }
+    if (prev) setCurrentSong(prev);
   };
 
   const playNext = () => {
-    if (!playlist || playlist.length === 0) return;
+    if (!playlist?.length) return;
     const idx = playlist.findIndex((s) => s.url === currentSong.url);
     const next = playlist[(idx + 1) % playlist.length];
-    if (next) {
-      setCurrentSong(next);
-      setPlayCount((p) => p + 1);
-    }
+    if (next) setCurrentSong(next);
+  };
+
+  const seek = (e) => {
+    const rect = e.currentTarget.getBoundingClientRect();
+    const pct = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
+    if (audioRef.current && duration)
+      audioRef.current.currentTime = pct * duration;
   };
 
   const formatTime = (t) => {
@@ -138,58 +172,85 @@ export default function Footer() {
   };
 
   const toggleLike = () => {
-    if (!currentSong || !currentSong.url) return;
-    setFavorites((prev) => {
-      const isFavorited = prev.some((fav) => fav.url === currentSong.url);
-      return isFavorited
-        ? prev.filter((fav) => fav.url !== currentSong.url)
-        : [...prev, { ...currentSong, addedAt: new Date().toISOString() }];
-    });
+    if (!currentSong?.url) return;
+    const isFavorited = favorites.some((fav) => fav.url === currentSong.url);
+    if (isFavorited) {
+      setFavorites(favorites.filter((fav) => fav.url !== currentSong.url));
+    } else {
+      setFavorites([...favorites, { ...currentSong, addedAt: new Date().toISOString() }]);
+    }
     setIsLiked(!isLiked);
   };
 
-  return (
-    <>
+  if (!currentSong) {
+    return (
       <footer className="footer">
         <div className="footer-wrapper">
+          <div className="footer-left">
+            <div className="track-image-placeholder" />
+            <div className="track-details">
+              <div className="track-name">Không có bài hát nào</div>
+              <div className="track-artist">—</div>
+            </div>
+          </div>
+        </div>
+        <audio ref={audioRef} />
+      </footer>
+    );
+  }
+
+  return (
+    <>
+      {showAd && <AdOverlay onClose={handleCloseAd} />}
+      <footer className="footer">
+        <div className="footer-wrapper">
+          {/* Left */}
           <div className="footer-left">
             {currentSong.cover ? (
               <img src={currentSong.cover} alt={currentSong.title} className="track-image" />
             ) : (
-              <div className="track-image-placeholder" />
+              <div className="track-image-placeholder">♫</div>
             )}
             <div className="track-details">
               <div className="track-name">{currentSong.title}</div>
               <div className="track-artist">{currentSong.artist}</div>
             </div>
-            <button className={`like-btn ${isLiked ? "liked" : ""}`} onClick={toggleLike}>
+            <button
+              className={`like-btn ${isLiked ? "liked" : ""}`}
+              onClick={toggleLike}
+            >
               {isLiked ? <AiFillHeart size={18} /> : <AiOutlineHeart size={18} />}
             </button>
           </div>
 
+          {/* Center */}
           <div className="footer-center">
             <div className="control-buttons">
-              <button className="control-btn" onClick={playPrev}>
-                <FaStepBackward size={16} />
-              </button>
+              <button className="control-btn" onClick={playPrev}><FaStepBackward size={16} /></button>
               <button className="play-btn" onClick={togglePlay}>
                 {isPlaying ? <FaPause size={16} /> : <FaPlay size={16} />}
               </button>
-              <button className="control-btn" onClick={playNext}>
-                <FaStepForward size={16} />
-              </button>
+              <button className="control-btn" onClick={playNext}><FaStepForward size={16} /></button>
             </div>
-            <div className="progress-section">
+            <div className="progress-section" style={{ marginTop: "-6px" }}>
               <span className="time">{formatTime(currentTime)}</span>
-              <div className="progress-bar">
+              <div className="progress-bar" onClick={seek}>
                 <div className="progress" style={{ width: `${progress}%` }} />
               </div>
               <span className="time">{formatTime(duration)}</span>
             </div>
           </div>
 
+          {/* Right */}
           <div className="footer-right">
-            <button className="volume-btn" onClick={() => setIsMuted(!isMuted)}>
+            <button
+              className="volume-btn"
+              onClick={() => {
+                const muted = !isMuted;
+                setIsMuted(muted);
+                if (!muted && volume === 0) setVolume(0.7);
+              }}
+            >
               {isMuted || volume === 0 ? <IoVolumeMute size={18} /> : <IoVolumeHigh size={18} />}
             </button>
             <div
@@ -206,18 +267,11 @@ export default function Footer() {
           </div>
         </div>
         <audio ref={audioRef} />
-      </footer>
+        <div style={{ position: "absolute", right: 20, bottom: 60, fontSize: 12, opacity: 0.5 }}>
+  {`Lượt phát: ${playCount}`}
+</div>
 
-      {showAd && (
-        <AdOverlay
-          onClose={() => {
-            setShowAd(false);
-            setTimeout(() => {
-              if (audioRef.current) audioRef.current.play();
-            }, 300);
-          }}
-        />
-      )}
+      </footer>
     </>
   );
 }

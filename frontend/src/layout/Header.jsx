@@ -17,6 +17,22 @@ export default function Header({ isLoginOpen, setIsLoginOpen }) {
   const [searchQuery, setSearchQuery] = useState("");
   const [username, setUsername] = useState(localStorage.getItem("username") || "Người dùng");
   const [userAvatar, setUserAvatar] = useState(null);
+  useEffect(() => {
+  const userId = localStorage.getItem("user_id");
+  if (!userId) return;
+
+  axios.get(`http://localhost:8081/music_API/user/check_premium.php?user_id=${userId}`)
+    .then(res => {
+      if (res.data.status === "success") {
+        localStorage.setItem("isPremium", res.data.is_premium ? "true" : "false");
+      } else if (res.data.status === "expired") {
+        localStorage.setItem("isPremium", "false");
+        alert("Premium của bạn đã hết hạn 😢");
+      }
+    })
+    .catch(() => console.log("Không thể kiểm tra trạng thái Premium"));
+}, []);
+
 
   useEffect(() => {
     if (isLoggedIn) {
@@ -109,9 +125,17 @@ export default function Header({ isLoginOpen, setIsLoginOpen }) {
       </div>
 
       <div className="header-right" ref={dropdownRef}>
-        <a href="#premium" className="premium-btn">
-          Trải nghiệm Premium
-        </a>
+       <button
+  className="premium-btn"
+  onClick={() => {
+    const token = localStorage.getItem("token");
+    if (!token) setIsLoginOpen(true);
+    else window.location.href = "/premium";
+  }}
+>
+  Trải nghiệm Premium
+</button>
+
         
         <button className="install-btn">
           <IoDownload size={20} />

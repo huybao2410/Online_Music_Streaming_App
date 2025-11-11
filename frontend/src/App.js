@@ -11,7 +11,7 @@ import UserProfile from "./pages/UserProfile";
 import PlaylistDetail from "./pages/PlaylistDetail";
 import EditPlaylist from "./pages/EditPlaylist";
 import FavoriteSongs from "./pages/FavoriteSongs";
-
+import SearchPage from "./pages/SearchPage";
 function App() {
   return (
     <Router>
@@ -30,7 +30,7 @@ function App() {
         <Route path="/login" element={<LoginDialog />} />
         <Route path="/signup" element={<SignupDialog />} />
         <Route path="/admin" element={<AdminDashboard />} />
-     
+  <Route path="/search" element={<SearchPage />} />
       </Routes>
     </Router>
   );
