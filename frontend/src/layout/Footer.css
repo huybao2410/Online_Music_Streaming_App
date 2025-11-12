@@ -1,251 +1,280 @@
-/* ===============================
- 🎵 FOOTER - MUSIC PLAYER BAR
- =============================== */
-
+/* ==================== 🎵 FOOTER CHUNG ==================== */
 .footer {
-  position: fixed;
-  bottom: 0;
-  left: 0;
-  width: 100%;
-  background-color: #181818;
-  border-top: 1px solid #282828;
-  color: #fff;
-  z-index: 100;
+  position: relative;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  overflow: hidden;
+  height: 110px;
+  display: flex;
+  align-items: center;
+  transition: background-image 0.6s ease-in-out;
+}
+
+.footer-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to top, rgba(0, 0, 0, 0.85), rgba(0, 0, 0, 0.6));
+  backdrop-filter: blur(10px);
+  z-index: 1;
 }
 
 .footer-wrapper {
+  position: relative;
+  z-index: 2;
+  width: 100%;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  height: 90px;
-  padding: 0 20px;
+  padding: 0 24px;
 }
 
-/* === Left: Song info === */
-.footer-left {
-  display: flex;
-  align-items: center;
-  gap: 15px;
-  width: 25%;
-  min-width: 200px;
-}
-
-.track-image {
-  width: 60px;
-  height: 60px;
-  border-radius: 8px;
-  object-fit: cover;
-}
-
-.track-image-placeholder {
-  width: 60px;
-  height: 60px;
-  border-radius: 8px;
-  background-color: #333;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 22px;
-  color: #777;
-}
-
-.track-details {
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-  max-width: 160px;
-}
-
-.track-name {
-  font-size: 15px;
-  font-weight: 600;
-  color: #fff;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.track-artist {
-  font-size: 13px;
-  color: #b3b3b3;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.like-btn {
-  background: none;
-  border: none;
-  color: #b3b3b3;
-  cursor: pointer;
-  transition: color 0.2s ease;
-}
-
-.like-btn:hover {
-  color: #1db954;
-}
-
-.like-btn.liked {
-  color: #1db954;
-}
-
-/* === Center: Controls === */
-.footer-center {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  width: 50%;
-}
-
+/* ==================== 🎧 NÚT ĐIỀU KHIỂN ==================== */
 .control-buttons {
   display: flex;
   align-items: center;
-  gap: 16px;
-  margin-bottom: 6px;
+  justify-content: center;
+  gap: 18px;
+  margin-top: -8px;
 }
 
 .control-btn {
   background: none;
   border: none;
-  color: #fff;
+  color: #ccc;
   cursor: pointer;
-  opacity: 0.8;
-  transition: opacity 0.2s, transform 0.2s;
+  transition: all 0.2s ease;
+  padding: 8px;
+  border-radius: 50%;
 }
 
 .control-btn:hover {
-  opacity: 1;
+  color: #fff;
   transform: scale(1.1);
 }
 
-.play-btn {
-  background-color: #fff;
-  color: #000;
-  border: none;
+/* 🔥 Nút Play chính giữa */
+.main-play-btn {
+  width: 45px;
+  height: 45px;
   border-radius: 50%;
-  width: 38px;
-  height: 38px;
+  background: linear-gradient(135deg, #1ed760, #1db954);
+  color: black;
   display: flex;
   align-items: center;
   justify-content: center;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+  border: none;
   cursor: pointer;
-  transition: transform 0.2s ease, background-color 0.2s;
+  transition: all 0.25s ease;
 }
 
-.play-btn:hover {
+.main-play-btn:hover {
   transform: scale(1.1);
-  background-color: #1db954;
-  color: white;
+  box-shadow: 0 0 12px rgba(30, 215, 96, 0.6);
 }
 
-/* === Progress bar === */
+.main-play-btn.pause {
+  background: linear-gradient(135deg, #0a0a0a, #1f1f1f);
+  color: #1ed760;
+}
+
+/* ==================== 🎚 THANH TIẾN ĐỘ ==================== */
 .progress-section {
   display: flex;
   align-items: center;
-  justify-content: center;
   gap: 10px;
-  margin-top: -50px; /* 👈 nhích lên nhẹ xíu */
-}
-
-.progress-section .time {
-  font-size: 12px;
-  color: #b3b3b3;
-  width: 40px;
-  text-align: center;
+  width: 480px;
+  margin-top: -2px;
 }
 
 .progress-bar {
-    position: relative;
   flex: 1;
-  height: 5px;
-  background: rgba(255, 255, 255, 0.2);
-  border-radius: 2px;
+  height: 6px;
+  background: #3a3a3a;
+  border-radius: 5px;
   cursor: pointer;
-  overflow: hidden
+  position: relative;
+  overflow: hidden;
 }
 
 .progress {
-  position: absolute;
-  top: 0;
-  left: 0;
   height: 100%;
-  background: #1db954; /* Spotify xanh lá */
-  transition: width 0.2s ease;
+  background: linear-gradient(90deg, #1ed760, #1db954);
+  transition: width 0.2s linear;
 }
 
-/* === Right: Volume === */
+.progress-bar:hover .progress {
+  background: #1ed760;
+}
+
+.time {
+  font-size: 11px;
+  color: #aaa;
+  width: 38px;
+  text-align: center;
+}
+
+/* Shuffle & Replay nút */
+.control-btn.active {
+  color: #1ed760;
+  transform: scale(1.1);
+}
+
+.control-btn.active:hover {
+  color: #00ff88;
+  transform: scale(1.15);
+}
+
+/* ==================== 🎵 THÔNG TIN BÀI HÁT ==================== */
+.track-details {
+  display: flex;
+  flex-direction: column;
+  margin-left: 12px;
+  min-width: 0;
+}
+
+.track-name {
+  color: #ffffff;
+  font-weight: 600;
+  font-size: 14px;
+  line-height: 1.1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 240px;
+}
+
+.track-artist {
+  color: rgba(255, 255, 255, 0.75);
+  font-size: 12px;
+  margin-top: 2px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 240px;
+}
+
+/* ==================== ❤️ NÚT YÊU THÍCH ==================== */
+.footer-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  position: relative;
+}
+
+.like-btn {
+  background: none;
+  border: none;
+  color: #bbb;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+  margin-left: 6px;
+  transition: all 0.25s ease;
+}
+
+.like-btn:hover {
+  transform: scale(1.2);
+  color: #fff;
+}
+
+.like-btn.liked {
+  color: #ff4b4b;
+  text-shadow: 0 0 8px rgba(255, 75, 75, 0.7);
+  animation: heartBeat 0.3s ease;
+}
+
+/* ❤️ Hiệu ứng tim đập */
+@keyframes heartBeat {
+  0% {
+    transform: scale(1);
+  }
+  25% {
+    transform: scale(1.3);
+  }
+  50% {
+    transform: scale(1);
+  }
+  75% {
+    transform: scale(1.2);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+/* ==================== 🔊 VOLUME CONTROL ==================== */
 .footer-right {
   display: flex;
   align-items: center;
   justify-content: flex-end;
-  gap: 10px;
-  width: 25%;
-  min-width: 180px;
+  gap: 40px; /* giảm gap cho cân đối hơn */
+  width: 30%;
+  min-width: 220px;
 }
 
+/* Nút âm lượng */
 .volume-btn {
   background: none;
   border: none;
-  color: #b3b3b3;
+  color: #ccc;
   cursor: pointer;
-  transition: color 0.2s ease;
+  transition: all 0.2s ease;
 }
 
 .volume-btn:hover {
   color: #fff;
+  transform: scale(1.1);
 }
 
+/* Thanh điều chỉnh âm lượng */
 .volume-control {
-  position: relative;
-  width: 100px;
-  height: 4px;
-  background-color: #404040;
-  border-radius: 2px;
+  width: 400px; /* ⬅️ tăng từ 150px → 220px */
+  height: 10px;
+  background: #3a3a3a;
+  border-radius: 5px;
   cursor: pointer;
+  position: relative;
+  transition: all 0.25s ease;
+}
+
+.volume-control:hover {
+  background: #555;
+  height: 7px;
 }
 
 .volume-bar {
   height: 100%;
-  background-color: #1db954;
-  border-radius: 2px;
-  transition: width 0.1s linear;
+  background: linear-gradient(90deg, #1ed760, #1db954);
+  border-radius: 5px;
+  transition: width 0.2s linear, background 0.2s ease;
 }
 
-/* === Responsive tweaks === */
-@media (max-width: 900px) {
+.volume-control:hover .volume-bar {
+  background: linear-gradient(90deg, #1fff80, #1ed760);
+}
+
+
+/* ==================== 📱 RESPONSIVE ==================== */
+@media (max-width: 768px) {
   .footer-wrapper {
-    flex-direction: column;
-    height: auto;
-    padding: 10px;
-    gap: 10px;
+    padding: 0 12px;
   }
 
-  .footer-left,
-  .footer-center,
-  .footer-right {
-    width: 100%;
-    justify-content: center;
-  }
-
-  .track-details {
-    max-width: 120px;
+  .track-name,
+  .track-artist {
+    max-width: 140px;
+    font-size: 12px;
   }
 
   .progress-section {
-    max-width: 90%;
-  }
-}
-
-@media (max-width: 600px) {
-  .track-details {
-    display: none;
-  }
-
-  .footer-left {
-    justify-content: center;
+    width: 240px;
   }
 
   .volume-control {
-    width: 70px;
+    width: 60px;
   }
 }

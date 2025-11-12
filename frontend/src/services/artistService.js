@@ -6,9 +6,7 @@ const API = axios.create({
   headers: { "Content-Type": "application/json" },
 });
 
-/**
- * 🟢 Lấy danh sách nghệ sĩ từ PHP API
- */
+/** 🟢 Lấy danh sách nghệ sĩ */
 export const getArtists = async () => {
   try {
     const response = await API.get("/artist/get_artists.php");
@@ -31,9 +29,25 @@ export const getArtists = async () => {
   }
 };
 
-/**
- * Sửa IP emulator → localhost
- */
+/** 🟢 Lấy danh sách bài hát theo nghệ sĩ */
+export const getSongsByArtist = async (artistId) => {
+  try {
+    const response = await API.get(`/artist/get_songs_by_artist.php?id=${artistId}`);
+    if (response.data.status && Array.isArray(response.data.songs)) {
+      return response.data.songs.map((song) => ({
+        ...song,
+        cover: fixLocalUrl(song.cover),
+        audio: fixLocalUrl(song.audio),
+      }));
+    }
+    return [];
+  } catch (error) {
+    console.error("❌ Lỗi khi gọi API get_songs_by_artist.php:", error);
+    return [];
+  }
+};
+
+// ⚙️ Sửa đường dẫn localhost
 const fixLocalUrl = (url) => {
   if (!url) return "";
   return url.replace("10.0.2.2", "localhost");

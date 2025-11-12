@@ -105,5 +105,25 @@ export const searchAll = async (query) => {
     console.error("❌ Lỗi tìm kiếm:", err);
     return { songs: [], albums: [] };
   }
+  
+};
+export const getSongsByGenre = async (genreName) => {
+  try {
+    const res = await API.get(`/song/get_songs_by_genre.php?genre=${encodeURIComponent(genreName)}`);
+    if (res.data.status && Array.isArray(res.data.songs)) {
+      return res.data.songs.map((s) => ({
+        id: s.id,
+        title: s.title,
+        artist: s.artist,
+        genre: s.genre,
+        url: s.url, // ✅ backend đã chuẩn key này
+        cover: s.cover,
+      }));
+    }
+    return [];
+  } catch (err) {
+    console.error("❌ Lỗi khi tải bài hát theo thể loại:", err);
+    return [];
+  }
 };
 
