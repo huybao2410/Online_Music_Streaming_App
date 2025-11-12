@@ -151,4 +151,95 @@ router.get('/me', verifyToken, async (req, res) => {
   }
 });
 
+// Google OAuth Login
+router.post('/google', async (req, res) => {
+  const { credential } = req.body; // Google ID Token
+
+  if (!credential) {
+    return res.status(400).json({ message: 'Google credential không được để trống' });
+  }
+
+  try {
+    // Import google-auth-library
+    const { OAuth2Client } = require('google-auth-library');
+    const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
+
+    // Verify Google token
+    const ticket = await client.verifyIdToken({
+      idToken: credential,
+      audience: process.env.GOOGLE_CLIENT_ID,
+    });
+
+    const payload = ticket.getPayload();
+    const { sub: google_id, email, name, picture } = payload;
+
+    // Check if user already exists
+    const [existingUsers] = await pool.query(
+      'SELECT * FROM users WHERE email = ?',
+      [email]
+    );
+
+    let userId;
+    let isNewUser = false;
+
+    if (existingUsers.length > 0) {
+      // User exists - login
+      userId = existingUsers[0].id;
+      
+      // Update avatar if changed
+      if (picture && existingUsers[0].avatar_url !== picture) {
+        await pool.query(
+          'UPDATE users SET avatar_url = ? WHERE id = ?',
+          [picture, userId]
+        );
+      }
+    } else {
+      // Create new user with Google account
+      const [result] = await pool.query(
+        `INSERT INTO users (email, username, avatar_url, password_hash, status, role) 
+         VALUES (?, ?, ?, NULL, 'active', 'user')`,
+        [email, name, picture]
+      );
+      userId = result.insertId;
+      isNewUser = true;
+    }
+
+    // Generate JWT token
+    const token = jwt.sign(
+      { 
+        id: userId, 
+        email, 
+        role: existingUsers[0]?.role || 'user' 
+      },
+      process.env.JWT_SECRET,
+      { expiresIn: process.env.JWT_EXPIRES_IN }
+    );
+
+    return res.status(isNewUser ? 201 : 200).json({
+      message: isNewUser ? 'Đăng ký Google thành công' : 'Đăng nhập Google thành công',
+      token,
+      user: {
+        id: userId,
+        email,
+        username: name,
+        avatar_url: picture,
+        role: existingUsers[0]?.role || 'user',
+        auth_type: 'google'
+      }
+    });
+
+  } catch (err) {
+    console.error('Google auth error:', err);
+    
+    if (err.message.includes('Token used too late')) {
+      return res.status(400).json({ message: 'Google token đã hết hạn, vui lòng thử lại' });
+    }
+    
+    return res.status(500).json({ 
+      message: 'Lỗi xác thực Google', 
+      error: err.message 
+    });
+  }
+});
+
 module.exports = router;

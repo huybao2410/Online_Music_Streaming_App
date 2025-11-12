@@ -1,7 +1,26 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import ArtistModal from "../components/ArtistModal";
+import SongManagementContent from "../components/SongManagementContent";
+import ArtistManagementContent from "../components/ArtistManagementContent";
+import UserManagementContent from "../components/UserManagementContent";
 import axios from "axios";
+import { 
+  FaTachometerAlt, 
+  FaMusic, 
+  FaUsers, 
+  FaHistory, 
+  FaUserCircle,
+  FaCheckCircle,
+  FaClock
+} from "react-icons/fa";
+import { 
+  MdDashboard, 
+  MdQueueMusic, 
+  MdPeopleAlt, 
+  MdSchedule 
+} from "react-icons/md";
+import { IoMdNotifications, IoMdSearch } from "react-icons/io";
 import "./AdminDashboard.css";
 
 const AdminDashboard = () => {
@@ -11,6 +30,15 @@ const AdminDashboard = () => {
   const [selectedArtist, setSelectedArtist] = useState(null);
   const [artists, setArtists] = useState([]);
   const [isLoadingArtists, setIsLoadingArtists] = useState(false);
+  const [showProfileDropdown, setShowProfileDropdown] = useState(false);
+  const [stats, setStats] = useState({
+    totalSongs: 0,
+    totalArtists: 0,
+    totalUsers: 0,
+    totalPlaylists: 0
+  });
+  
+  const username = localStorage.getItem("username");
 
   // Get token once
   const token = localStorage.getItem("token");
@@ -32,26 +60,18 @@ const AdminDashboard = () => {
     }
   }, [navigate]);
 
-  // Fetch artists when tab changes
+  // NOTE: artist data is now loaded by the ArtistManagementContent component itself (from PHP API).
+  // Keep this effect only for legacy/old artists tab if needed in future.
   useEffect(() => {
-    if (activeTab === "artists") {
+    if (activeTab === "artists_old") {
       fetchArtists();
     }
   }, [activeTab]);
 
+  // legacy fetchArtists kept as a fallback for the old artists tab
   const fetchArtists = async () => {
-    setIsLoadingArtists(true);
-    try {
-      const response = await axios.get("http://localhost:5000/api/artists");
-      if (response.data.success) {
-        setArtists(response.data.artists);
-      }
-    } catch (error) {
-      console.error("Error fetching artists:", error);
-      alert("Lỗi khi tải danh sách nghệ sĩ");
-    } finally {
-      setIsLoadingArtists(false);
-    }
+    console.log("fetchArtists called from AdminDashboard (legacy). ArtistManagementContent handles artist loading now.");
+    // No-op by default to avoid calling Node API when backend may be down.
   };
 
   const handleAddArtist = () => {
@@ -193,27 +213,61 @@ const AdminDashboard = () => {
     }
   };
 
-  const [songs] = useState([
-    { id: 1, title: "Chill Vibes", artist: "Artist A", plays: 2450, uploaded: "2024-01-20", status: "Active" },
-    { id: 2, title: "Summer Hits", artist: "Artist B", plays: 3120, uploaded: "2024-02-15", status: "Active" },
-    { id: 3, title: "Night Drive", artist: "Artist C", plays: 1890, uploaded: "2024-03-05", status: "Inactive" },
-  ]);
+  // Fetch dashboard stats
+  useEffect(() => {
+    const fetchStats = async () => {
+      try {
+        console.log("Fetching dashboard stats from PHP API...");
+        
+        // Lấy stats từ PHP API
+        const [songsRes, artistsRes, usersRes] = await Promise.all([
+          axios.get("http://localhost:8081/music_API/online_music/song/get_songs.php"),
+          axios.get("http://localhost:8081/music_API/online_music/artist/get_artists.php"),
+          axios.get("/api/admin/users", {
+            headers: { Authorization: `Bearer ${token}` }
+          }).catch(() => ({ data: { users: [] } }))
+        ]);
+        
+        const totalSongs = songsRes.data?.status && songsRes.data?.songs 
+          ? songsRes.data.songs.length 
+          : 0;
+          
+        const totalArtists = artistsRes.data?.status === "success" && artistsRes.data?.artists
+          ? artistsRes.data.artists.length
+          : 0;
+          
+        const totalUsers = usersRes.data?.users?.length || 0;
+        
+        console.log(`Stats: ${totalSongs} songs, ${totalArtists} artists, ${totalUsers} users`);
+        
+        setStats({
+          totalSongs,
+          totalArtists,
+          totalUsers,
+          totalPlaylists: 0 // Tạm thời set 0, có thể thêm API sau
+        });
+      } catch (error) {
+        console.error("Error fetching stats:", error);
+        setStats({
+          totalSongs: 0,
+          totalArtists: 0,
+          totalUsers: 0,
+          totalPlaylists: 0
+        });
+      }
+    };
 
-  const stats = [
-    { label: "Tổng Người Dùng", value: "1,234", icon: "👤", color: "#00c4cc" },
-    { label: "Tổng Bài Hát", value: "5,678", icon: "🎶", color: "#ffd700" },
-    { label: "Lượt Phát", value: "45.2K", icon: "▶️", color: "#ff6b9d" },
-    { label: "Lượt Tải", value: "12.5K", icon: "📥", color: "#a78bfa" },
-  ];
+    if (token) {
+      fetchStats();
+    }
+  }, [token]);
 
   const handleLogout = () => {
     localStorage.removeItem("token");
-    localStorage.removeItem("user");
-    navigate("/login");
+    localStorage.removeItem("role");
+    localStorage.removeItem("username");
+    navigate("/");
   };
-
-  const handleDeleteSong = (id) => alert(`Xóa bài hát #${id}`);
-  const handleAddSong = () => alert("Mở form thêm bài hát mới");
 
   // Fetch data when tab changes
   useEffect(() => {
@@ -224,93 +278,239 @@ const AdminDashboard = () => {
     }
   }, [activeTab]);
 
+  const getCurrentDate = () => {
+    const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+    const months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+    const now = new Date();
+    return `${days[now.getDay()]}, ${now.getDate()} ${months[now.getMonth()]} ${now.getFullYear()}`;
+  };
+
   return (
-    <div className="admin-dashboard">
-      {/* Header */}
-      <div className="admin-header">
-        <div className="header-left">
-          <h1>🎵 Quản Lý Ứng Dụng</h1>
-          <p>Quản lý ứng dụng nghe nhạc trực tuyến</p>
+    <div className="admin-dashboard-container">
+      {/* Sidebar */}
+      <aside className="admin-sidebar">
+        <div className="sidebar-header">
+          <div className="logo">
+            <FaMusic className="logo-icon" />
+            <div>
+              <h3>Music Streaming</h3>
+              <p>Bảng Quản Trị</p>
+            </div>
+          </div>
         </div>
-        <button className="logout-btn" onClick={handleLogout}>
-          🚪 Đăng xuất
-        </button>
-      </div>
 
-      {/* Navigation */}
-      <div className="admin-nav">
-        <button
-          className={`nav-btn ${activeTab === "overview" ? "active" : ""}`}
-          onClick={() => setActiveTab("overview")}
-        >
-          📊 Thống Kê
-        </button>
-        <button
-          className={`nav-btn ${activeTab === "users" ? "active" : ""}`}
-          onClick={() => setActiveTab("users")}
-        >
-          👥 Quản Lý Người Dùng
-        </button>
-        <button
-          className={`nav-btn ${activeTab === "songs" ? "active" : ""}`}
-          onClick={() => setActiveTab("songs")}
-        >
-          🎶 Quản Lý Bài Hát
-        </button>
-        <button
-          className={`nav-btn ${activeTab === "artists" ? "active" : ""}`}
-          onClick={() => setActiveTab("artists")}
-        >
-          🎤 Quản Lý Nghệ Sĩ
-        </button>
-      </div>
+        <nav className="sidebar-nav">
+          <div className="nav-section">
+            <h4 className="nav-section-title">TỔNG QUAN</h4>
+            <button
+              className={`nav-item ${activeTab === "overview" ? "active" : ""}`}
+              onClick={() => setActiveTab("overview")}
+            >
+              <FaTachometerAlt />
+              <span>Dashboard</span>
+            </button>
+            <button
+              className={`nav-item ${activeTab === "stats" ? "active" : ""}`}
+              onClick={() => setActiveTab("stats")}
+            >
+              <MdDashboard />
+              <span>Thống kê</span>
+            </button>
+          </div>
 
-      {/* Content */}
-      <div className="admin-content">
+          <div className="nav-section">
+            <h4 className="nav-section-title">QUẢN LÝ</h4>
+            <button
+              className={`nav-item ${activeTab === "songs" ? "active" : ""}`}
+              onClick={() => setActiveTab("songs")}
+            >
+              <FaMusic />
+              <span>Bài hát</span>
+            </button>
+            <button
+              className={`nav-item ${activeTab === "artists" ? "active" : ""}`}
+              onClick={() => setActiveTab("artists")}
+            >
+              <MdPeopleAlt />
+              <span>Nghệ sĩ</span>
+            </button>
+            <button
+              className={`nav-item ${activeTab === "users" ? "active" : ""}`}
+              onClick={() => setActiveTab("users")}
+            >
+              <FaUsers />
+              <span>Người dùng</span>
+            </button>
+            <button
+              className={`nav-item ${activeTab === "playlists" ? "active" : ""}`}
+              onClick={() => setActiveTab("playlists")}
+            >
+              <MdQueueMusic />
+              <span>Playlist</span>
+            </button>
+          </div>
+
+          <div className="nav-section">
+            <h4 className="nav-section-title">HỆ THỐNG</h4>
+            <button className="nav-item">
+              <FaHistory />
+              <span>Lịch sử hoạt động</span>
+            </button>
+          </div>
+        </nav>
+      </aside>
+
+      {/* Main Content */}
+      <div className="admin-main">
+        {/* Top Header */}
+        <header className="admin-top-header">
+          <div className="header-search">
+            <div className="search-wrapper">
+              <div className="search-icon-wrapper">
+                <IoMdSearch size={18} />
+              </div>
+              <input 
+                type="text" 
+                placeholder="Tìm kiếm..." 
+                className="header-search-input" 
+              />
+            </div>
+          </div>
+          <div className="header-actions-bar">
+            <button className="notification-btn">
+              <IoMdNotifications size={20} />
+              <div className="notification-badge"></div>
+            </button>
+            <div 
+              className="user-profile-section"
+              onClick={() => setShowProfileDropdown(!showProfileDropdown)}
+            >
+              <div className="user-avatar-header">
+                {username?.charAt(0).toUpperCase() || 'A'}
+              </div>
+              <div className="user-info-header">
+                <span className="user-name-header">{username || 'Admin'}</span>
+                <span className="user-role-header">Administrator</span>
+              </div>
+              {showProfileDropdown && (
+                <div className="profile-dropdown">
+                  <button className="dropdown-item">
+                    <FaUserCircle /> Hồ sơ
+                  </button>
+                  <button className="dropdown-item danger" onClick={handleLogout}>
+                    <FaHistory /> Đăng xuất
+                  </button>
+                </div>
+              )}
+            </div>
+          </div>
+        </header>
+
+        {/* Content Area */}
+        <div className="admin-content">
         {/* === THỐNG KÊ === */}
         {activeTab === "overview" && (
-          <div className="tab-content">
-            <h2>📊 Thống Kê Hệ Thống</h2>
-
-            <div className="stats-grid">
-              {stats.map((stat, i) => (
-                <div key={i} className="stat-card" style={{ borderLeftColor: stat.color }}>
-                  <div className="stat-icon">{stat.icon}</div>
-                  <div>
-                    <p className="stat-label">{stat.label}</p>
-                    <p className="stat-value">{stat.value}</p>
-                  </div>
+          <div className="dashboard-overview">
+            {/* Page Title */}
+            <div className="page-title-section">
+              <div className="title-content">
+                <div className="icon-title">
+                  <MdDashboard size={32} />
+                  <h1>Bảng Điều Khiển Quản Trị</h1>
                 </div>
-              ))}
+                <p className="page-date">{getCurrentDate()}</p>
+              </div>
+              <button className="refresh-btn" onClick={() => window.location.reload()}>
+                Làm mới
+              </button>
             </div>
 
-            <div className="charts-section">
-              <div className="chart-card">
-                <h3>📈 Lượt Phát (7 Ngày Gần Đây)</h3>
-                <div className="chart-placeholder">
-                  {["40%", "60%", "55%", "75%", "70%", "85%", "90%"].map((h, i) => (
-                    <div key={i} className="bar" style={{ height: h }}></div>
-                  ))}
+            {/* Stats Cards */}
+            <div className="stats-cards-grid">
+              <div className="stat-card-modern blue">
+                <div className="card-icon">
+                  <FaMusic size={32} />
+                </div>
+                <div className="card-content">
+                  <p className="card-label">TỔNG BÀI HÁT</p>
+                  <h2 className="card-value">{stats.totalSongs}</h2>
                 </div>
               </div>
 
-              <div className="chart-card">
-                <h3>🎯 Top 5 Bài Hát Yêu Thích</h3>
-                <div className="top-songs-list">
-                  {[
-                    ["Summer Hits - Artist B", "3.1K"],
-                    ["Chill Vibes - Artist A", "2.4K"],
-                    ["Night Drive - Artist C", "1.8K"],
-                    ["Weekend Mood - Artist D", "1.5K"],
-                    ["Love Story - Artist E", "1.2K"],
-                  ].map(([title, plays], i) => (
-                    <div key={i} className="top-item">
-                      <span className="rank">{i + 1}.</span>
-                      <span className="title">{title}</span>
-                      <span className="plays">{plays} plays</span>
-                    </div>
-                  ))}
+              <div className="stat-card-modern green">
+                <div className="card-icon">
+                  <MdPeopleAlt size={32} />
                 </div>
+                <div className="card-content">
+                  <p className="card-label">NGHỆ SĨ</p>
+                  <h2 className="card-value">{stats.totalArtists}</h2>
+                </div>
+              </div>
+
+              <div className="stat-card-modern purple">
+                <div className="card-icon">
+                  <FaUsers size={32} />
+                </div>
+                <div className="card-content">
+                  <p className="card-label">NGƯỜI DÙNG</p>
+                  <h2 className="card-value">{stats.totalUsers}</h2>
+                </div>
+              </div>
+
+              <div className="stat-card-modern orange">
+                <div className="card-icon">
+                  <MdQueueMusic size={32} />
+                </div>
+                <div className="card-content">
+                  <p className="card-label">PLAYLIST</p>
+                  <h2 className="card-value">{stats.totalPlaylists}</h2>
+                </div>
+              </div>
+            </div>
+
+            {/* Quick Actions */}
+            <div className="quick-actions-section">
+              <h3>⚡ Hành Động Nhanh</h3>
+              <div className="quick-actions-grid">
+                <button 
+                  className="quick-action-card"
+                  onClick={() => setActiveTab("songs")}
+                >
+                  <div className="action-icon blue">
+                    <FaMusic size={28} />
+                  </div>
+                  <p>Quản Lý Bài Hát</p>
+                </button>
+
+                <button 
+                  className="quick-action-card"
+                  onClick={() => setActiveTab("artists")}
+                >
+                  <div className="action-icon green">
+                    <MdPeopleAlt size={28} />
+                  </div>
+                  <p>Quản Lý Nghệ Sĩ</p>
+                </button>
+
+                <button 
+                  className="quick-action-card"
+                  onClick={() => setActiveTab("users")}
+                >
+                  <div className="action-icon purple">
+                    <FaUsers size={28} />
+                  </div>
+                  <p>Quản Lý Người Dùng</p>
+                </button>
+
+                <button 
+                  className="quick-action-card"
+                  onClick={() => setActiveTab("playlists")}
+                >
+                  <div className="action-icon orange">
+                    <MdQueueMusic size={28} />
+                  </div>
+                  <p>Quản Lý Playlist</p>
+                </button>
               </div>
             </div>
           </div>
@@ -319,137 +519,26 @@ const AdminDashboard = () => {
         {/* === NGƯỜI DÙNG === */}
         {activeTab === "users" && (
           <div className="tab-content">
-            <div className="tab-header">
-              <h2>👥 Quản Lý Người Dùng ({users.length})</h2>
-              <div className="header-actions">
-                <input
-                  type="text"
-                  className="search-input"
-                  placeholder="Tìm kiếm theo tên hoặc email..."
-                  value={searchUser}
-                  onChange={(e) => setSearchUser(e.target.value)}
-                  onKeyDown={(e) => e.key === 'Enter' && fetchUsers()}
-                />
-                <button className="search-btn" onClick={fetchUsers}>🔍 Tìm</button>
-              </div>
-            </div>
-
-            {isLoadingUsers ? (
-              <div className="loading-state">
-                <div className="spinner"></div>
-                <p>Đang tải danh sách người dùng...</p>
-              </div>
-            ) : users.length === 0 ? (
-              <div className="empty-state">
-                <p>Không tìm thấy người dùng nào</p>
-              </div>
-            ) : (
-              <div className="table-container">
-                <table className="admin-table">
-                  <thead>
-                    <tr>
-                      <th>ID</th>
-                      <th>Tên Người Dùng</th>
-                      <th>Email</th>
-                      <th>Role</th>
-                      <th>Trạng Thái</th>
-                      <th>Playlist</th>
-                      <th>Yêu Thích</th>
-                      <th>Ngày Tham Gia</th>
-                      <th>Hành Động</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {users.map((u) => (
-                      <tr key={u.id}>
-                        <td>#{u.id}</td>
-                        <td><strong>{u.username}</strong></td>
-                        <td>{u.email}</td>
-                        <td>
-                          <select
-                            className={`role-select ${u.role}`}
-                            value={u.role}
-                            onChange={(e) => handleUpdateUserRole(u.id, e.target.value)}
-                          >
-                            <option value="user">User</option>
-                            <option value="admin">Admin</option>
-                          </select>
-                        </td>
-                        <td>
-                          <select
-                            className={`status-select ${u.status}`}
-                            value={u.status}
-                            onChange={(e) => handleUpdateUserStatus(u.id, e.target.value)}
-                          >
-                            <option value="active">Active</option>
-                            <option value="inactive">Inactive</option>
-                            <option value="banned">Banned</option>
-                          </select>
-                        </td>
-                        <td>{u.playlist_count || 0}</td>
-                        <td>{u.favorite_count || 0}</td>
-                        <td>{new Date(u.created_at).toLocaleDateString('vi-VN')}</td>
-                        <td>
-                          <button 
-                            className="action-btn delete" 
-                            onClick={() => handleDeleteUser(u.id, u.username)}
-                            title="Xóa người dùng"
-                          >
-                            🗑️
-                          </button>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            )}
+            <UserManagementContent />
           </div>
         )}
 
         {/* === BÀI HÁT === */}
         {activeTab === "songs" && (
           <div className="tab-content">
-            <div className="tab-header">
-              <h2>🎶 Quản Lý Bài Hát</h2>
-              <button className="add-btn" onClick={handleAddSong}>➕ Thêm Bài Hát</button>
-            </div>
-            <div className="table-container">
-              <table className="admin-table">
-                <thead>
-                  <tr>
-                    <th>ID</th>
-                    <th>Tên Bài Hát</th>
-                    <th>Nghệ Sĩ</th>
-                    <th>Lượt Phát</th>
-                    <th>Ngày Upload</th>
-                    <th>Trạng Thái</th>
-                    <th>Hành Động</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {songs.map((s) => (
-                    <tr key={s.id}>
-                      <td>#{s.id}</td>
-                      <td>{s.title}</td>
-                      <td>{s.artist}</td>
-                      <td>{s.plays.toLocaleString()}</td>
-                      <td>{s.uploaded}</td>
-                      <td><span className={`status-badge ${s.status.toLowerCase()}`}>{s.status}</span></td>
-                      <td>
-                        <button className="action-btn edit">✏️ Sửa</button>
-                        <button className="action-btn delete" onClick={() => handleDeleteSong(s.id)}>🗑️ Xóa</button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+            <SongManagementContent />
           </div>
         )}
 
         {/* === NGHỆ SĨ === */}
         {activeTab === "artists" && (
+          <div className="tab-content">
+            <ArtistManagementContent />
+          </div>
+        )}
+
+        {/* OLD ARTIST TABLE - BACKUP */}
+        {activeTab === "artists_old" && (
           <div className="tab-content">
             <div className="tab-header">
               <h2>🎤 Quản Lý Nghệ Sĩ</h2>
@@ -515,6 +604,7 @@ const AdminDashboard = () => {
             )}
           </div>
         )}
+        </div>
       </div>
 
       {/* Artist Modal */}

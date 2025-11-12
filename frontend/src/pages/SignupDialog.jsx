@@ -3,6 +3,7 @@ import React, { useState } from "react";
 import axios from "axios";
 import { AiOutlineClose, AiOutlineEye, AiOutlineEyeInvisible } from "react-icons/ai";
 import { FaFacebookF, FaGoogle, FaPhone, FaQrcode } from "react-icons/fa";
+import { GoogleLogin } from "@react-oauth/google";
 import "./SignupDialog.css";
 
 export default function SignupDialog({ onClose }) {
@@ -161,16 +162,59 @@ export default function SignupDialog({ onClose }) {
         <div className="signup-divider">
           <span>Hoặc đăng ký bằng</span>
         </div>
-
         <div className="social-signup-buttons">
           <button className="social-btn facebook-btn">
             <FaFacebookF size={18} />
             <span>Facebook</span>
           </button>
-          <button className="social-btn google-btn">
-            <FaGoogle size={18} />
-            <span>Google</span>
-          </button>
+          <div className="social-btn google-btn" style={{ display: "flex", justifyContent: "center" }}>
+            <GoogleLogin
+              onSuccess={async (credentialResponse) => {
+                try {
+                  setErr(null);
+                  
+                  // Gửi credential đến backend để verify và tạo user
+                  const res = await axios.post("http://localhost:5000/api/auth/google", {
+                    credential: credentialResponse.credential
+                  });
+
+                  const { token, user, message } = res.data;
+
+                  if (!token || !user) {
+                    setErr("Đăng ký Google thất bại");
+                    return;
+                  }
+
+                  // Lưu thông tin
+                  localStorage.setItem("token", token);
+                  localStorage.setItem("role", user.role);
+                  localStorage.setItem("username", user.username || user.email);
+                  localStorage.setItem("email", user.email);
+                  if (user.avatar_url) {
+                    localStorage.setItem("avatar", user.avatar_url);
+                  }
+
+                  // Phát sự kiện
+                  window.dispatchEvent(new Event("storage"));
+
+                  // Thông báo thành công
+                  alert(`🎉 ${message}`);
+
+                  // Đóng dialog
+                  onClose?.();
+
+                  console.log("✅ Đăng ký Google thành công:", user);
+                } catch (error) {
+                  console.error("❌ Google signup error:", error);
+                  setErr(error.response?.data?.message || "Đăng ký Google thất bại");
+                }
+              }}
+              onError={() => {
+                console.log("Đăng ký Google thất bại");
+                setErr("Đăng ký Google thất bại");
+              }}
+            />
+          </div>
         </div>
 
         <div className="social-signup-buttons">

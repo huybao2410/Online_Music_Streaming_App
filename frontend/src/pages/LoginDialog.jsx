@@ -161,21 +161,53 @@ export default function LoginDialog({ onClose, onSuccess }) {
           </button>
           <div className="social-btn google-btn" style={{ display: "flex", justifyContent: "center" }}>
             <GoogleLogin
-              onSuccess={(credentialResponse) => {
-                const data = jwtDecode(credentialResponse.credential);
-                console.log("Google user:", data);
+              onSuccess={async (credentialResponse) => {
+                try {
+                  setErr(null);
+                  
+                  // Gửi credential đến backend để verify và lưu user
+                  const res = await axios.post("http://localhost:5000/api/auth/google", {
+                    credential: credentialResponse.credential
+                  });
 
-                // 👉 Giả lập đăng nhập thành công
-                localStorage.setItem("token", credentialResponse.credential);
-                localStorage.setItem("username", data.name);
-                localStorage.setItem("email", data.email);
-                localStorage.setItem("picture", data.picture);
+                  const { token, user } = res.data;
 
-                window.dispatchEvent(new Event("storage"));
-                onSuccess?.();
-                onClose?.();
+                  if (!token || !user) {
+                    setErr("Đăng nhập Google thất bại");
+                    return;
+                  }
+
+                  // Lưu thông tin
+                  localStorage.setItem("token", token);
+                  localStorage.setItem("role", user.role);
+                  localStorage.setItem("username", user.username || user.email);
+                  localStorage.setItem("email", user.email);
+                  if (user.avatar_url) {
+                    localStorage.setItem("avatar", user.avatar_url);
+                  }
+
+                  // Phát sự kiện
+                  window.dispatchEvent(new Event("storage"));
+
+                  // Đóng dialog
+                  onSuccess?.();
+                  onClose?.();
+
+                  // Redirect nếu là admin
+                  if (user.role === 'admin') {
+                    window.location.href = '/admin';
+                  }
+
+                  console.log("✅ Đăng nhập Google thành công:", user);
+                } catch (error) {
+                  console.error("❌ Google login error:", error);
+                  setErr(error.response?.data?.message || "Đăng nhập Google thất bại");
+                }
               }}
-              onError={() => console.log("Đăng nhập Google thất bại")}
+              onError={() => {
+                console.log("Đăng nhập Google thất bại");
+                setErr("Đăng nhập Google thất bại");
+              }}
               useOneTap
             />
           </div>

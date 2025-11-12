@@ -11,26 +11,29 @@ import UserProfile from "./pages/UserProfile";
 import PlaylistDetail from "./pages/PlaylistDetail";
 import EditPlaylist from "./pages/EditPlaylist";
 import FavoriteSongs from "./pages/FavoriteSongs";
+import RoleBasedRedirect from "./components/RoleBasedRedirect";
 
 function App() {
   return (
     <Router>
-      <Routes>
-        <Route element={<MainLayout />}>
-          <Route index element={<HomePage />} />       
-          <Route path="/home" element={<HomePage />} />
-          <Route path="/favorites" element={<FavoriteSongs />} />      
-          <Route path="/premium" element={<PremiumRegis />} />
-          <Route path="/profile" element={<UserProfile />} />
-          <Route path="/playlist/:id" element={<PlaylistDetail />} />
-          <Route path="/playlist/:id/edit" element={<EditPlaylist />} />
-        </Route>
+      <RoleBasedRedirect>
+        <Routes>
+          <Route element={<MainLayout />}>
+            <Route index element={<HomePage />} />       
+            <Route path="/home" element={<HomePage />} />
+            <Route path="/favorites" element={<FavoriteSongs />} />      
+            <Route path="/premium" element={<PremiumRegis />} />
+            <Route path="/profile" element={<UserProfile />} />
+            <Route path="/playlist/:id" element={<PlaylistDetail />} />
+            <Route path="/playlist/:id/edit" element={<EditPlaylist />} />
+          </Route>
 
-        <Route path="/upload" element={<UploadSong />} />
-        <Route path="/login" element={<LoginDialog />} />
-        <Route path="/signup" element={<SignupDialog />} />
-        <Route path="/admin" element={<AdminDashboard />} />
-      </Routes>
+          <Route path="/upload" element={<UploadSong />} />
+          <Route path="/login" element={<LoginDialog />} />
+          <Route path="/signup" element={<SignupDialog />} />
+          <Route path="/admin" element={<AdminDashboard />} />
+        </Routes>
+      </RoleBasedRedirect>
     </Router>
   );
 }
