@@ -1,0 +1,28 @@
+.premium-active {
+  background: linear-gradient(90deg, #ffd700, #ffcc33);
+  color: #222;
+  font-weight: bold;
+  padding: 8px 16px;
+  border-radius: 20px;
+  cursor: default;
+  user-select: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.premium-btn {
+  background: transparent;
+  border: 1px solid #ffd700;
+  color: #ffd700;
+  padding: 8px 16px;
+  border-radius: 20px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: 0.2s;
+}
+
+.premium-btn:hover {
+  background-color: #ffd700;
+  color: #111;
+}

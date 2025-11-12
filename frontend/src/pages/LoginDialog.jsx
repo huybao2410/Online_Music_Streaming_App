@@ -1,4 +1,3 @@
-// LoginDialog.jsx
 import React, { useState } from "react";
 import axios from "axios";
 import { AiOutlineClose, AiOutlineEye, AiOutlineEyeInvisible } from "react-icons/ai";
@@ -15,6 +14,7 @@ export default function LoginDialog({ onClose, onSuccess }) {
   const [agreedToTerms, setAgreedToTerms] = useState(false);
   const [err, setErr] = useState(null);
 
+  // ⚙️ Đăng nhập thường
   const handleLogin = async (e) => {
     e.preventDefault();
     setErr(null);
@@ -26,7 +26,7 @@ export default function LoginDialog({ onClose, onSuccess }) {
 
     try {
       const res = await axios.post("http://localhost:5000/api/auth/login", {
-        identifier: identifier,
+        identifier,
         password,
       });
 
@@ -38,28 +38,66 @@ export default function LoginDialog({ onClose, onSuccess }) {
         return;
       }
 
-      // Lưu thông tin
+      // ✅ Lưu thông tin user vào localStorage
       localStorage.setItem("token", token);
+      localStorage.setItem("user_id", user.id);
       localStorage.setItem("role", user.role);
       localStorage.setItem("username", user.username || "User");
+      localStorage.setItem("isPremium", user.is_premium ? "true" : "false");
+      localStorage.setItem("premiumExpire", user.premium_expire || "");
 
-      if (rememberMe) {
-        localStorage.setItem("rememberMe", "true");
-      }
+      if (rememberMe) localStorage.setItem("rememberMe", "true");
 
-      // Phát sự kiện để Header & Sidebar biết
       window.dispatchEvent(new Event("storage"));
-
-      // Gọi callback (nếu có)
       onSuccess?.();
       onClose?.();
 
-      // Redirect admin đến dashboard
-      if (user.role === 'admin') {
-        window.location.href = '/admin';
-      }
+      if (user.role === "admin") window.location.href = "/admin";
     } catch (error) {
       setErr(error.response?.data?.message || "Đăng nhập thất bại");
+    }
+  };
+
+  // ⚙️ Đăng nhập Google
+  const handleGoogleLogin = async (credentialResponse) => {
+    try {
+      const decoded = jwtDecode(credentialResponse.credential);
+      console.log("✅ Google user:", decoded);
+
+      // Gửi dữ liệu tới backend PHP
+      const res = await axios.post(
+        "http://localhost:8081/music_API/user/google_login.php",
+        {
+          email: decoded.email,
+          name: decoded.name,
+          picture: decoded.picture,
+        }
+      );
+
+      if (res.data.status) {
+        const user = res.data.user;
+
+        // ✅ Lưu vào localStorage
+        localStorage.setItem("token", credentialResponse.credential);
+        localStorage.setItem("user_id", user.id);
+        localStorage.setItem("username", user.username || decoded.name);
+        localStorage.setItem("email", user.email);
+        localStorage.setItem("picture", user.avatar_url || decoded.picture);
+        localStorage.setItem("isPremium", user.is_premium == 1 ? "true" : "false");
+        localStorage.setItem("premiumExpire", user.premium_expire || "");
+
+        // Gửi sự kiện toàn cục để Header/Sidebar cập nhật
+        window.dispatchEvent(new Event("storage"));
+
+        alert("🎉 Đăng nhập Google thành công!");
+        onSuccess?.();
+        onClose?.();
+      } else {
+        alert("Đăng nhập thất bại: " + res.data.message);
+      }
+    } catch (error) {
+      console.error("❌ Lỗi đăng nhập Google:", error);
+      alert("Không thể kết nối đến máy chủ Google hoặc API PHP.");
     }
   };
 
@@ -130,17 +168,14 @@ export default function LoginDialog({ onClose, onSuccess }) {
                 onChange={(e) => setAgreedToTerms(e.target.checked)}
               />
               <span>
-                Tôi đã đọc, hiểu rõ, đồng ý hoàn toàn và tự nguyện với các điều khoản
-                liên quan đến việc thu thập, xử lý dữ liệu cá nhân, quyền và nghĩa vụ
-                của mình được quy định tại{" "}
+                Tôi đồng ý với{" "}
                 <a href="#" className="terms-link">
                   Chính sách bảo mật
                 </a>{" "}
                 và{" "}
                 <a href="#" className="terms-link">
                   Điều khoản sử dụng
-                </a>
-                , cũng như các chính sách khác do NCT ban hành
+                </a>.
               </span>
             </label>
           </div>
@@ -159,25 +194,50 @@ export default function LoginDialog({ onClose, onSuccess }) {
             <FaFacebookF size={18} />
             <span>Facebook</span>
           </button>
-          <div className="social-btn google-btn" style={{ display: "flex", justifyContent: "center" }}>
+          <div
+            className="social-btn google-btn"
+            style={{ display: "flex", justifyContent: "center" }}
+          >
             <GoogleLogin
-              onSuccess={(credentialResponse) => {
-                const data = jwtDecode(credentialResponse.credential);
-                console.log("Google user:", data);
+  onSuccess={async (credentialResponse) => {
+    try {
+      const data = jwtDecode(credentialResponse.credential);
+      console.log("Google user:", data);
 
-                // 👉 Giả lập đăng nhập thành công
-                localStorage.setItem("token", credentialResponse.credential);
-                localStorage.setItem("username", data.name);
-                localStorage.setItem("email", data.email);
-                localStorage.setItem("picture", data.picture);
+      // Gửi dữ liệu lên PHP backend
+      const res = await axios.post("http://localhost:8081/music_API/online_music/user/google_login.php", {
+        email: data.email,
+        name: data.name,
+        picture: data.picture,
+      });
 
-                window.dispatchEvent(new Event("storage"));
-                onSuccess?.();
-                onClose?.();
-              }}
-              onError={() => console.log("Đăng nhập Google thất bại")}
-              useOneTap
-            />
+      if (res.data.status) {
+        const user = res.data.user;
+
+        // Lưu thông tin đăng nhập
+        localStorage.setItem("token", credentialResponse.credential);
+        localStorage.setItem("user_id", user.id);
+        localStorage.setItem("username", user.username);
+        localStorage.setItem("email", user.email);
+        localStorage.setItem("role", user.role);
+        localStorage.setItem("is_premium", user.is_premium);
+
+        alert("🎉 " + res.data.message);
+        window.dispatchEvent(new Event("storage"));
+        onSuccess?.();
+        onClose?.();
+      } else {
+        alert("❌ " + res.data.message);
+      }
+    } catch (error) {
+      console.error("❌ Lỗi đăng nhập Google:", error);
+      alert("Không thể kết nối đến máy chủ Google hoặc API PHP.");
+    }
+  }}
+  onError={() => alert("❌ Đăng nhập Google thất bại!")}
+  useOneTap
+/>
+
           </div>
         </div>
 
@@ -194,11 +254,12 @@ export default function LoginDialog({ onClose, onSuccess }) {
 
         <div className="signup-link">
           <span>Bạn chưa có tài khoản? </span>
-          <button onClick={() => {
-            onClose();
-            // Trigger signup dialog - will be handled by parent
-            window.dispatchEvent(new CustomEvent('openSignup'));
-          }}>
+          <button
+            onClick={() => {
+              onClose();
+              window.dispatchEvent(new CustomEvent("openSignup"));
+            }}
+          >
             Đăng ký ngay
           </button>
         </div>
