@@ -18,6 +18,7 @@ export default function SongManagementContent() {
   // Filter & Search
   const [searchTerm, setSearchTerm] = useState("");
   const [filterArtist, setFilterArtist] = useState("");
+  const [filterGenre, setFilterGenre] = useState("");
 
   // Modal states
   const [showModal, setShowModal] = useState(false);
@@ -28,12 +29,17 @@ export default function SongManagementContent() {
   const [formData, setFormData] = useState({
     title: "",
     artist_id: "",
-    genre: "",
+    genre_id: "",
     album: "",
-    duration: 0,
+    cover_url: "",
     cover: null,
     audio: null,
   });
+
+  // Preview states
+  const [coverPreview, setCoverPreview] = useState(null);
+  const [audioFileName, setAudioFileName] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Pagination
   const [currentPage, setCurrentPage] = useState(1);
@@ -45,7 +51,7 @@ export default function SongManagementContent() {
     fetchSongs();
     fetchArtists();
     fetchGenres();
-  }, [currentPage, searchTerm, filterArtist]);
+  }, [currentPage, searchTerm, filterArtist, filterGenre]);
 
   const fetchSongs = async () => {
     try {
@@ -59,18 +65,22 @@ export default function SongManagementContent() {
       
       if (response.data.status && Array.isArray(response.data.songs)) {
         // Chuẩn hóa dữ liệu từ PHP API
-        const formattedSongs = response.data.songs.map((song) => ({
-          song_id: song.song_id || song.id,
-          title: song.title || "Không rõ tên",
-          artist_name: song.artist || "Không rõ nghệ sĩ",
-          artist_id: song.artist_id,
-          album: song.album || "",
-          genre: song.genre || "",
-          duration: song.duration || 0,
-          cover_url: fixLocalUrl(song.cover),
-          audio_url: fixLocalUrl(song.audio || song.url),
-          play_count: song.play_count || 0,
-        }));
+        const formattedSongs = response.data.songs.map((song) => {
+          const formatted = {
+            song_id: song.song_id || song.id,
+            title: song.title || "Không rõ tên",
+            artist_name: song.artist || "Không rõ nghệ sĩ",
+            artist_id: song.artist_id,
+            album: song.album || "",
+            genre: song.genre || "",
+            duration: song.duration || 0,
+            cover_url: fixLocalUrl(song.cover),
+            audio_url: fixLocalUrl(song.audio || song.url),
+            play_count: song.play_count || 0,
+          };
+          console.log("Song data:", song.title, "artist_id:", song.artist_id);
+          return formatted;
+        });
 
         // Apply client-side search filter
         let filteredSongs = formattedSongs;
@@ -84,9 +94,22 @@ export default function SongManagementContent() {
 
         // Apply artist filter
         if (filterArtist) {
+          console.log("Filtering by artist_id:", filterArtist);
+          filteredSongs = filteredSongs.filter(song => {
+            const match = song.artist_id && song.artist_id.toString() === filterArtist.toString();
+            if (match) console.log("Matched song:", song.title, "artist_id:", song.artist_id);
+            return match;
+          });
+          console.log(`Found ${filteredSongs.length} songs for artist ${filterArtist}`);
+        }
+
+        // Apply genre filter
+        if (filterGenre) {
+          console.log("Filtering by genre:", filterGenre);
           filteredSongs = filteredSongs.filter(song => 
-            song.artist_id === parseInt(filterArtist)
+            song.genre && song.genre.toLowerCase() === filterGenre.toLowerCase()
           );
+          console.log(`Found ${filteredSongs.length} songs for genre ${filterGenre}`);
         }
 
         setTotalSongs(filteredSongs.length);
@@ -129,38 +152,34 @@ export default function SongManagementContent() {
 
   const fetchArtists = async () => {
     try {
-      console.log("Fetching artists from songs...");
-      // Lấy artists từ danh sách songs (vì PHP API không có endpoint riêng cho artists)
-      const response = await axios.get(`${PHP_API_URL}/song/get_songs.php`);
+      console.log("Fetching artists from Node.js API...");
+      const response = await axios.get(`${NODE_API_URL}/artists`);
       
-      if (response.data.status && Array.isArray(response.data.songs)) {
-        // Extract unique artists from songs
-        const artistsMap = new Map();
-        response.data.songs.forEach(song => {
-          if (song.artist_id && song.artist && !artistsMap.has(song.artist_id)) {
-            artistsMap.set(song.artist_id, {
-              artist_id: song.artist_id,
-              name: song.artist,
-            });
-          }
-        });
-        
-        const uniqueArtists = Array.from(artistsMap.values());
-        setArtists(uniqueArtists);
-        console.log(`✅ Loaded ${uniqueArtists.length} unique artists`);
+      if (response.data.success && Array.isArray(response.data.artists)) {
+        setArtists(response.data.artists);
+        console.log(`✅ Loaded ${response.data.artists.length} artists`);
       }
     } catch (err) {
       console.error("❌ Error fetching artists:", err);
+      setError("Không thể tải danh sách nghệ sĩ");
     }
   };
 
   const fetchGenres = async () => {
-    setGenres([
-      "Pop", "Rock", "Hip Hop", "R&B", "Country", "Jazz", "Blues",
-      "Electronic", "Dance", "EDM", "Ballad", "Indie", "Reggae",
-      "K-Pop", "J-Pop", "Latin", "Classical", "Lo-fi", "Acoustic",
-      "Rap", "Soul", "Alternative", "V-Pop", "Bolero"
-    ]);
+    try {
+      const response = await axios.get(`${NODE_API_URL}/genres`);
+      if (response.data.success && response.data.genres) {
+        setGenres(response.data.genres);
+      }
+    } catch (err) {
+      console.error("Error fetching genres:", err);
+      // Fallback to hardcoded list if API fails
+      setGenres([
+        { genre_id: 1, name: "Pop" },
+        { genre_id: 2, name: "Rock" },
+        { genre_id: 3, name: "Hip Hop" }
+      ]);
+    }
   };
 
   const openModal = (mode, song = null) => {
@@ -171,9 +190,8 @@ export default function SongManagementContent() {
       setFormData({
         title: song.title || "",
         artist_id: song.artist_id || "",
-        genre: song.genre || "",
+        genre_id: "",
         album: song.album || "",
-        duration: song.duration || 0,
         cover: null,
         audio: null,
       });
@@ -181,12 +199,13 @@ export default function SongManagementContent() {
       setFormData({
         title: "",
         artist_id: "",
-        genre: "",
+        genre_id: "",
         album: "",
-        duration: 0,
         cover: null,
         audio: null,
       });
+      setCoverPreview(null);
+      setAudioFileName("");
     }
 
     setShowModal(true);
@@ -198,12 +217,14 @@ export default function SongManagementContent() {
     setFormData({
       title: "",
       artist_id: "",
-      genre: "",
+      genre_id: "",
       album: "",
-      duration: 0,
+      cover_url: "",
       cover: null,
       audio: null,
     });
+    setCoverPreview(null);
+    setAudioFileName("");
   };
 
   const handleInputChange = (e) => {
@@ -214,7 +235,22 @@ export default function SongManagementContent() {
   const handleFileChange = (e) => {
     const { name, files } = e.target;
     if (files && files[0]) {
-      setFormData({ ...formData, [name]: files[0] });
+      const file = files[0];
+      setFormData({ ...formData, [name]: file });
+
+      // Preview for cover image
+      if (name === "cover") {
+        const reader = new FileReader();
+        reader.onloadend = () => {
+          setCoverPreview(reader.result);
+        };
+        reader.readAsDataURL(file);
+      }
+
+      // Show filename for audio
+      if (name === "audio") {
+        setAudioFileName(file.name);
+      }
     }
   };
 
@@ -222,67 +258,74 @@ export default function SongManagementContent() {
     e.preventDefault();
     setError("");
     setSuccess("");
+    setIsSubmitting(true);
 
     try {
-      const token = localStorage.getItem("token");
-      if (!token) {
-        setError("Bạn cần đăng nhập để thực hiện thao tác này.");
-        return;
-      }
-
-      const formDataToSend = new FormData();
-      formDataToSend.append("title", formData.title);
-      formDataToSend.append("artist_id", formData.artist_id);
-      formDataToSend.append("genre", formData.genre);
-      formDataToSend.append("album", formData.album);
-      formDataToSend.append("duration", formData.duration);
-
-      if (formData.cover) {
-        formDataToSend.append("cover", formData.cover);
-      }
-      if (formData.audio) {
-        formDataToSend.append("audio", formData.audio);
-      }
-
       if (modalMode === "create") {
-        // Sử dụng Node.js API cho admin operations
-        const response = await axios.post(`${NODE_API_URL}/songs`, formDataToSend, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "multipart/form-data",
-          },
-        });
-
-        if (response.data.success) {
-          setSuccess("Thêm bài hát thành công!");
-          fetchSongs();
-          closeModal();
+        // Validate required fields
+        if (!formData.title || !formData.artist_id || !formData.genre_id) {
+          setError("Vui lòng điền đầy đủ thông tin");
+          setIsSubmitting(false);
+          return;
         }
-      } else {
-        // Sử dụng Node.js API cho admin operations
-        const response = await axios.put(
-          `${NODE_API_URL}/songs/${currentSong.song_id}`,
-          formDataToSend,
+
+        if (!formData.audio) {
+          setError("Vui lòng chọn file nhạc");
+          setIsSubmitting(false);
+          return;
+        }
+
+        if (!formData.cover && !formData.cover_url) {
+          setError("Vui lòng chọn ảnh bìa hoặc nhập URL ảnh");
+          setIsSubmitting(false);
+          return;
+        }
+
+        // Create FormData for file upload
+        const uploadData = new FormData();
+        uploadData.append("title", formData.title);
+        uploadData.append("artist_id", formData.artist_id);
+        uploadData.append("genre_id", formData.genre_id);
+        uploadData.append("album", formData.album || "");
+        uploadData.append("cover_url", formData.cover_url || "");
+        uploadData.append("audio", formData.audio);
+        if (formData.cover) {
+          uploadData.append("cover", formData.cover);
+        }
+
+        console.log("Uploading song to PHP API...");
+        const response = await axios.post(
+          `${PHP_API_URL}/song/add_song.php`,
+          uploadData,
           {
             headers: {
-              Authorization: `Bearer ${token}`,
               "Content-Type": "multipart/form-data",
             },
           }
         );
 
-        if (response.data.success) {
-          setSuccess("Cập nhật bài hát thành công!");
+        console.log("Upload response:", response.data);
+
+        if (response.data.status) {
+          setSuccess("Thêm bài hát thành công!");
           fetchSongs();
           closeModal();
+        } else {
+          setError(response.data.message || "Có lỗi xảy ra khi thêm bài hát");
         }
+      } else {
+        // Edit mode - implement later
+        setError("Chức năng chỉnh sửa đang được phát triển");
       }
     } catch (err) {
-      console.error("Error submitting form:", err);
+      console.error("Error submitting song:", err);
       setError(
         err.response?.data?.message ||
-          "Có lỗi xảy ra khi lưu bài hát. Vui lòng thử lại."
+          err.message ||
+          "Có lỗi xảy ra khi lưu bài hát"
       );
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -358,13 +401,13 @@ export default function SongManagementContent() {
 
       <div className="filters-bar">
         <div className="search-box">
-          <FaSearch />
           <input
             type="text"
-            placeholder="Tìm kiếm bài hát..."
+            placeholder="Tìm kiếm bài hát, nghệ sĩ..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
+          <FaSearch className="search-icon-right" />
         </div>
 
         <select
@@ -374,8 +417,21 @@ export default function SongManagementContent() {
         >
           <option value="">Tất cả nghệ sĩ</option>
           {artists.map((artist) => (
-            <option key={artist.id} value={artist.id}>
+            <option key={artist.artist_id} value={artist.artist_id}>
               {artist.name}
+            </option>
+          ))}
+        </select>
+
+        <select
+          className="filter-select"
+          value={filterGenre}
+          onChange={(e) => setFilterGenre(e.target.value)}
+        >
+          <option value="">Tất cả thể loại</option>
+          {genres.map((genre) => (
+            <option key={genre.genre_id} value={genre.name}>
+              {genre.name}
             </option>
           ))}
         </select>
@@ -383,6 +439,7 @@ export default function SongManagementContent() {
         <button className="btn-reset" onClick={() => {
           setSearchTerm("");
           setFilterArtist("");
+          setFilterGenre("");
           setCurrentPage(1);
         }}>
           Đặt lại
@@ -550,76 +607,91 @@ export default function SongManagementContent() {
                 </div>
 
                 <div className="form-group">
-                  <label>Thể loại</label>
+                  <label>Thể loại <span className="required">*</span></label>
                   <select
-                    name="genre"
-                    value={formData.genre}
+                    name="genre_id"
+                    value={formData.genre_id}
                     onChange={handleInputChange}
+                    required
                   >
                     <option value="">-- Chọn thể loại --</option>
                     {genres.map((genre) => (
-                      <option key={genre} value={genre}>
-                        {genre}
+                      <option key={genre.genre_id} value={genre.genre_id}>
+                        {genre.name}
                       </option>
                     ))}
                   </select>
                 </div>
               </div>
 
-              <div className="form-row">
-                <div className="form-group">
-                  <label>Album</label>
-                  <input
-                    type="text"
-                    name="album"
-                    value={formData.album}
-                    onChange={handleInputChange}
-                  />
-                </div>
-
-                <div className="form-group">
-                  <label>Thời lượng (giây)</label>
-                  <input
-                    type="number"
-                    name="duration"
-                    value={formData.duration}
-                    onChange={handleInputChange}
-                    min="0"
-                  />
-                </div>
-              </div>
-
               <div className="form-group">
-                <label>Ảnh bìa</label>
+                <label>Album</label>
                 <input
-                  type="file"
-                  name="cover"
-                  accept="image/*"
-                  onChange={handleFileChange}
+                  type="text"
+                  name="album"
+                  value={formData.album}
+                  onChange={handleInputChange}
+                  placeholder="Tên album (tùy chọn)"
                 />
               </div>
 
-              <div className="form-group">
-                <label>
-                  File nhạc {modalMode === "create" && <span className="required">*</span>}
-                </label>
-                <input
-                  type="file"
-                  name="audio"
-                  accept="audio/*"
-                  onChange={handleFileChange}
-                  required={modalMode === "create"}
-                />
-              </div>
+              {modalMode === "create" && (
+                <>
+                  <div className="form-group">
+                    <label>URL ảnh bìa</label>
+                    <input
+                      type="url"
+                      name="cover_url"
+                      value={formData.cover_url || ""}
+                      onChange={handleInputChange}
+                      placeholder="https://example.com/image.jpg"
+                    />
+                    <small className="form-hint">Nhập URL ảnh hoặc tải file bên dưới</small>
+                  </div>
+
+                  <div className="form-group">
+                    <label>Hoặc tải file ảnh bìa</label>
+                    {coverPreview && (
+                      <div className="image-preview">
+                        <img src={coverPreview} alt="Cover preview" />
+                      </div>
+                    )}
+                    <input
+                      type="file"
+                      name="cover"
+                      accept="image/*"
+                      onChange={handleFileChange}
+                    />
+                    <small className="form-hint">JPG, PNG, GIF, WEBP - Tối đa 5MB</small>
+                  </div>
+
+                  <div className="form-group">
+                    <label>File nhạc <span className="required">*</span></label>
+                    {audioFileName && (
+                      <div className="file-selected">
+                        <FaMusic /> {audioFileName}
+                      </div>
+                    )}
+                    <input
+                      type="file"
+                      name="audio"
+                      accept="audio/mp3,audio/wav,audio/ogg,audio/m4a"
+                      onChange={handleFileChange}
+                      required
+                    />
+                    <small className="form-hint">MP3, WAV, OGG, M4A - Tối đa 10MB</small>
+                  </div>
+                </>
+              )}
               </form>
             </div>
 
             <div className="modal-actions">
-              <button type="button" className="btn-cancel" onClick={closeModal}>
+              <button type="button" className="btn-cancel" onClick={closeModal} disabled={isSubmitting}>
                 Hủy
               </button>
-              <button type="submit" form="song-form" className="btn-submit">
-                {modalMode === "create" ? "Thêm" : "Cập nhật"}
+              <button type="submit" form="song-form" className="btn-submit" disabled={isSubmitting}>
+                {isSubmitting ? "Đang xử lý..." : (modalMode === "create" ? "Thêm" : "Cập nhật")}
               </button>
             </div>
           </div>

@@ -1,9 +1,10 @@
 /* === GENERAL === */
 .admin-dashboard-container {
   display: flex;
-  min-height: 100vh;
+  height: 100vh;
   background: #f5f7fa;
   font-family: 'Poppins', sans-serif;
+  overflow: hidden;
 }
 
 /* === SIDEBAR === */
@@ -101,7 +102,8 @@
   margin-left: 280px;
   display: flex;
   flex-direction: column;
-  min-height: 100vh;
+  height: 100vh;
+  overflow: hidden;
 }
 
 /* === TOP HEADER === */
@@ -112,8 +114,7 @@
   align-items: center;
   justify-content: space-between;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-  position: sticky;
-  top: 0;
+  flex-shrink: 0;
   z-index: 50;
 }
 
@@ -210,10 +211,22 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  flex-shrink: 0;
+  overflow: hidden;
+  position: relative;
+}
+
+.user-avatar-header .avatar-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 50%;
+}
+
+.user-avatar-header .avatar-placeholder {
   color: #fff !important;
   font-weight: 600;
   font-size: 16px;
-  flex-shrink: 0;
 }
 
 .user-info-header {
@@ -310,6 +323,8 @@
   padding: 30px 40px;
   background: #f5f7fa;
   overflow-y: auto;
+  overflow-x: hidden;
+  min-height: 0;
 }
 
 /* === DASHBOARD OVERVIEW === */
@@ -412,6 +427,15 @@
 .stat-card-modern.green .card-icon {
   background: rgba(16, 185, 129, 0.1);
   color: #10b981;
+}
+
+.stat-card-modern.pink {
+  border-left-color: #ec4899;
+}
+
+.stat-card-modern.pink .card-icon {
+  background: rgba(236, 72, 153, 0.1);
+  color: #ec4899;
 }
 
 .stat-card-modern.purple {
@@ -517,6 +541,11 @@
 .action-icon.green {
   background: rgba(16, 185, 129, 0.1);
   color: #10b981;
+}
+
+.action-icon.pink {
+  background: rgba(236, 72, 153, 0.1);
+  color: #ec4899;
 }
 
 .action-icon.purple {

@@ -1,18 +1,39 @@
-// frontend/src/services/api.js
-import axios from 'axios';
+import React from "react";
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import MainLayout from "./layout/MainLayout";
+import HomePage from "./pages/HomePage";
+import PremiumRegis from "./pages/PremiumRegis";
+import AdminDashboard from "./pages/AdminDashboard";
+import LoginDialog from "./pages/LoginDialog";
+import SignupDialog from "./pages/SignupDialog";
+import UploadSong from "./pages/UploadSong";
+import UserProfile from "./pages/UserProfile";
+import PlaylistDetail from "./pages/PlaylistDetail";
+import EditPlaylist from "./pages/EditPlaylist";
+import FavoriteSongs from "./pages/FavoriteSongs";
+import SearchPage from "./pages/SearchPage";
+function App() {
+  return (
+    <Router>
+      <Routes>
+        <Route element={<MainLayout />}>
+          <Route index element={<HomePage />} />       
+          <Route path="/home" element={<HomePage />} />
+          <Route path="/favorites" element={<FavoriteSongs />} />      
+          <Route path="/premium" element={<PremiumRegis />} />
+          <Route path="/profile" element={<UserProfile />} />
+          <Route path="/playlist/:id" element={<PlaylistDetail />} />
+          <Route path="/playlist/:id/edit" element={<EditPlaylist />} />
+        </Route>
 
-const API = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
+        <Route path="/upload" element={<UploadSong />} />
+        <Route path="/login" element={<LoginDialog />} />
+        <Route path="/signup" element={<SignupDialog />} />
+        <Route path="/admin" element={<AdminDashboard />} />
+  <Route path="/search" element={<SearchPage />} />
+      </Routes>
+    </Router>
+  );
+}
 
-const instance = axios.create({
-  baseURL: API,
-  headers: { 'Content-Type': 'application/json' }
-});
-
-// attach token automatically
-instance.interceptors.request.use(config => {
-  const token = localStorage.getItem('token'); // đơn giản - xem lưu trữ an toàn bên dưới
-  if (token) config.headers.Authorization = `Bearer ${token}`;
-  return config;
-});
-
-export default instance;
+export default App;

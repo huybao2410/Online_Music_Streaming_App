@@ -10,9 +10,9 @@ const playlistRoutes = require('./routes/playlists');
 const userRoutes = require('./routes/users');
 const artistRoutes = require('./routes/artists');
 const songRoutes = require('./routes/songs');
+const genreRoutes = require('./routes/genres');
 
 const app = express();
-
 app.use(cors({ origin: process.env.CORS_ORIGIN || 'http://localhost:3000', credentials: true }));
 app.use(express.json());
 
@@ -25,6 +25,7 @@ app.use('/api/playlists', playlistRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/artists', artistRoutes);
 app.use('/api/songs', songRoutes);
+app.use('/api/genres', genreRoutes);
 
 app.get('/api/health', (req, res) => res.json({ message: 'Backend is running' }));
 

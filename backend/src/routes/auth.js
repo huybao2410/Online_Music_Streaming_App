@@ -143,10 +143,22 @@ router.post('/login',
 // Current user profile (protected)
 router.get('/me', verifyToken, async (req, res) => {
   try {
-    const [rows] = await pool.query('SELECT id, username, email, avatar_url, date_of_birth, role, status FROM users WHERE id = ?', [req.user.id]);
+    const [rows] = await pool.query(
+      'SELECT id, username, email, phone_number, avatar_url, date_of_birth, role, status FROM users WHERE id = ?', 
+      [req.user.id]
+    );
     if (!rows.length) return res.status(404).json({ message: 'User not found' });
-    res.json({ user: rows[0] });
+    
+    const user = rows[0];
+    
+    // Process avatar URL
+    if (user.avatar_url && !user.avatar_url.startsWith('http')) {
+      user.avatar_url = `http://localhost:5000${user.avatar_url}`;
+    }
+    
+    res.json({ user });
   } catch (err) {
+    console.error('Error fetching user profile:', err);
     res.status(500).json({ message: 'Server error' });
   }
 });
@@ -180,14 +192,17 @@ router.post('/google', async (req, res) => {
     );
 
     let userId;
+    let userRole = 'user';
     let isNewUser = false;
 
     if (existingUsers.length > 0) {
       // User exists - login
-      userId = existingUsers[0].id;
+      const existingUser = existingUsers[0];
+      userId = existingUser.id;
+      userRole = existingUser.role;
       
       // Update avatar if changed
-      if (picture && existingUsers[0].avatar_url !== picture) {
+      if (picture && existingUser.avatar_url !== picture) {
         await pool.query(
           'UPDATE users SET avatar_url = ? WHERE id = ?',
           [picture, userId]
@@ -201,6 +216,7 @@ router.post('/google', async (req, res) => {
         [email, name, picture]
       );
       userId = result.insertId;
+      userRole = 'user';
       isNewUser = true;
     }
 
@@ -209,7 +225,7 @@ router.post('/google', async (req, res) => {
       { 
         id: userId, 
         email, 
-        role: existingUsers[0]?.role || 'user' 
+        role: userRole 
       },
       process.env.JWT_SECRET,
       { expiresIn: process.env.JWT_EXPIRES_IN }
@@ -223,7 +239,7 @@ router.post('/google', async (req, res) => {
         email,
         username: name,
         avatar_url: picture,
-        role: existingUsers[0]?.role || 'user',
+        role: userRole,
         auth_type: 'google'
       }
     });

@@ -75,11 +75,15 @@ router.get('/profile', verifyToken, async (req, res) => {
   }
 });
 
-// Update user profile (username)
+// Update user profile (username, email, phone, birthday, avatar)
 router.put('/profile',
   verifyToken,
+  upload.single('avatar'),
   body('username').optional().trim().notEmpty()
     .isLength({ min: 3, max: 50 }).withMessage('Tên người dùng phải từ 3-50 ký tự'),
+  body('email').optional().isEmail().withMessage('Email không hợp lệ'),
+  body('phone_number').optional().trim(),
+  body('date_of_birth').optional().isISO8601().withMessage('Ngày sinh không hợp lệ'),
   async (req, res) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
@@ -90,45 +94,109 @@ router.put('/profile',
     }
 
     try {
-      const { username } = req.body;
+      const { username, email, phone_number, date_of_birth } = req.body;
+      const updates = [];
+      const values = [];
 
-      if (!username) {
+      // Build dynamic update query
+      if (username) {
+        // Check if username already exists
+        const [existing] = await pool.query(
+          'SELECT id FROM users WHERE username = ? AND id != ?',
+          [username, req.user.id]
+        );
+        if (existing.length > 0) {
+          return res.status(400).json({ 
+            success: false,
+            message: 'Tên người dùng đã tồn tại' 
+          });
+        }
+        updates.push('username = ?');
+        values.push(username);
+      }
+
+      if (email) {
+        // Check if email already exists
+        const [existing] = await pool.query(
+          'SELECT id FROM users WHERE email = ? AND id != ?',
+          [email, req.user.id]
+        );
+        if (existing.length > 0) {
+          return res.status(400).json({ 
+            success: false,
+            message: 'Email đã tồn tại' 
+          });
+        }
+        updates.push('email = ?');
+        values.push(email);
+      }
+
+      if (phone_number) {
+        updates.push('phone_number = ?');
+        values.push(phone_number);
+      }
+
+      if (date_of_birth) {
+        updates.push('date_of_birth = ?');
+        values.push(date_of_birth);
+      }
+
+      // Handle avatar upload
+      if (req.file) {
+        // Get current avatar
+        const [users] = await pool.query(
+          'SELECT avatar_url FROM users WHERE id = ?',
+          [req.user.id]
+        );
+
+        // Delete old avatar if exists
+        if (users.length && users[0].avatar_url) {
+          const oldAvatarPath = path.join(__dirname, '../..', users[0].avatar_url);
+          if (fs.existsSync(oldAvatarPath)) {
+            fs.unlinkSync(oldAvatarPath);
+          }
+        }
+
+        const avatarUrl = `/uploads/avatars/${req.file.filename}`;
+        updates.push('avatar_url = ?');
+        values.push(avatarUrl);
+      }
+
+      if (updates.length === 0) {
         return res.status(400).json({ 
           success: false,
           message: 'Không có thông tin để cập nhật' 
         });
       }
 
-      // Check if username already exists (excluding current user)
-      const [existing] = await pool.query(
-        'SELECT id FROM users WHERE username = ? AND id != ?',
-        [username, req.user.id]
-      );
-
-      if (existing.length > 0) {
-        return res.status(400).json({ 
-          success: false,
-          message: 'Tên người dùng đã tồn tại' 
-        });
-      }
-
-      // Update username
+      // Execute update
+      values.push(req.user.id);
       await pool.query(
-        'UPDATE users SET username = ? WHERE id = ?',
-        [username, req.user.id]
+        `UPDATE users SET ${updates.join(', ')} WHERE id = ?`,
+        values
       );
 
+      // Get updated user
       const [updatedUser] = await pool.query(
-        'SELECT id, username, email, avatar_url, role FROM users WHERE id = ?',
+        'SELECT id, username, email, phone_number, date_of_birth, avatar_url, role, status FROM users WHERE id = ?',
         [req.user.id]
       );
 
+      // Process avatar URL
+      if (updatedUser[0].avatar_url && !updatedUser[0].avatar_url.startsWith('http')) {
+        updatedUser[0].avatar_url = `http://localhost:5000${updatedUser[0].avatar_url}`;
+      }
+
       return res.json({
         success: true,
-        message: 'Cập nhật tên người dùng thành công',
+        message: 'Cập nhật hồ sơ thành công',
         user: updatedUser[0]
       });
     } catch (error) {
+      // Clean up uploaded file if error occurs
+      if (req.file) {
+        fs.unlinkSync(req.file.path);
+      }
       console.error('Error updating profile:', error);
       return res.status(500).json({ 
         success: false,

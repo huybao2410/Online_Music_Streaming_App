@@ -10,9 +10,10 @@ const fs = require('fs');
 const router = express.Router();
 
 // Configure multer for artist avatar upload
+// Upload to PHP API folder: C:/xampp/htdocs/music_API/online_music/artist/artist_avatar
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
-    const uploadDir = path.join(__dirname, '../../uploads/artists');
+    const uploadDir = path.join('C:', 'xampp', 'htdocs', 'music_API', 'online_music', 'artist', 'artist_avatar');
     if (!fs.existsSync(uploadDir)) {
       fs.mkdirSync(uploadDir, { recursive: true });
     }
@@ -57,9 +58,9 @@ router.get('/', async (req, res) => {
     const { search, limit = 50, offset = 0 } = req.query;
     
     let query = `
-      SELECT a.*, COUNT(DISTINCT s.id) as song_count
+      SELECT a.*, COUNT(DISTINCT s.song_id) as song_count
       FROM artists a
-      LEFT JOIN songs s ON a.id = s.artist_id
+      LEFT JOIN songs s ON a.artist_id = s.artist_id
     `;
     const params = [];
 
@@ -68,17 +69,15 @@ router.get('/', async (req, res) => {
       params.push(`%${search}%`);
     }
 
-    query += ' GROUP BY a.id ORDER BY a.name ASC LIMIT ? OFFSET ?';
+    query += ' GROUP BY a.artist_id ORDER BY a.name ASC LIMIT ? OFFSET ?';
     params.push(parseInt(limit), parseInt(offset));
 
     const [artists] = await pool.query(query, params);
 
-    // Process avatar URLs
+    // Process avatar URLs - không cần thêm prefix vì đã dùng PHP API
     const processedArtists = artists.map(artist => ({
       ...artist,
-      avatar_url: artist.avatar_url && !artist.avatar_url.startsWith('http')
-        ? `http://localhost:5000${artist.avatar_url}`
-        : artist.avatar_url
+      avatar_url: artist.avatar_url
     }));
 
     return res.json({
@@ -98,11 +97,11 @@ router.get('/', async (req, res) => {
 router.get('/:id', async (req, res) => {
   try {
     const [artists] = await pool.query(
-      `SELECT a.*, COUNT(DISTINCT s.id) as song_count
+      `SELECT a.*, COUNT(DISTINCT s.song_id) as song_count
        FROM artists a
-       LEFT JOIN songs s ON a.id = s.artist_id
-       WHERE a.id = ?
-       GROUP BY a.id`,
+       LEFT JOIN songs s ON a.artist_id = s.artist_id
+       WHERE a.artist_id = ?
+       GROUP BY a.artist_id`,
       [req.params.id]
     );
 
@@ -114,9 +113,6 @@ router.get('/:id', async (req, res) => {
     }
 
     const artist = artists[0];
-    if (artist.avatar_url && !artist.avatar_url.startsWith('http')) {
-      artist.avatar_url = `http://localhost:5000${artist.avatar_url}`;
-    }
 
     return res.json({
       success: true,
@@ -155,7 +151,7 @@ router.post('/',
     try {
       // Check if artist already exists
       const [existing] = await pool.query(
-        'SELECT id FROM artists WHERE name = ?',
+        'SELECT artist_id FROM artists WHERE name = ?',
         [name]
       );
 
@@ -167,7 +163,8 @@ router.post('/',
         });
       }
 
-      const avatarUrl = req.file ? `/uploads/artists/${req.file.filename}` : null;
+      // Lưu đường dẫn tương đối cho PHP API
+      const avatarUrl = req.file ? `artist/artist_avatar/${req.file.filename}` : null;
 
       const [result] = await pool.query(
         'INSERT INTO artists (name, bio, avatar_url) VALUES (?, ?, ?)',
@@ -175,7 +172,7 @@ router.post('/',
       );
 
       const [newArtist] = await pool.query(
-        'SELECT * FROM artists WHERE id = ?',
+        'SELECT * FROM artists WHERE artist_id = ?',
         [result.insertId]
       );
 
@@ -216,7 +213,7 @@ router.put('/:id',
 
     try {
       const [artists] = await pool.query(
-        'SELECT * FROM artists WHERE id = ?',
+        'SELECT * FROM artists WHERE artist_id = ?',
         [req.params.id]
       );
 
@@ -243,13 +240,13 @@ router.put('/:id',
 
       // Handle avatar upload
       if (req.file) {
-        const avatarUrl = `/uploads/artists/${req.file.filename}`;
+        const avatarUrl = `artist/artist_avatar/${req.file.filename}`;
         updates.push('avatar_url = ?');
         values.push(avatarUrl);
 
         // Delete old avatar
         if (artists[0].avatar_url) {
-          const oldPath = path.join(__dirname, '../..', artists[0].avatar_url);
+          const oldPath = path.join('C:', 'xampp', 'htdocs', 'music_API', 'online_music', artists[0].avatar_url);
           if (fs.existsSync(oldPath)) {
             fs.unlinkSync(oldPath);
           }
@@ -266,12 +263,12 @@ router.put('/:id',
       values.push(req.params.id);
 
       await pool.query(
-        `UPDATE artists SET ${updates.join(', ')} WHERE id = ?`,
+        `UPDATE artists SET ${updates.join(', ')} WHERE artist_id = ?`,
         values
       );
 
       const [updatedArtist] = await pool.query(
-        'SELECT * FROM artists WHERE id = ?',
+        'SELECT * FROM artists WHERE artist_id = ?',
         [req.params.id]
       );
 
@@ -309,7 +306,7 @@ router.delete('/:id', verifyToken, isAdmin, async (req, res) => {
 
     // Get artist to delete avatar file
     const [artists] = await pool.query(
-      'SELECT avatar_url FROM artists WHERE id = ?',
+      'SELECT avatar_url FROM artists WHERE artist_id = ?',
       [req.params.id]
     );
 
@@ -322,14 +319,14 @@ router.delete('/:id', verifyToken, isAdmin, async (req, res) => {
 
     // Delete avatar file
     if (artists[0].avatar_url) {
-      const avatarPath = path.join(__dirname, '../..', artists[0].avatar_url);
+      const avatarPath = path.join('C:', 'xampp', 'htdocs', 'music_API', 'online_music', artists[0].avatar_url);
       if (fs.existsSync(avatarPath)) {
         fs.unlinkSync(avatarPath);
       }
     }
 
     // Delete artist
-    await pool.query('DELETE FROM artists WHERE id = ?', [req.params.id]);
+    await pool.query('DELETE FROM artists WHERE artist_id = ?', [req.params.id]);
 
     return res.json({
       success: true,

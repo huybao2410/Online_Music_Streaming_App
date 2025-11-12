@@ -1,0 +1,58 @@
+.premium-expired-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.65);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 2000;
+}
+
+.premium-expired-modal {
+  background: #181818;
+  padding: 2rem;
+  border-radius: 16px;
+  width: 400px;
+  color: white;
+  text-align: center;
+  box-shadow: 0 0 20px rgba(0,0,0,0.5);
+}
+
+.premium-expired-modal h2 {
+  color: #ffcc00;
+  margin-bottom: 1rem;
+}
+
+.modal-actions {
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+  margin-top: 1.5rem;
+}
+
+.renew-btn {
+  background-color: #1db954;
+  color: white;
+  border: none;
+  padding: 10px 18px;
+  border-radius: 24px;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+.cancel-btn {
+  background: #333;
+  color: white;
+  border: none;
+  padding: 10px 18px;
+  border-radius: 24px;
+  cursor: pointer;
+}
+
+.renew-btn:hover {
+  background-color: #18a94a;
+}
+
+.cancel-btn:hover {
+  background-color: #555;
+}

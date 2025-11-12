@@ -54,9 +54,11 @@ export default function LoginDialog({ onClose, onSuccess }) {
       onSuccess?.();
       onClose?.();
 
-      // Redirect admin đến dashboard
+      // Redirect dựa trên role
       if (user.role === 'admin') {
         window.location.href = '/admin';
+      } else {
+        window.location.href = '/home';
       }
     } catch (error) {
       setErr(error.response?.data?.message || "Đăng nhập thất bại");
@@ -193,9 +195,11 @@ export default function LoginDialog({ onClose, onSuccess }) {
                   onSuccess?.();
                   onClose?.();
 
-                  // Redirect nếu là admin
+                  // Redirect dựa trên role
                   if (user.role === 'admin') {
                     window.location.href = '/admin';
+                  } else {
+                    window.location.href = '/home';
                   }
 
                   console.log("✅ Đăng nhập Google thành công:", user);

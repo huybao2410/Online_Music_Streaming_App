@@ -1,0 +1,137 @@
+/* ===== Overlay phủ toàn màn hình ===== */
+.premium-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.75);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 3000;
+  animation: fadeIn 0.3s ease;
+}
+
+/* ===== Hộp thông tin Premium ===== */
+.premium-modal {
+  background: linear-gradient(180deg, #1a1a1a, #111);
+  color: #fff;
+  padding: 2rem 2.5rem;
+  border-radius: 18px;
+  width: 420px;
+  box-shadow: 0 0 30px rgba(255, 215, 0, 0.25);
+  text-align: center;
+  border: 1px solid rgba(255, 215, 0, 0.2);
+  animation: slideUp 0.35s ease;
+}
+
+/* ===== Tiêu đề ===== */
+.premium-modal h2 {
+  color: #ffcc00;
+  font-size: 1.8rem;
+  font-weight: 700;
+  margin-bottom: 1rem;
+}
+
+/* ===== Danh sách quyền lợi ===== */
+.premium-modal ul {
+  text-align: left;
+  margin: 1rem 0;
+  padding-left: 1.2rem;
+  list-style: none;
+}
+
+.premium-modal ul li {
+  padding: 6px 0;
+  font-size: 15px;
+  color: #ccc;
+}
+
+/* ===== Thời hạn ===== */
+.premium-expire {
+  margin-top: 10px;
+  font-size: 0.95rem;
+  color: #ddd;
+  text-align: center;
+}
+
+.premium-expire strong {
+  color: #ffeb3b;
+}
+
+/* ===== Nút hủy gói ===== */
+.cancel-premium-btn {
+  background: linear-gradient(90deg, #ff4444, #ff0000);
+  color: white;
+  border: none;
+  padding: 10px 18px;
+  border-radius: 25px;
+  font-weight: 600;
+  margin-top: 1.5rem;
+  cursor: pointer;
+  transition: all 0.25s ease;
+  box-shadow: 0 0 10px rgba(255, 0, 0, 0.3);
+}
+
+.cancel-premium-btn:hover {
+  background: linear-gradient(90deg, #ff6666, #ff1a1a);
+  transform: scale(1.05);
+}
+
+/* ===== Nút Đóng ===== */
+.close-btn {
+  background: transparent;
+  color: #fff;
+  border: 1px solid #555;
+  padding: 8px 22px;
+  border-radius: 25px;
+  margin-top: 15px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: 0.25s;
+}
+
+.close-btn:hover {
+  background: #333;
+  border-color: #777;
+  transform: scale(1.05);
+}
+
+/* ===== Hiệu ứng ===== */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(40px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+/* ===== Responsive ===== */
+@media (max-width: 480px) {
+  .premium-modal {
+    width: 90%;
+    padding: 1.5rem;
+  }
+
+  .premium-modal h2 {
+    font-size: 1.5rem;
+  }
+
+  .cancel-premium-btn {
+    width: 100%;
+  }
+
+  .close-btn {
+    width: 100%;
+  }
+}

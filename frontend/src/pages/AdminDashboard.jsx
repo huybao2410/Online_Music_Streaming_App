@@ -4,6 +4,8 @@ import ArtistModal from "../components/ArtistModal";
 import SongManagementContent from "../components/SongManagementContent";
 import ArtistManagementContent from "../components/ArtistManagementContent";
 import UserManagementContent from "../components/UserManagementContent";
+import AdminProfileContent from "../components/AdminProfileContent";
+import GenreManagementContent from "../components/GenreManagementContent";
 import axios from "axios";
 import { 
   FaTachometerAlt, 
@@ -35,8 +37,10 @@ const AdminDashboard = () => {
     totalSongs: 0,
     totalArtists: 0,
     totalUsers: 0,
-    totalPlaylists: 0
+    totalPlaylists: 0,
+    totalGenres: 0
   });
+  const [adminAvatar, setAdminAvatar] = useState(null);
   
   const username = localStorage.getItem("username");
 
@@ -59,6 +63,33 @@ const AdminDashboard = () => {
       return;
     }
   }, [navigate]);
+
+  // Fetch admin avatar
+  useEffect(() => {
+    fetchAdminProfile();
+  }, []);
+
+  const fetchAdminProfile = async () => {
+    try {
+      const response = await axios.get("http://localhost:5000/api/auth/me", {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      if (response.data.user && response.data.user.avatar_url) {
+        setAdminAvatar(response.data.user.avatar_url);
+      }
+    } catch (error) {
+      console.error("Error fetching admin profile:", error);
+    }
+  };
+
+  // Listen to storage event to update avatar when changed
+  useEffect(() => {
+    const handleStorageChange = () => {
+      fetchAdminProfile();
+    };
+    window.addEventListener("storage", handleStorageChange);
+    return () => window.removeEventListener("storage", handleStorageChange);
+  }, []);
 
   // NOTE: artist data is now loaded by the ArtistManagementContent component itself (from PHP API).
   // Keep this effect only for legacy/old artists tab if needed in future.
@@ -219,13 +250,14 @@ const AdminDashboard = () => {
       try {
         console.log("Fetching dashboard stats from PHP API...");
         
-        // Lấy stats từ PHP API
-        const [songsRes, artistsRes, usersRes] = await Promise.all([
+        // Lấy stats từ PHP API và Node.js API
+        const [songsRes, artistsRes, usersRes, genresRes] = await Promise.all([
           axios.get("http://localhost:8081/music_API/online_music/song/get_songs.php"),
           axios.get("http://localhost:8081/music_API/online_music/artist/get_artists.php"),
           axios.get("/api/admin/users", {
             headers: { Authorization: `Bearer ${token}` }
-          }).catch(() => ({ data: { users: [] } }))
+          }).catch(() => ({ data: { users: [] } })),
+          axios.get("http://localhost:5000/api/genres").catch(() => ({ data: { genres: [] } }))
         ]);
         
         const totalSongs = songsRes.data?.status && songsRes.data?.songs 
@@ -238,13 +270,16 @@ const AdminDashboard = () => {
           
         const totalUsers = usersRes.data?.users?.length || 0;
         
-        console.log(`Stats: ${totalSongs} songs, ${totalArtists} artists, ${totalUsers} users`);
+        const totalGenres = genresRes.data?.genres?.length || 0;
+        
+        console.log(`Stats: ${totalSongs} songs, ${totalArtists} artists, ${totalUsers} users, ${totalGenres} genres`);
         
         setStats({
           totalSongs,
           totalArtists,
           totalUsers,
-          totalPlaylists: 0 // Tạm thời set 0, có thể thêm API sau
+          totalPlaylists: 0, // Tạm thời set 0, có thể thêm API sau
+          totalGenres
         });
       } catch (error) {
         console.error("Error fetching stats:", error);
@@ -252,7 +287,8 @@ const AdminDashboard = () => {
           totalSongs: 0,
           totalArtists: 0,
           totalUsers: 0,
-          totalPlaylists: 0
+          totalPlaylists: 0,
+          totalGenres: 0
         });
       }
     };
@@ -335,6 +371,13 @@ const AdminDashboard = () => {
               <span>Nghệ sĩ</span>
             </button>
             <button
+              className={`nav-item ${activeTab === "genres" ? "active" : ""}`}
+              onClick={() => setActiveTab("genres")}
+            >
+              <FaMusic />
+              <span>Thể loại</span>
+            </button>
+            <button
               className={`nav-item ${activeTab === "users" ? "active" : ""}`}
               onClick={() => setActiveTab("users")}
             >
@@ -386,7 +429,17 @@ const AdminDashboard = () => {
               onClick={() => setShowProfileDropdown(!showProfileDropdown)}
             >
               <div className="user-avatar-header">
-                {username?.charAt(0).toUpperCase() || 'A'}
+                {adminAvatar ? (
+                  <img 
+                    src={adminAvatar} 
+                    alt="Avatar" 
+                    className="avatar-img"
+                  />
+                ) : (
+                  <span className="avatar-placeholder">
+                    {username?.charAt(0).toUpperCase() || 'A'}
+                  </span>
+                )}
               </div>
               <div className="user-info-header">
                 <span className="user-name-header">{username || 'Admin'}</span>
@@ -394,7 +447,13 @@ const AdminDashboard = () => {
               </div>
               {showProfileDropdown && (
                 <div className="profile-dropdown">
-                  <button className="dropdown-item">
+                  <button 
+                    className="dropdown-item"
+                    onClick={() => {
+                      setActiveTab("profile");
+                      setShowProfileDropdown(false);
+                    }}
+                  >
                     <FaUserCircle /> Hồ sơ
                   </button>
                   <button className="dropdown-item danger" onClick={handleLogout}>
@@ -447,6 +506,16 @@ const AdminDashboard = () => {
                 </div>
               </div>
 
+              <div className="stat-card-modern pink">
+                <div className="card-icon">
+                  <MdQueueMusic size={32} />
+                </div>
+                <div className="card-content">
+                  <p className="card-label">THỂ LOẠI</p>
+                  <h2 className="card-value">{stats.totalGenres}</h2>
+                </div>
+              </div>
+
               <div className="stat-card-modern purple">
                 <div className="card-icon">
                   <FaUsers size={32} />
@@ -494,6 +563,16 @@ const AdminDashboard = () => {
 
                 <button 
                   className="quick-action-card"
+                  onClick={() => setActiveTab("genres")}
+                >
+                  <div className="action-icon pink">
+                    <MdQueueMusic size={28} />
+                  </div>
+                  <p>Quản Lý Thể Loại</p>
+                </button>
+
+                <button 
+                  className="quick-action-card"
                   onClick={() => setActiveTab("users")}
                 >
                   <div className="action-icon purple">
@@ -516,10 +595,24 @@ const AdminDashboard = () => {
           </div>
         )}
 
+        {/* === HỒ SƠ === */}
+        {activeTab === "profile" && (
+          <div className="tab-content">
+            <AdminProfileContent />
+          </div>
+        )}
+
         {/* === NGƯỜI DÙNG === */}
         {activeTab === "users" && (
           <div className="tab-content">
             <UserManagementContent />
+          </div>
+        )}
+
+        {/* === THỂ LOẠI === */}
+        {activeTab === "genres" && (
+          <div className="tab-content">
+            <GenreManagementContent />
           </div>
         )}
 

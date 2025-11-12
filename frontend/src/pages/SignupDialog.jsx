@@ -203,6 +203,13 @@ export default function SignupDialog({ onClose }) {
                   // Đóng dialog
                   onClose?.();
 
+                  // Redirect dựa trên role
+                  if (user.role === 'admin') {
+                    window.location.href = '/admin';
+                  } else {
+                    window.location.href = '/home';
+                  }
+
                   console.log("✅ Đăng ký Google thành công:", user);
                 } catch (error) {
                   console.error("❌ Google signup error:", error);

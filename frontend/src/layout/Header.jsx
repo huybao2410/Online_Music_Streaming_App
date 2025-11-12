@@ -7,9 +7,13 @@ import { CgProfile } from "react-icons/cg";
 import { MdSettings, MdLogout } from "react-icons/md";
 import { RiUserLine } from "react-icons/ri";
 import axios from "axios";
+import "./Header.css";
+import PremiumExpiredModal from "../components/PremiumExpiredModal";
+import PremiumInfoModal from "../components/PremiumInfoModal"; // ✅ thêm modal hiển thị thông tin premium
 
 export default function Header({ isLoginOpen, setIsLoginOpen }) {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [showPremiumModal, setShowPremiumModal] = useState(false); // ✅ thêm state modal premium
   const dropdownRef = useRef(null);
   const navigate = useNavigate();
 
@@ -17,7 +21,30 @@ export default function Header({ isLoginOpen, setIsLoginOpen }) {
   const [searchQuery, setSearchQuery] = useState("");
   const [username, setUsername] = useState(localStorage.getItem("username") || "Người dùng");
   const [userAvatar, setUserAvatar] = useState(null);
+  const [showExpired, setShowExpired] = useState(false);
+  const [isPremium, setIsPremium] = useState(localStorage.getItem("is_premium") === "1");
 
+  // ✅ Kiểm tra trạng thái Premium từ backend
+  useEffect(() => {
+    const userId = localStorage.getItem("user_id");
+    if (!userId) return;
+
+    axios
+      .get(`http://localhost:8081/music_API/online_music/user/check_premium.php?user_id=${userId}`)
+      .then((res) => {
+        if (res.data.status === "success") {
+          localStorage.setItem("is_premium", res.data.is_premium ? "1" : "0");
+          setIsPremium(res.data.is_premium);
+        } else if (res.data.status === "expired") {
+          localStorage.setItem("is_premium", "0");
+          setIsPremium(false);
+          setShowExpired(true);
+        }
+      })
+      .catch(() => console.log("Không thể kiểm tra trạng thái Premium"));
+  }, []);
+
+  // ✅ Khi đăng nhập, tải lại avatar
   useEffect(() => {
     if (isLoggedIn) {
       fetchUserProfile();
@@ -30,7 +57,7 @@ export default function Header({ isLoginOpen, setIsLoginOpen }) {
       if (!token) return;
 
       const response = await axios.get("http://localhost:5000/api/users/profile", {
-        headers: { Authorization: `Bearer ${token}` }
+        headers: { Authorization: `Bearer ${token}` },
       });
 
       if (response.data.success) {
@@ -45,6 +72,8 @@ export default function Header({ isLoginOpen, setIsLoginOpen }) {
     localStorage.removeItem("token");
     localStorage.removeItem("role");
     localStorage.removeItem("username");
+    localStorage.removeItem("is_premium");
+    localStorage.removeItem("premiumExpire");
     setIsLoggedIn(false);
     setIsDropdownOpen(false);
     setUsername("Người dùng");
@@ -58,6 +87,7 @@ export default function Header({ isLoginOpen, setIsLoginOpen }) {
     }
   };
 
+  // Đóng menu khi click ra ngoài
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
@@ -68,16 +98,15 @@ export default function Header({ isLoginOpen, setIsLoginOpen }) {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
+  // ✅ Đồng bộ khi login/logout
   useEffect(() => {
     const handleStorageChange = () => {
       const loggedIn = !!localStorage.getItem("token");
       setIsLoggedIn(loggedIn);
       setUsername(localStorage.getItem("username") || "User");
-      if (loggedIn) {
-        fetchUserProfile();
-      } else {
-        setUserAvatar(null);
-      }
+      setIsPremium(localStorage.getItem("is_premium") === "1");
+      if (loggedIn) fetchUserProfile();
+      else setUserAvatar(null);
     };
     window.addEventListener("storage", handleStorageChange);
     return () => window.removeEventListener("storage", handleStorageChange);
@@ -109,10 +138,27 @@ export default function Header({ isLoginOpen, setIsLoginOpen }) {
       </div>
 
       <div className="header-right" ref={dropdownRef}>
-        <a href="#premium" className="premium-btn">
-          Trải nghiệm Premium
-        </a>
-        
+        {/* ✅ Nút Premium */}
+        {isPremium ? (
+          <button
+            className="premium-active"
+            onClick={() => setShowPremiumModal(true)}
+          >
+            💎 Thành viên Premium
+          </button>
+        ) : (
+          <button
+            className="premium-btn"
+            onClick={() => {
+              const token = localStorage.getItem("token");
+              if (!token) setIsLoginOpen(true);
+              else window.location.href = "/premium";
+            }}
+          >
+            Trải nghiệm Premium
+          </button>
+        )}
+
         <button className="install-btn">
           <IoDownload size={20} />
           <span>Cài đặt ứng dụng</span>
@@ -125,26 +171,22 @@ export default function Header({ isLoginOpen, setIsLoginOpen }) {
               onClick={() => setIsDropdownOpen(!isDropdownOpen)}
             >
               <div className="avatar">
-                {userAvatar ? (
-                  <img src={userAvatar} alt={username} />
-                ) : (
-                  <CgProfile size={24} />
-                )}
+                {userAvatar ? <img src={userAvatar} alt={username} /> : <CgProfile size={24} />}
               </div>
               <span className="username">{username}</span>
-              <FaChevronDown 
+              <FaChevronDown
                 size={12}
-                style={{ 
-                  transform: isDropdownOpen ? 'rotate(180deg)' : 'rotate(0)',
-                  transition: 'transform 0.2s ease' 
+                style={{
+                  transform: isDropdownOpen ? "rotate(180deg)" : "rotate(0)",
+                  transition: "transform 0.2s ease",
                 }}
               />
             </button>
 
             {isDropdownOpen && (
               <div className="profile-menu">
-                <button 
-                  className="menu-item" 
+                <button
+                  className="menu-item"
                   onClick={() => {
                     setIsDropdownOpen(false);
                     navigate("/profile");
@@ -171,6 +213,14 @@ export default function Header({ isLoginOpen, setIsLoginOpen }) {
           </button>
         )}
       </div>
+
+      {/* ✅ Modal hết hạn Premium */}
+      {showExpired && <PremiumExpiredModal onClose={() => setShowExpired(false)} />}
+
+      {/* ✅ Modal thông tin Premium */}
+      {showPremiumModal && (
+        <PremiumInfoModal onClose={() => setShowPremiumModal(false)} />
+      )}
     </header>
   );
 }

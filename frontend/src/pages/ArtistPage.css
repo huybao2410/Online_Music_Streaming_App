@@ -1,0 +1,87 @@
+.artist-page {
+  padding: 30px;
+  color: #fff;
+}
+
+.artist-header {
+  display: flex;
+  align-items: center;
+  gap: 25px;
+  margin-bottom: 30px;
+}
+
+.artist-avatar {
+  width: 160px;
+  height: 160px;
+  border-radius: 50%;
+  object-fit: cover;
+  box-shadow: 0 0 10px #000;
+}
+
+.artist-info h1 {
+  font-size: 2rem;
+  margin-bottom: 8px;
+}
+
+.artist-bio {
+  color: #aaa;
+  font-size: 0.95rem;
+  max-width: 600px;
+}
+
+.artist-songs h2 {
+  margin-top: 30px;
+  margin-bottom: 10px;
+}
+
+.artist-song-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.artist-song-item {
+  display: flex;
+  align-items: center;
+  background: #181818;
+  padding: 10px 15px;
+  border-radius: 8px;
+  transition: background 0.2s;
+  cursor: pointer;
+}
+
+.artist-song-item:hover {
+  background: #242424;
+}
+
+.song-cover img {
+  width: 60px;
+  height: 60px;
+  border-radius: 6px;
+  object-fit: cover;
+}
+
+.song-details {
+  flex: 1;
+  margin-left: 12px;
+}
+
+.song-title {
+  font-weight: bold;
+}
+
+.song-genre {
+  font-size: 0.85rem;
+  color: #aaa;
+}
+
+.play-icon {
+  color: #1db954;
+  opacity: 0.9;
+  transition: 0.2s;
+}
+
+.artist-song-item:hover .play-icon {
+  opacity: 1;
+  transform: scale(1.1);
+}

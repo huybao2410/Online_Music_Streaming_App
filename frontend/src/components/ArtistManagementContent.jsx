@@ -28,6 +28,8 @@ export default function ArtistManagementContent() {
     avatar: null,
   });
 
+  const [avatarPreview, setAvatarPreview] = useState(null);
+
   // Pagination
   const [currentPage, setCurrentPage] = useState(1);
   const [totalArtists, setTotalArtists] = useState(0);
@@ -207,6 +209,7 @@ export default function ArtistManagementContent() {
       bio: "",
       avatar: null,
     });
+    setAvatarPreview(null);
   };
 
   const handleInputChange = (e) => {
@@ -217,7 +220,15 @@ export default function ArtistManagementContent() {
   const handleFileChange = (e) => {
     const { files } = e.target;
     if (files && files[0]) {
-      setFormData({ ...formData, avatar: files[0] });
+      const file = files[0];
+      setFormData({ ...formData, avatar: file });
+      
+      // Create preview
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setAvatarPreview(reader.result);
+      };
+      reader.readAsDataURL(file);
     }
   };
 
@@ -404,7 +415,7 @@ export default function ArtistManagementContent() {
                     <td>
                       {artist.avatar_url ? (
                         <img
-                          src={artist.avatar_url}
+                          src={`${PHP_API_URL}/${artist.avatar_url}`}
                           alt={artist.name}
                           className="avatar-thumb"
                         />
@@ -518,6 +529,11 @@ export default function ArtistManagementContent() {
 
                 <div className="form-group">
                   <label>Avatar</label>
+                  {avatarPreview && (
+                    <div className="avatar-preview">
+                      <img src={avatarPreview} alt="Preview" />
+                    </div>
+                  )}
                   <input
                     type="file"
                     name="avatar"

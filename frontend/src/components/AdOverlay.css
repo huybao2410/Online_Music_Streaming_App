@@ -1,0 +1,56 @@
+.ad-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 99999;
+  background: black;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.ad-video {
+  position: absolute;
+  inset: 0;
+  width: 100vw;
+  height: 100vh;
+  object-fit: cover;
+  z-index: 1;
+}
+
+.ad-content {
+  position: relative;
+  z-index: 2;
+  color: white;
+  text-align: center;
+  padding: 20px 30px;
+  background: rgba(0, 0, 0, 0.4);
+  border-radius: 12px;
+}
+
+.ad-content h2 {
+  font-size: 2rem;
+  margin-bottom: 8px;
+}
+
+.ad-content p {
+  font-size: 1.2rem;
+  color: #eee;
+}
+
+.skip-btn {
+  margin-top: 10px;
+  padding: 10px 22px;
+  background: #1db954;
+  color: white;
+  border: none;
+  border-radius: 20px;
+  cursor: pointer;
+  font-size: 1rem;
+  font-weight: bold;
+  transition: background 0.2s;
+}
+
+.skip-btn:hover {
+  background: #17a74b;
+}

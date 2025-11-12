@@ -598,3 +598,18 @@
     flex-wrap: wrap;
   }
 }
+
+/* Avatar preview */
+.avatar-preview {
+  margin-bottom: 12px;
+  text-align: center;
+}
+
+.avatar-preview img {
+  max-width: 200px;
+  max-height: 200px;
+  border-radius: 12px;
+  object-fit: cover;
+  border: 2px solid #e5e7eb;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}

@@ -74,3 +74,35 @@ const fixLocalUrl = (url) => {
   if (!url) return "";
   return url.replace("10.0.2.2", "localhost");
 };
+export const searchAll = async (query) => {
+  try {
+    const res = await API.get("/search/get_search.php");
+    if (!res.data || !res.data.status) return { songs: [], albums: [] };
+
+    const fixUrl = (url) => url?.replace("10.0.2.2", "localhost");
+
+    // Chuẩn hóa lại dữ liệu
+    const songs = (res.data.songs || []).map(song => ({
+      id: song.song_id,
+      title: song.title,
+      artist: song.artist,
+      genre: song.genre,
+      duration: song.duration,
+      cover: fixUrl(song.cover_url),
+      audio: fixUrl(song.audio_url),
+    }));
+
+    const albums = (res.data.albums || []).map(album => ({
+      id: album.album_id,
+      name: album.name,
+      artist: album.artist,
+      cover: fixUrl(album.cover_url),
+      release_date: album.release_date,
+    }));
+
+    return { songs, albums };
+  } catch (err) {
+    console.error("❌ Lỗi tìm kiếm:", err);
+    return { songs: [], albums: [] };
+  }
+};
