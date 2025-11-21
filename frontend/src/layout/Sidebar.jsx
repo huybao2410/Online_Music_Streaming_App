@@ -8,7 +8,7 @@ import {
   HiMusicalNote,
 } from "react-icons/hi2";
 import CreatePlaylistModal from "../components/CreatePlaylistModal";
-import { getArtists } from "../services/artistService";
+import { getFavoriteArtists } from "../services/favoriteArtistService";
 import { getGenres } from "../services/genreService";
 import "./Sidebar.css";
 
@@ -17,9 +17,9 @@ export default function Sidebar({ isLoginOpen, setIsLoginOpen }) {
   const [activeTab, setActiveTab] = useState("playlist");
   const [showCreatePlaylist, setShowCreatePlaylist] = useState(false);
   const [playlists, setPlaylists] = useState([]);
-  const [artists, setArtists] = useState([]);
+  const [favoriteArtists, setFavoriteArtists] = useState([]);
   const [genres, setGenres] = useState([]);
-  const [loadingArtists, setLoadingArtists] = useState(false);
+  const [loadingFavoriteArtists, setLoadingFavoriteArtists] = useState(false);
   const [loadingGenres, setLoadingGenres] = useState(false);
   const navigate = useNavigate();
 
@@ -37,10 +37,19 @@ export default function Sidebar({ isLoginOpen, setIsLoginOpen }) {
     if (isLoggedIn) fetchUserPlaylists();
   }, [isLoggedIn]);
 
-  // 🎤 Nếu chọn tab Nghệ sĩ
+  // 🔄 Reload playlists when updated
   useEffect(() => {
-    if (activeTab === "artist") fetchArtists();
-  }, [activeTab]);
+    const handlePlaylistUpdate = () => {
+      if (isLoggedIn) fetchUserPlaylists();
+    };
+    window.addEventListener('playlistUpdated', handlePlaylistUpdate);
+    return () => window.removeEventListener('playlistUpdated', handlePlaylistUpdate);
+  }, [isLoggedIn]);
+
+  // 🎤 Load favorite artists khi đăng nhập
+  useEffect(() => {
+    if (isLoggedIn) fetchFavoriteArtists();
+  }, [isLoggedIn]);
 
   // 🎵 Nếu chọn tab Thể loại
   useEffect(() => {
@@ -62,15 +71,15 @@ export default function Sidebar({ isLoginOpen, setIsLoginOpen }) {
     }
   };
 
-  const fetchArtists = async () => {
+  const fetchFavoriteArtists = async () => {
     try {
-      setLoadingArtists(true);
-      const data = await getArtists();
-      setArtists(data);
+      setLoadingFavoriteArtists(true);
+      const data = await getFavoriteArtists();
+      setFavoriteArtists(data);
     } catch (error) {
-      console.error("Lỗi khi tải danh sách nghệ sĩ:", error);
+      console.error("Lỗi khi tải nghệ sĩ yêu thích:", error);
     } finally {
-      setLoadingArtists(false);
+      setLoadingFavoriteArtists(false);
     }
   };
 
@@ -78,7 +87,7 @@ export default function Sidebar({ isLoginOpen, setIsLoginOpen }) {
     try {
       setLoadingGenres(true);
       const data = await getGenres();
-      // thêm “Tất cả bài hát” lên đầu
+      // thêm "Tất cả bài hát" lên đầu
       setGenres([{ id: 0, name: "Tất cả bài hát" }, ...data]);
     } catch (err) {
       console.error("Lỗi khi tải thể loại:", err);
@@ -110,13 +119,16 @@ export default function Sidebar({ isLoginOpen, setIsLoginOpen }) {
         <div className="filter-tabs">
           <button
             className={`filter-tab ${activeTab === "playlist" ? "active" : ""}`}
-            onClick={() => setActiveTab("playlist")}
+            onClick={() => {
+              setActiveTab("playlist");
+              navigate("/library");
+            }}
           >
             Playlist
           </button>
           <button
-            className={`filter-tab ${activeTab === "artist" ? "active" : ""}`}
-            onClick={() => setActiveTab("artist")}
+            className={`filter-tab ${activeTab === "artists" ? "active" : ""}`}
+            onClick={() => setActiveTab("artists")}
           >
             Nghệ sĩ
           </button>
@@ -125,17 +137,6 @@ export default function Sidebar({ isLoginOpen, setIsLoginOpen }) {
             onClick={() => setActiveTab("genre")}
           >
             Thể loại
-          </button>
-        </div>
-
-        {/* Thanh điều khiển */}
-        <div className="library-controls">
-          <button className="control-btn" title="Tìm trong thư viện">
-            <HiMagnifyingGlass size={16} />
-          </button>
-          <button className="control-btn">
-            <span>Gần đây</span>
-            <HiChevronDown size={16} />
           </button>
         </div>
 
@@ -171,18 +172,93 @@ export default function Sidebar({ isLoginOpen, setIsLoginOpen }) {
                     </div>
                   </button>
 
+                  {/* Nghệ sĩ yêu thích - Mục cố định */}
+                  <button
+                    onClick={() => favoriteArtists.length > 0 ? navigate("/favorite-artists") : navigate("/artist-selection")}
+                    className="library-item"
+                  >
+                    <div className="item-cover" style={{ 
+                      background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      borderRadius: "4px"
+                    }}>
+                      <span style={{ fontSize: "32px" }}>🎤</span>
+                    </div>
+                    <div className="item-info">
+                      <span className="item-title">Nghệ sĩ yêu thích</span>
+                      <span className="item-subtitle">
+                        <span className="item-type">
+                          {favoriteArtists.length > 0 
+                            ? `${favoriteArtists.length} nghệ sĩ` 
+                            : "Chưa có nghệ sĩ nào"}
+                        </span>
+                      </span>
+                    </div>
+                  </button>
+
+                  {/* Danh sách nghệ sĩ yêu thích */}
+                  {favoriteArtists.length > 0 && (
+                    <>
+                      {favoriteArtists.slice(0, 5).map((artist) => (
+                        <button
+                          key={artist.artist_id}
+                          className="library-item"
+                          onClick={() => navigate(`/artist/${artist.artist_id}`)}
+                        >
+                          <div className="item-cover artist">
+                            {artist.cover_url ? (
+                              <img 
+                                src={artist.cover_url.startsWith('http') 
+                                  ? artist.cover_url 
+                                  : `http://localhost:8081/music_API/${artist.cover_url}`
+                                } 
+                                alt={artist.name}
+                                onError={(e) => {
+                                  e.target.style.display = 'none';
+                                  e.target.parentElement.querySelector('.artist-placeholder')?.style.setProperty('display', 'flex');
+                                }}
+                              />
+                            ) : null}
+                            <div className="artist-placeholder" style={{ display: artist.cover_url ? 'none' : 'flex' }}>🎤</div>
+                          </div>
+                          <div className="item-info">
+                            <span className="item-title">{artist.name}</span>
+                            <span className="item-subtitle">
+                              <span className="item-type">Nghệ sĩ</span>
+                            </span>
+                          </div>
+                        </button>
+                      ))}
+                    </>
+                  )}
+
                   {playlists.map((playlist) => {
-                    let coverUrl = playlist.cover_url
-                      ? playlist.cover_url.startsWith("http")
+                    let coverUrl = null;
+                    
+                    if (playlist.cover_url) {
+                      coverUrl = playlist.cover_url.startsWith("http")
                         ? playlist.cover_url
-                        : `http://localhost:5000${playlist.cover_url}`
-                      : playlist.cover_images?.[0] || null;
+                        : `http://localhost:5000${playlist.cover_url}`;
+                    } else if (playlist.cover_images?.length > 0) {
+                      const firstCover = playlist.cover_images[0];
+                      if (firstCover) {
+                        if (firstCover.startsWith('http')) {
+                          coverUrl = firstCover;
+                        } else if (firstCover.startsWith('/uploads')) {
+                          coverUrl = `http://localhost:5000${firstCover}`;
+                        } else {
+                          coverUrl = `http://localhost:8081/music_API/online_music/${firstCover}`;
+                        }
+                      }
+                    }
 
                     return (
                       <button
-                        key={playlist.id}
+                        key={playlist.playlist_id}
                         className="library-item"
-                        onClick={() => navigate(`/playlist/${playlist.id}`)}
+                        onClick={() => navigate(`/playlist/${playlist.playlist_id}`)}
                       >
                         <div className="item-cover playlist">
                           {coverUrl ? (
@@ -231,35 +307,29 @@ export default function Sidebar({ isLoginOpen, setIsLoginOpen }) {
           )}
 
           {/* 🎤 Nghệ sĩ */}
-          {activeTab === "artist" && (
-            <div className="artist-section" style={{ padding: "10px 0" }}>
-              {loadingArtists ? (
-                <p style={{ color: "#888" }}>Đang tải nghệ sĩ...</p>
-              ) : artists.length === 0 ? (
-                <p style={{ color: "#888" }}>Không có nghệ sĩ nào</p>
-              ) : (
-                artists.map((artist) => (
-                  <div
-                    key={artist.id}
-                    className="library-item"
-                    onClick={() => navigate(`/artist/${artist.id}`)}
-                  >
-                    <div className="item-cover artist">
-                      {artist.avatar ? (
-                        <img src={artist.avatar} alt={artist.name} />
-                      ) : (
-                        <div className="artist-placeholder">🎤</div>
-                      )}
-                    </div>
-                    <div className="item-info">
-                      <span className="item-title">{artist.name}</span>
-                      <span className="item-subtitle">
-                        <span className="item-type">Nghệ sĩ</span>
-                      </span>
-                    </div>
-                  </div>
-                ))
-              )}
+          {activeTab === "artists" && (
+            <div className="artists-section" style={{ padding: "10px 0" }}>
+              <button
+                onClick={() => navigate("/artists")}
+                className="library-item"
+                style={{ marginBottom: "10px" }}
+              >
+                <div className="item-cover" style={{ 
+                  background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  borderRadius: "50%"
+                }}>
+                  <span style={{ fontSize: "32px" }}>🎤</span>
+                </div>
+                <div className="item-info">
+                  <span className="item-title">Tất cả nghệ sĩ</span>
+                  <span className="item-subtitle">
+                    <span className="item-type">Xem danh sách</span>
+                  </span>
+                </div>
+              </button>
             </div>
           )}
 

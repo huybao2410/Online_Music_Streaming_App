@@ -7,11 +7,31 @@ import "./EditProfileModal.css";
 
 export default function EditProfileModal({ isOpen, onClose, currentUser, onSuccess }) {
   const [username, setUsername] = useState(currentUser?.username || "");
+  const [email, setEmail] = useState(currentUser?.email || "");
+  const [phone, setPhone] = useState(currentUser?.phone || "");
+  const [currentPassword, setCurrentPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [avatarFile, setAvatarFile] = useState(null);
   const [avatarPreview, setAvatarPreview] = useState(currentUser?.avatar || null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [showPasswordSection, setShowPasswordSection] = useState(false);
+  const [isGoogleAccount, setIsGoogleAccount] = useState(false);
   const fileInputRef = useRef(null);
+
+  // Check if it's a Google account (users with GOOGLE_OAUTH in their account setup)
+  React.useEffect(() => {
+    if (currentUser) {
+      // Check if avatar_url contains googleusercontent (Google profile picture)
+      // OR username but no password was set locally (indicates OAuth account)
+      const hasGoogleAvatar = currentUser.avatar_url?.includes('googleusercontent.com');
+      const hasGoogleUsername = currentUser.username && currentUser.email?.includes('@gmail.com');
+      
+      // If both conditions met, likely a Google account
+      setIsGoogleAccount(hasGoogleAvatar || (hasGoogleUsername && currentUser.username !== null));
+    }
+  }, [currentUser]);
 
   if (!isOpen) return null;
 
@@ -71,11 +91,23 @@ export default function EditProfileModal({ isOpen, onClose, currentUser, onSucce
         }
       }
 
-      // Update username if changed
+      // Prepare update data
+      const updateData = {};
       if (username !== currentUser?.username) {
+        updateData.username = username;
+      }
+      if (email !== currentUser?.email) {
+        updateData.email = email;
+      }
+      if (phone !== currentUser?.phone) {
+        updateData.phone = phone;
+      }
+
+      // Update profile info if any field changed
+      if (Object.keys(updateData).length > 0) {
         const response = await axios.put(
           'http://localhost:5000/api/users/profile',
-          { username },
+          updateData,
           {
             headers: { Authorization: `Bearer ${token}` }
           }
@@ -83,13 +115,41 @@ export default function EditProfileModal({ isOpen, onClose, currentUser, onSucce
 
         if (response.data.success) {
           // Update localStorage
-          localStorage.setItem('username', username);
-          window.dispatchEvent(new Event("storage"));
+          if (updateData.username) {
+            localStorage.setItem('username', username);
+            window.dispatchEvent(new Event("storage"));
+          }
         }
       }
 
+      // Update password if provided
+      if (showPasswordSection && newPassword) {
+        if (newPassword !== confirmPassword) {
+          setError("Mật khẩu xác nhận không khớp");
+          setIsLoading(false);
+          return;
+        }
+
+        if (newPassword.length < 6) {
+          setError("Mật khẩu mới phải có ít nhất 6 ký tự");
+          setIsLoading(false);
+          return;
+        }
+
+        await axios.put(
+          'http://localhost:5000/api/users/change-password',
+          {
+            currentPassword,
+            newPassword
+          },
+          {
+            headers: { Authorization: `Bearer ${token}` }
+          }
+        );
+      }
+
       alert("Cập nhật thông tin thành công");
-      onSuccess({ username, avatar: avatarUrl });
+      onSuccess({ username, email, phone, avatar: avatarUrl });
       onClose();
     } catch (err) {
       setError(
@@ -209,6 +269,120 @@ export default function EditProfileModal({ isOpen, onClose, currentUser, onSucce
             />
             <span className="char-count">{username.length}/50</span>
           </div>
+
+          {/* Email Section */}
+          <div className="form-group">
+            <label htmlFor="email">
+              Email
+              {isGoogleAccount && <span style={{fontSize: '12px', color: '#fbbf24', marginLeft: '8px'}}>(Tài khoản Google)</span>}
+            </label>
+            <input
+              id="email"
+              type="email"
+              placeholder={isGoogleAccount ? "Email không thể thay đổi (Tài khoản Google)" : "Nhập địa chỉ email"}
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              className="form-input"
+              disabled={isGoogleAccount}
+              style={isGoogleAccount ? {cursor: 'not-allowed', opacity: 0.6} : {}}
+            />
+            {isGoogleAccount && (
+              <span className="field-hint" style={{color: '#fbbf24'}}>
+                ⚠️ Tài khoản Google không thể thay đổi email
+              </span>
+            )}
+          </div>
+
+          {/* Phone Section */}
+          <div className="form-group">
+            <label htmlFor="phone">
+              Số điện thoại
+            </label>
+            <input
+              id="phone"
+              type="tel"
+              placeholder="Nhập số điện thoại"
+              value={phone}
+              onChange={(e) => setPhone(e.target.value)}
+              className="form-input"
+              pattern="[0-9]{10,11}"
+            />
+            <span className="field-hint">Định dạng: 10-11 chữ số</span>
+          </div>
+
+          {/* Password Change Section */}
+          {!isGoogleAccount && (
+            <div className="password-section">
+              <button
+                type="button"
+                className="btn-toggle-password"
+                onClick={() => setShowPasswordSection(!showPasswordSection)}
+              >
+                {showPasswordSection ? "− Ẩn đổi mật khẩu" : "+ Đổi mật khẩu"}
+              </button>
+
+            {showPasswordSection && (
+              <div className="password-fields">
+                <div className="form-group">
+                  <label htmlFor="currentPassword">
+                    Mật khẩu hiện tại <span className="required">*</span>
+                  </label>
+                  <input
+                    id="currentPassword"
+                    type="password"
+                    placeholder="Nhập mật khẩu hiện tại"
+                    value={currentPassword}
+                    onChange={(e) => setCurrentPassword(e.target.value)}
+                    className="form-input"
+                    required={showPasswordSection}
+                  />
+                </div>
+
+                <div className="form-group">
+                  <label htmlFor="newPassword">
+                    Mật khẩu mới <span className="required">*</span>
+                  </label>
+                  <input
+                    id="newPassword"
+                    type="password"
+                    placeholder="Nhập mật khẩu mới (tối thiểu 6 ký tự)"
+                    value={newPassword}
+                    onChange={(e) => setNewPassword(e.target.value)}
+                    className="form-input"
+                    required={showPasswordSection}
+                    minLength={6}
+                  />
+                </div>
+
+                <div className="form-group">
+                  <label htmlFor="confirmPassword">
+                    Xác nhận mật khẩu mới <span className="required">*</span>
+                  </label>
+                  <input
+                    id="confirmPassword"
+                    type="password"
+                    placeholder="Nhập lại mật khẩu mới"
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    className="form-input"
+                    required={showPasswordSection}
+                  />
+                  {newPassword && confirmPassword && newPassword !== confirmPassword && (
+                    <span className="field-error">Mật khẩu không khớp</span>
+                  )}
+                </div>
+              </div>
+            )}
+            </div>
+          )}
+
+          {isGoogleAccount && (
+            <div className="google-account-notice">
+              <span style={{color: '#fbbf24', fontSize: '14px'}}>
+                ℹ️ Tài khoản Google không thể đổi mật khẩu. Vui lòng quản lý mật khẩu qua Google Account.
+              </span>
+            </div>
+          )}
 
           {/* Form Actions */}
           <div className="form-actions">

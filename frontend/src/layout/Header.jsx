@@ -9,12 +9,14 @@ import { RiUserLine } from "react-icons/ri";
 import axios from "axios";
 import "./Header.css";
 import PremiumExpiredModal from "../components/PremiumExpiredModal";
-import PremiumInfoModal from "../components/PremiumInfoModal"; // ✅ thêm modal hiển thị thông tin premium
+import PremiumInfoModal from "../components/PremiumInfoModal";
+import SearchSuggestions from "../components/SearchSuggestions";
 
 export default function Header({ isLoginOpen, setIsLoginOpen }) {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-  const [showPremiumModal, setShowPremiumModal] = useState(false); // ✅ thêm state modal premium
+  const [showPremiumModal, setShowPremiumModal] = useState(false);
   const dropdownRef = useRef(null);
+  const searchRef = useRef(null);
   const navigate = useNavigate();
 
   const [isLoggedIn, setIsLoggedIn] = useState(!!localStorage.getItem("token"));
@@ -23,6 +25,11 @@ export default function Header({ isLoginOpen, setIsLoginOpen }) {
   const [userAvatar, setUserAvatar] = useState(null);
   const [showExpired, setShowExpired] = useState(false);
   const [isPremium, setIsPremium] = useState(localStorage.getItem("is_premium") === "1");
+  
+  // Search suggestions state
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const [suggestions, setSuggestions] = useState(null);
+  const [loadingSuggestions, setLoadingSuggestions] = useState(false);
 
   // ✅ Kiểm tra trạng thái Premium từ backend
   useEffect(() => {
@@ -83,15 +90,48 @@ export default function Header({ isLoginOpen, setIsLoginOpen }) {
 
   const handleSearch = () => {
     if (searchQuery.trim() !== "") {
+      setShowSuggestions(false);
       navigate(`/search?query=${encodeURIComponent(searchQuery)}`);
     }
   };
 
-  // Đóng menu khi click ra ngoài
+  // Fetch search suggestions with debounce
+  useEffect(() => {
+    if (searchQuery.trim().length === 0) {
+      setSuggestions(null);
+      setShowSuggestions(false);
+      return;
+    }
+
+    const debounceTimer = setTimeout(async () => {
+      setLoadingSuggestions(true);
+      try {
+        const response = await axios.get('http://localhost:5000/api/search/suggestions', {
+          params: { query: searchQuery.trim(), limit: 5 }
+        });
+        
+        if (response.data.success) {
+          setSuggestions(response.data);
+          setShowSuggestions(true);
+        }
+      } catch (error) {
+        console.error('Error fetching suggestions:', error);
+      } finally {
+        setLoadingSuggestions(false);
+      }
+    }, 300); // 300ms debounce
+
+    return () => clearTimeout(debounceTimer);
+  }, [searchQuery]);
+
+  // Đóng menu và suggestions khi click ra ngoài
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
         setIsDropdownOpen(false);
+      }
+      if (searchRef.current && !searchRef.current.contains(event.target)) {
+        setShowSuggestions(false);
       }
     };
     document.addEventListener("mousedown", handleClickOutside);
@@ -125,7 +165,7 @@ export default function Header({ isLoginOpen, setIsLoginOpen }) {
       </div>
 
       <div className="header-center">
-        <div className="search-bar">
+        <div className="search-bar" ref={searchRef}>
           <HiMagnifyingGlass className="search-icon" size={24} />
           <input
             type="text"
@@ -133,7 +173,17 @@ export default function Header({ isLoginOpen, setIsLoginOpen }) {
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && handleSearch()}
+            onFocus={() => searchQuery.trim() && setShowSuggestions(true)}
           />
+          {showSuggestions && suggestions && (
+            <SearchSuggestions 
+              suggestions={suggestions}
+              onSelect={() => {
+                setShowSuggestions(false);
+                setSearchQuery("");
+              }}
+            />
+          )}
         </div>
       </div>
 
@@ -152,17 +202,13 @@ export default function Header({ isLoginOpen, setIsLoginOpen }) {
             onClick={() => {
               const token = localStorage.getItem("token");
               if (!token) setIsLoginOpen(true);
-              else window.location.href = "/premium";
+              else navigate("/premium-upgrade");
             }}
           >
             Trải nghiệm Premium
           </button>
         )}
 
-        <button className="install-btn">
-          <IoDownload size={20} />
-          <span>Cài đặt ứng dụng</span>
-        </button>
 
         {isLoggedIn ? (
           <div className="user-menu">

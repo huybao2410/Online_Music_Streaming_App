@@ -93,6 +93,25 @@ export default function MusicPlayer() {
     }
   }, [playCount]);
 
+  // ✅ Lưu listening history khi phát nhạc
+  const saveListeningHistory = async (songId) => {
+    try {
+      const token = localStorage.getItem("token");
+      if (!token || !songId) return;
+
+      await fetch("http://localhost:5000/api/listening-history", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`
+        },
+        body: JSON.stringify({ song_id: songId })
+      });
+    } catch (error) {
+      console.error("Error saving listening history:", error);
+    }
+  };
+
   // ✅ Cập nhật audio khi có bài mới
   useEffect(() => {
     const audio = audioRef.current;
@@ -109,6 +128,11 @@ export default function MusicPlayer() {
             setIsPlaying(false);
           });
         setIsPlaying(true);
+        
+        // Lưu listening history khi bắt đầu phát
+        if (currentSong.id) {
+          saveListeningHistory(currentSong.id);
+        }
       }
     } else {
       audio.pause();

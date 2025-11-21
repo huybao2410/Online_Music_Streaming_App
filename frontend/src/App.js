@@ -2,7 +2,6 @@ import React, { useEffect } from "react";
 import { BrowserRouter as Router, Routes, Route, Navigate, useNavigate } from "react-router-dom";
 import MainLayout from "./layout/MainLayout";
 import HomePage from "./pages/HomePage";
-import PremiumRegis from "./pages/PremiumRegis";
 import AdminDashboard from "./pages/AdminDashboard";
 import LoginDialog from "./pages/LoginDialog";
 import SignupDialog from "./pages/SignupDialog";
@@ -12,6 +11,13 @@ import PlaylistDetail from "./pages/PlaylistDetail";
 import EditPlaylist from "./pages/EditPlaylist";
 import FavoriteSongs from "./pages/FavoriteSongs";
 import SearchPage from "./pages/SearchPage";
+import ArtistSelectionScreen from "./pages/ArtistSelectionScreen";
+import AlbumDetailPage from "./pages/AlbumDetailPage";
+import LibraryScreen from "./pages/LibraryScreen";
+import ArtistsPage from "./pages/ArtistsPage";
+import ArtistDetailPage from "./pages/ArtistDetailPage";
+import PremiumPage from "./pages/PremiumPage";
+import PaymentCallback from "./pages/PaymentCallback";
 
 // Component redirect dựa trên role khi vào trang chủ
 function RoleBasedRedirect() {
@@ -75,17 +81,23 @@ function App() {
         }>
           <Route path="/home" element={<HomePage />} />
           <Route path="/favorites" element={<FavoriteSongs />} />      
-          <Route path="/premium" element={<PremiumRegis />} />
           <Route path="/profile" element={<UserProfile />} />
+          <Route path="/library" element={<LibraryScreen />} />
           <Route path="/playlist/:id" element={<PlaylistDetail />} />
           <Route path="/playlist/:id/edit" element={<EditPlaylist />} />
           <Route path="/search" element={<SearchPage />} />
+          <Route path="/album/:albumId" element={<AlbumDetailPage />} />
+          <Route path="/premium-upgrade" element={<PremiumPage />} />
+          <Route path="/artists" element={<ArtistsPage />} />
+          <Route path="/artist/:artistId" element={<ArtistDetailPage />} />
         </Route>
 
         {/* Routes công khai */}
         <Route path="/upload" element={<UploadSong />} />
         <Route path="/login" element={<LoginDialog />} />
         <Route path="/signup" element={<SignupDialog />} />
+        <Route path="/artist-selection" element={<ArtistSelectionScreen />} />
+        <Route path="/premium-subscribe/check-payment-vnpay" element={<PaymentCallback />} />
         
         {/* Route bảo vệ cho admin */}
         <Route 

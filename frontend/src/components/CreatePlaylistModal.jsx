@@ -75,64 +75,34 @@ export default function CreatePlaylistModal({ isOpen, onClose, onSuccess }) {
         </button>
 
         <div className="modal-header">
+          <div className="modal-drag-indicator"></div>
           <div className="modal-icon">
-            <RiPlayListLine size={40} />
+            🎧
           </div>
-          <h2 className="modal-title">Tạo playlist mới</h2>
+          <h2 className="modal-title">Đặt tên cho danh sách phát của bạn</h2>
         </div>
 
         {error && <div className="modal-error">{error}</div>}
 
         <form onSubmit={handleSubmit} className="playlist-form">
           <div className="form-group">
-            <label htmlFor="playlist-name">
-              Tên playlist <span className="required">*</span>
-            </label>
             <input
               id="playlist-name"
               type="text"
-              placeholder="Nhập tên playlist của bạn"
+              placeholder="......."
               value={name}
               onChange={(e) => setName(e.target.value)}
-              className="form-input"
+              className="form-input-large"
               required
               maxLength={100}
               autoFocus
             />
-            <span className="char-count">{name.length}/100</span>
-          </div>
-
-          <div className="form-group">
-            <label htmlFor="playlist-description">Mô tả (tùy chọn)</label>
-            <textarea
-              id="playlist-description"
-              placeholder="Mô tả về playlist của bạn..."
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              className="form-textarea"
-              rows={4}
-              maxLength={500}
-            />
-            <span className="char-count">{description.length}/500</span>
-          </div>
-
-          <div className="form-group">
-            <label className="checkbox-container">
-              <input
-                type="checkbox"
-                checked={isPublic}
-                onChange={(e) => setIsPublic(e.target.checked)}
-              />
-              <span className="checkbox-label">
-                Công khai playlist (mọi người có thể xem)
-              </span>
-            </label>
           </div>
 
           <div className="modal-actions">
             <button
               type="button"
-              className="btn-cancel"
+              className="btn-cancel-new"
               onClick={onClose}
               disabled={isLoading}
             >
@@ -140,10 +110,10 @@ export default function CreatePlaylistModal({ isOpen, onClose, onSuccess }) {
             </button>
             <button
               type="submit"
-              className="btn-create"
+              className="btn-create-new"
               disabled={isLoading || !name.trim()}
             >
-              {isLoading ? "Đang tạo..." : "Tạo playlist"}
+              {isLoading ? "Đang tạo..." : "Tạo"}
             </button>
           </div>
         </form>

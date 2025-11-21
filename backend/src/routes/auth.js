@@ -210,10 +210,13 @@ router.post('/google', async (req, res) => {
       }
     } else {
       // Create new user with Google account
+      // Use a placeholder hash for Google OAuth users (they don't use password login)
+      const googlePlaceholder = '$2a$10$GOOGLE_OAUTH_USER_NO_PASSWORD_HASH_PLACEHOLDER';
+      
       const [result] = await pool.query(
         `INSERT INTO users (email, username, avatar_url, password_hash, status, role) 
-         VALUES (?, ?, ?, NULL, 'active', 'user')`,
-        [email, name, picture]
+         VALUES (?, ?, ?, ?, 'active', 'user')`,
+        [email, name, picture, googlePlaceholder]
       );
       userId = result.insertId;
       userRole = 'user';

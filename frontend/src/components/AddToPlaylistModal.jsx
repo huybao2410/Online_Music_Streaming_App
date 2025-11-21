@@ -30,7 +30,7 @@ function AddToPlaylistModal({ isOpen, onClose, song }) {
       } else if (data && typeof data === 'object') {
         // If data is an object, try to extract playlists array
         const playlistArray = Object.values(data).filter(item => 
-          item && typeof item === 'object' && item.id
+          item && typeof item === 'object' && (item.id || item.playlist_id)
         );
         setPlaylists(playlistArray);
       } else {
@@ -39,7 +39,13 @@ function AddToPlaylistModal({ isOpen, onClose, song }) {
     } catch (error) {
       console.error('Error fetching playlists:', error);
       setPlaylists([]);
-      alert('Không thể tải danh sách playlist');
+      
+      // Check if it's an authentication error
+      if (error.response?.status === 401) {
+        alert('Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.');
+      } else {
+        alert('Không thể tải danh sách playlist. Vui lòng thử lại.');
+      }
     } finally {
       setLoading(false);
     }
@@ -56,28 +62,45 @@ function AddToPlaylistModal({ isOpen, onClose, song }) {
   };
 
   const handleAddToPlaylist = async (playlistId) => {
+    console.log('Song data:', song);
     let sid = deriveSongId(song);
+    console.log('Derived song ID:', sid);
+    
     if (!sid) {
       // Try to import the external song into Node backend to get an id
       try {
-        const created = await upsertExternalSong({
-          url: song.url,
+        console.log('Importing song to Node backend...');
+        const importData = {
+          external_url: song.audio_url || song.url,
           title: song.title,
-          artist: song.artist,
-        });
-        sid = created?.id;
+          artist_name: song.artist || song.artist_name,
+          cover_url: song.cover_url || song.cover || null
+        };
+        console.log('Import data:', importData);
+        
+        const created = await upsertExternalSong(importData);
+        console.log('Created song:', created);
+        sid = created?.song?.id || created?.id;
       } catch (err) {
-        console.warn('Import external song failed:', err);
+        console.error('Import external song failed:', err);
+        alert('Không thể import bài hát vào hệ thống. Vui lòng thử lại.');
+        return;
       }
     }
+    
     if (!sid) {
       alert('Không thể xác định ID bài hát để thêm vào playlist');
       return;
     }
 
     try {
+      console.log('Adding song', sid, 'to playlist', playlistId);
       const resp = await addSongToPlaylist(playlistId, sid);
       console.log('Add song response:', resp);
+      
+      // Trigger event to reload sidebar playlists
+      window.dispatchEvent(new Event('playlistUpdated'));
+      
       alert(resp?.message || 'Đã thêm bài hát vào playlist!');
       onClose();
     } catch (error) {
@@ -173,27 +196,30 @@ function AddToPlaylistModal({ isOpen, onClose, song }) {
                         Bạn chưa có playlist nào
                       </div>
                     ) : (
-                      playlists.map((playlist) => (
-                        <div
-                          key={playlist.id}
-                          className="playlist-item"
-                          onClick={() => handleAddToPlaylist(playlist.id)}
-                        >
-                          <div className="playlist-info">
-                            {playlist.cover_url ? (
-                              <img src={playlist.cover_url} alt={playlist.name} />
-                            ) : (
-                              <div className="playlist-placeholder">♫</div>
-                            )}
-                            <div>
-                              <div className="playlist-name">{playlist.name}</div>
-                              <div className="playlist-count">
-                                {playlist.song_count || 0} bài hát
+                      playlists.map((playlist) => {
+                        const playlistId = playlist.playlist_id || playlist.id;
+                        return (
+                          <div
+                            key={playlistId}
+                            className="playlist-item"
+                            onClick={() => handleAddToPlaylist(playlistId)}
+                          >
+                            <div className="playlist-info">
+                              {playlist.cover_url ? (
+                                <img src={playlist.cover_url} alt={playlist.name} />
+                              ) : (
+                                <div className="playlist-placeholder">♫</div>
+                              )}
+                              <div>
+                                <div className="playlist-name">{playlist.name}</div>
+                                <div className="playlist-count">
+                                  {playlist.song_count || 0} bài hát
+                                </div>
                               </div>
                             </div>
                           </div>
-                        </div>
-                      ))
+                        );
+                      })
                     )}
                   </div>
 

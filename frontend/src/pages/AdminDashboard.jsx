@@ -7,6 +7,7 @@ import UserManagementContent from "../components/UserManagementContent";
 import AdminProfileContent from "../components/AdminProfileContent";
 import GenreManagementContent from "../components/GenreManagementContent";
 import axios from "axios";
+import AdminAlbums from "./AdminAlbums";
 import { 
   FaTachometerAlt, 
   FaMusic, 
@@ -364,6 +365,13 @@ const AdminDashboard = () => {
               <span>Bài hát</span>
             </button>
             <button
+              className={`nav-item ${activeTab === "albums" ? "active" : ""}`}
+              onClick={() => setActiveTab("albums")}
+            >
+              <MdQueueMusic />
+              <span>Album</span>
+            </button>
+            <button
               className={`nav-item ${activeTab === "artists" ? "active" : ""}`}
               onClick={() => setActiveTab("artists")}
             >
@@ -620,6 +628,12 @@ const AdminDashboard = () => {
         {activeTab === "songs" && (
           <div className="tab-content">
             <SongManagementContent />
+          </div>
+        )}
+        {/* === ALBUM === */}
+        {activeTab === "albums" && (
+          <div className="tab-content">
+            <AdminAlbums />
           </div>
         )}
 

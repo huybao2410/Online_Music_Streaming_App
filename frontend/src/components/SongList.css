@@ -11,8 +11,8 @@
 
 .songs-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-  gap: 16px;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 20px;
 }
 
 .song-item {
@@ -30,7 +30,7 @@
 .song-item:hover {
   background: #282828;
   transform: translateY(-4px);
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
 }
 
 .song-item:hover .song-actions {
@@ -43,18 +43,13 @@
   border-radius: 6px;
   overflow: hidden;
   background: #282828;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
 }
 
 .song-cover img {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  transition: transform 0.3s ease;
-}
-
-.song-item:hover .song-cover img {
-  transform: scale(1.05);
+  display: block;
 }
 
 .cover-placeholder {
@@ -63,7 +58,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 48px;
+  font-size: 64px;
   color: #b3b3b3;
   background: linear-gradient(135deg, #282828, #1a1a1a);
 }
@@ -75,7 +70,7 @@
 
 .song-title {
   color: #ffffff;
-  font-size: 16px;
+  font-size: 18px;
   font-weight: 600;
   margin-bottom: 4px;
   white-space: nowrap;

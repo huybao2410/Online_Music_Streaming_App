@@ -48,10 +48,10 @@ router.get('/my-playlists', verifyToken, async (req, res) => {
         COUNT(DISTINCT ps.song_id) as song_count,
         GROUP_CONCAT(DISTINCT s.cover_url ORDER BY ps.added_at LIMIT 4) as cover_images
        FROM playlists p
-       LEFT JOIN playlist_songs ps ON p.id = ps.playlist_id
-       LEFT JOIN songs s ON ps.song_id = s.id
+       LEFT JOIN playlist_songs ps ON p.playlist_id = ps.playlist_id
+       LEFT JOIN songs s ON ps.song_id = s.song_id
        WHERE p.user_id = ?
-       GROUP BY p.id
+       GROUP BY p.playlist_id
        ORDER BY p.created_at DESC`,
       [req.user.id]
     );
@@ -79,7 +79,7 @@ router.get('/:id', verifyToken, async (req, res) => {
       `SELECT p.*, u.username as owner_name
        FROM playlists p
        JOIN users u ON p.user_id = u.id
-       WHERE p.id = ? AND (p.is_public = 1 OR p.user_id = ?)`,
+       WHERE p.playlist_id = ? AND (p.is_public = 1 OR p.user_id = ?)`,
       [req.params.id, req.user.id]
     );
 
@@ -92,14 +92,18 @@ router.get('/:id', verifyToken, async (req, res) => {
 
     // Get songs in playlist
     const [songs] = await pool.query(
-      `SELECT s.*, a.name as artist_name, ps.added_at
+      `SELECT s.song_id, s.title, s.audio_url, s.cover_url, s.duration,
+              a.name as artist_name, a.artist_id,
+              ps.added_at
        FROM playlist_songs ps
-       JOIN songs s ON ps.song_id = s.id
-       JOIN artists a ON s.artist_id = a.id
+       JOIN songs s ON ps.song_id = s.song_id
+       LEFT JOIN artists a ON s.artist_id = a.artist_id
        WHERE ps.playlist_id = ?
        ORDER BY ps.added_at DESC`,
       [req.params.id]
     );
+    
+    console.log(`Playlist ${req.params.id} has ${songs.length} songs`);
 
     return res.json({
       success: true,
@@ -122,8 +126,6 @@ router.post('/',
   verifyToken,
   body('name').trim().notEmpty().withMessage('Tên playlist không được để trống')
     .isLength({ max: 100 }).withMessage('Tên playlist tối đa 100 ký tự'),
-  body('description').optional().trim()
-    .isLength({ max: 500 }).withMessage('Mô tả tối đa 500 ký tự'),
   body('is_public').optional().isBoolean().withMessage('is_public phải là boolean'),
   async (req, res) => {
     const errors = validationResult(req);
@@ -134,17 +136,17 @@ router.post('/',
       });
     }
 
-    const { name, description, is_public } = req.body;
+    const { name, is_public } = req.body;
 
     try {
       const [result] = await pool.query(
-        `INSERT INTO playlists (user_id, name, description, is_public) 
-         VALUES (?, ?, ?, ?)`,
-        [req.user.id, name, description || null, is_public ? 1 : 0]
+        `INSERT INTO playlists (user_id, name, is_public) 
+         VALUES (?, ?, ?)`,
+        [req.user.id, name, is_public ? 1 : 0]
       );
 
       const [newPlaylist] = await pool.query(
-        'SELECT * FROM playlists WHERE id = ?',
+        'SELECT * FROM playlists WHERE playlist_id = ?',
         [result.insertId]
       );
 
@@ -169,8 +171,6 @@ router.put('/:id',
   upload.single('cover_image'),
   body('name').optional().trim().notEmpty()
     .isLength({ max: 100 }).withMessage('Tên playlist tối đa 100 ký tự'),
-  body('description').optional().trim()
-    .isLength({ max: 500 }).withMessage('Mô tả tối đa 500 ký tự'),
   body('is_public').optional(),
   async (req, res) => {
     const errors = validationResult(req);
@@ -188,7 +188,7 @@ router.put('/:id',
     try {
       // Check if playlist exists and belongs to user
       const [playlists] = await pool.query(
-        'SELECT * FROM playlists WHERE id = ? AND user_id = ?',
+        'SELECT * FROM playlists WHERE playlist_id = ? AND user_id = ?',
         [req.params.id, req.user.id]
       );
 
@@ -203,17 +203,13 @@ router.put('/:id',
         });
       }
 
-      const { name, description, is_public } = req.body;
+      const { name, is_public } = req.body;
       const updates = [];
       const values = [];
 
       if (name !== undefined) {
         updates.push('name = ?');
         values.push(name);
-      }
-      if (description !== undefined) {
-        updates.push('description = ?');
-        values.push(description);
       }
       if (is_public !== undefined) {
         updates.push('is_public = ?');
@@ -245,12 +241,12 @@ router.put('/:id',
       values.push(req.params.id, req.user.id);
 
       await pool.query(
-        `UPDATE playlists SET ${updates.join(', ')} WHERE id = ? AND user_id = ?`,
+        `UPDATE playlists SET ${updates.join(', ')} WHERE playlist_id = ? AND user_id = ?`,
         values
       );
 
       const [updatedPlaylist] = await pool.query(
-        'SELECT * FROM playlists WHERE id = ?',
+        'SELECT * FROM playlists WHERE playlist_id = ?',
         [req.params.id]
       );
 
@@ -277,7 +273,7 @@ router.put('/:id',
 router.delete('/:id', verifyToken, async (req, res) => {
   try {
     const [result] = await pool.query(
-      'DELETE FROM playlists WHERE id = ? AND user_id = ?',
+      'DELETE FROM playlists WHERE playlist_id = ? AND user_id = ?',
       [req.params.id, req.user.id]
     );
 
@@ -319,7 +315,7 @@ router.post('/:id/songs',
     try {
       // Check if playlist belongs to user
       const [playlists] = await pool.query(
-        'SELECT * FROM playlists WHERE id = ? AND user_id = ?',
+        'SELECT * FROM playlists WHERE playlist_id = ? AND user_id = ?',
         [req.params.id, req.user.id]
       );
 
@@ -331,7 +327,7 @@ router.post('/:id/songs',
       }
 
       // Check if song exists
-      const [songs] = await pool.query('SELECT * FROM songs WHERE id = ?', [song_id]);
+      const [songs] = await pool.query('SELECT * FROM songs WHERE song_id = ?', [song_id]);
       if (!songs.length) {
         return res.status(404).json({ 
           success: false,
@@ -377,7 +373,7 @@ router.delete('/:id/songs/:song_id', verifyToken, async (req, res) => {
   try {
     // Check if playlist belongs to user
     const [playlists] = await pool.query(
-      'SELECT * FROM playlists WHERE id = ? AND user_id = ?',
+      'SELECT * FROM playlists WHERE playlist_id = ? AND user_id = ?',
       [req.params.id, req.user.id]
     );
 
@@ -412,5 +408,112 @@ router.delete('/:id/songs/:song_id', verifyToken, async (req, res) => {
       });
   }
 });
+
+// Remove multiple songs from playlist
+router.post('/:id/songs/remove-batch',
+  verifyToken,
+  body('song_ids').isArray().withMessage('song_ids phải là mảng'),
+  async (req, res) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ 
+        success: false,
+        errors: errors.array() 
+      });
+    }
+
+    const { song_ids } = req.body;
+
+    if (!song_ids || song_ids.length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: 'Danh sách bài hát không được rỗng'
+      });
+    }
+
+    try {
+      // Check if playlist belongs to user
+      const [playlists] = await pool.query(
+        'SELECT * FROM playlists WHERE playlist_id = ? AND user_id = ?',
+        [req.params.id, req.user.id]
+      );
+
+      if (!playlists.length) {
+        return res.status(404).json({ 
+          success: false,
+          message: 'Không tìm thấy playlist' 
+        });
+      }
+
+      // Delete songs from playlist
+      const placeholders = song_ids.map(() => '?').join(',');
+      const [result] = await pool.query(
+        `DELETE FROM playlist_songs WHERE playlist_id = ? AND song_id IN (${placeholders})`,
+        [req.params.id, ...song_ids]
+      );
+
+      return res.json({
+        success: true,
+        message: `Đã xóa ${result.affectedRows} bài hát khỏi playlist`,
+        removed_count: result.affectedRows
+      });
+    } catch (error) {
+      console.error('Error removing songs from playlist:', error);
+      return res.status(500).json({ 
+        success: false,
+        message: 'Lỗi khi xóa bài hát khỏi playlist' 
+      });
+    }
+  }
+);
+
+// Update only playlist name
+router.patch('/:id/name',
+  verifyToken,
+  body('name').trim().notEmpty().withMessage('Tên playlist không được để trống')
+    .isLength({ max: 100 }).withMessage('Tên playlist tối đa 100 ký tự'),
+  async (req, res) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ 
+        success: false,
+        errors: errors.array() 
+      });
+    }
+
+    try {
+      // Check if playlist belongs to user
+      const [playlists] = await pool.query(
+        'SELECT * FROM playlists WHERE playlist_id = ? AND user_id = ?',
+        [req.params.id, req.user.id]
+      );
+
+      if (!playlists.length) {
+        return res.status(404).json({ 
+          success: false,
+          message: 'Không tìm thấy playlist hoặc bạn không có quyền chỉnh sửa' 
+        });
+      }
+
+      const { name } = req.body;
+
+      await pool.query(
+        'UPDATE playlists SET name = ? WHERE playlist_id = ? AND user_id = ?',
+        [name, req.params.id, req.user.id]
+      );
+
+      return res.json({
+        success: true,
+        message: 'Cập nhật tên playlist thành công'
+      });
+    } catch (error) {
+      console.error('Error updating playlist name:', error);
+      return res.status(500).json({ 
+        success: false,
+        message: 'Lỗi khi cập nhật tên playlist' 
+      });
+    }
+  }
+);
 
 module.exports = router;

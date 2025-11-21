@@ -1,0 +1,214 @@
+.edit-songs-modal {
+  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+  border-radius: 12px;
+  width: 90%;
+  max-width: 600px;
+  max-height: 85vh;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+  animation: slideUp 0.3s ease;
+}
+
+.modal-toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 28px;
+  background: rgba(0, 0, 0, 0.2);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.checkbox-container {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  cursor: pointer;
+  user-select: none;
+}
+
+.checkbox-container input[type="checkbox"] {
+  width: 20px;
+  height: 20px;
+  cursor: pointer;
+  accent-color: #4a9b9b;
+}
+
+.checkbox-label {
+  font-size: 15px;
+  font-weight: 500;
+  color: #fff;
+}
+
+.selected-count {
+  font-size: 14px;
+  color: #4a9b9b;
+  font-weight: 600;
+}
+
+.edit-songs-list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.edit-song-item {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 12px 28px;
+  cursor: pointer;
+  transition: all 0.2s;
+  border-radius: 6px;
+}
+
+.edit-song-item:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.edit-song-item.selected {
+  background: rgba(74, 155, 155, 0.2);
+}
+
+.edit-song-item input[type="checkbox"] {
+  width: 20px;
+  height: 20px;
+  cursor: pointer;
+  flex-shrink: 0;
+  accent-color: #4a9b9b;
+}
+
+.edit-song-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex: 1;
+  min-width: 0;
+}
+
+.edit-song-cover {
+  width: 48px;
+  height: 48px;
+  border-radius: 4px;
+  object-fit: cover;
+  flex-shrink: 0;
+}
+
+.edit-song-cover-placeholder {
+  width: 48px;
+  height: 48px;
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: rgba(255, 255, 255, 0.3);
+  flex-shrink: 0;
+}
+
+.edit-song-details {
+  flex: 1;
+  min-width: 0;
+}
+
+.edit-song-title {
+  font-size: 16px;
+  font-weight: 500;
+  color: #fff;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  margin-bottom: 4px;
+}
+
+.edit-song-artist {
+  font-size: 14px;
+  color: #b3b3b3;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.edit-song-duration {
+  font-size: 14px;
+  color: #b3b3b3;
+  min-width: 45px;
+  text-align: right;
+  flex-shrink: 0;
+}
+
+.modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  padding: 20px 28px;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(0, 0, 0, 0.2);
+}
+
+.cancel-button,
+.delete-button {
+  padding: 12px 24px;
+  border-radius: 24px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s;
+  border: none;
+}
+
+.cancel-button {
+  background: transparent;
+  color: #fff;
+  border: 1.5px solid rgba(255, 255, 255, 0.3);
+}
+
+.cancel-button:hover:not(:disabled) {
+  border-color: #fff;
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.delete-button {
+  background: #e74c3c;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.delete-button:hover:not(:disabled) {
+  background: #c0392b;
+  transform: scale(1.05);
+}
+
+.delete-button:disabled,
+.cancel-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+@media (max-width: 768px) {
+  .edit-songs-modal {
+    width: 95%;
+    max-height: 90vh;
+  }
+
+  .modal-toolbar,
+  .modal-footer {
+    padding: 16px 20px;
+  }
+
+  .edit-song-item {
+    padding: 12px 20px;
+  }
+
+  .edit-song-duration {
+    display: none;
+  }
+
+  .cancel-button,
+  .delete-button {
+    padding: 10px 20px;
+    font-size: 14px;
+  }
+}

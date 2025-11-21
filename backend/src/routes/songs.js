@@ -85,7 +85,7 @@ router.get('/', async (req, res) => {
     let query = `
       SELECT s.*, a.name as artist_name, a.avatar_url as artist_avatar
       FROM songs s
-      LEFT JOIN artists a ON s.artist_id = a.id
+      LEFT JOIN artists a ON s.artist_id = a.artist_id
       WHERE 1=1
     `;
     const params = [];
@@ -110,7 +110,7 @@ router.get('/', async (req, res) => {
     console.log('Found songs:', songs.length);
 
     // Get total count
-    let countQuery = 'SELECT COUNT(*) as total FROM songs s LEFT JOIN artists a ON s.artist_id = a.id WHERE 1=1';
+    let countQuery = 'SELECT COUNT(*) as total FROM songs s LEFT JOIN artists a ON s.artist_id = a.artist_id WHERE 1=1';
     const countParams = [];
     
     if (search) {
@@ -145,13 +145,13 @@ router.get('/', async (req, res) => {
 // This lets the frontend send minimal metadata + a stable external key and receive a numeric id.
 router.post('/import', async (req, res) => {
   try {
-    const { external_url, title, artist_name } = req.body;
+    const { external_url, title, artist_name, cover_url } = req.body;
     if (!external_url || !title) {
       return res.status(400).json({ success: false, message: 'external_url và title là bắt buộc' });
     }
 
     // Try to find existing by audio_url (assuming external_url is the playback URL)
-    const [existing] = await pool.query('SELECT id FROM songs WHERE audio_url = ? LIMIT 1', [external_url]);
+    const [existing] = await pool.query('SELECT song_id as id FROM songs WHERE audio_url = ? LIMIT 1', [external_url]);
     if (existing.length) {
       return res.json({ success: true, song: existing[0], imported: false });
     }
@@ -159,7 +159,7 @@ router.post('/import', async (req, res) => {
     // Optionally resolve / create artist if provided
     let artistId = null;
     if (artist_name) {
-      const [artistRows] = await pool.query('SELECT id FROM artists WHERE name = ? LIMIT 1', [artist_name]);
+      const [artistRows] = await pool.query('SELECT artist_id as id FROM artists WHERE name = ? LIMIT 1', [artist_name]);
       if (artistRows.length) {
         artistId = artistRows[0].id;
       } else {
@@ -168,15 +168,22 @@ router.post('/import', async (req, res) => {
       }
     }
 
+    // Get default genre_id (first genre or create "Khác")
+    let genreId = 1; // Default
+    const [genres] = await pool.query('SELECT genre_id FROM genres LIMIT 1');
+    if (genres.length) {
+      genreId = genres[0].genre_id;
+    }
+
     const [insertSong] = await pool.query(
-      `INSERT INTO songs (title, artist_id, audio_url, cover_url, duration)
-       VALUES (?, ?, ?, ?, 0)`,
-      [title, artistId, external_url, null]
+      `INSERT INTO songs (title, artist_id, audio_url, cover_url, duration, genre_id)
+       VALUES (?, ?, ?, ?, 0, ?)`,
+      [title, artistId, external_url, cover_url || null, genreId]
     );
 
     return res.status(201).json({
       success: true,
-      song: { id: insertSong.insertId },
+      song: { id: insertSong.insertId, song_id: insertSong.insertId },
       imported: true
     });
   } catch (error) {
@@ -192,7 +199,7 @@ router.get('/:id', async (req, res) => {
       `SELECT s.*, a.name as artist_name, a.avatar_url as artist_avatar,
         (SELECT COUNT(*) FROM playlist_songs WHERE song_id = s.id) as playlist_count
       FROM songs s
-      LEFT JOIN artists a ON s.artist_id = a.id
+      LEFT JOIN artists a ON s.artist_id = a.artist_id
       WHERE s.id = ?`,
       [req.params.id]
     );

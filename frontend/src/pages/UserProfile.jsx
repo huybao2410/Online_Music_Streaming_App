@@ -17,11 +17,18 @@ export default function UserProfile() {
   const [showCreatePlaylist, setShowCreatePlaylist] = useState(false);
   const [showEditProfile, setShowEditProfile] = useState(false);
   const [userInfo, setUserInfo] = useState({
+    user_id: null,
     username: localStorage.getItem("username") || "Người dùng",
+    email: "",
+    phone: "",
+    role: "user",
     memberType: "Miễn phí",
+    isPremium: false,
+    subscriptionEndDate: null,
     followers: 0,
     following: 0,
-    avatar: null
+    avatar: null,
+    created_at: null
   });
 
   const [favoriteSongs, setFavoriteSongs] = useState([]);
@@ -50,12 +57,35 @@ export default function UserProfile() {
       
       if (response.data.success) {
         const user = response.data.user;
+        
+        // Check premium subscription
+        let isPremium = false;
+        let subscriptionEndDate = null;
+        try {
+          const subResponse = await axios.get("http://localhost:5000/api/subscriptions/status", {
+            headers: { Authorization: `Bearer ${token}` }
+          });
+          if (subResponse.data.success && subResponse.data.subscription) {
+            isPremium = subResponse.data.subscription.status === 'active';
+            subscriptionEndDate = subResponse.data.subscription.end_date;
+          }
+        } catch (err) {
+          console.log("No active subscription");
+        }
+        
         setUserInfo({
+          user_id: user.user_id,
           username: user.username,
-          memberType: user.role === 'premium' ? 'Premium' : 'Miễn phí',
-          followers: 0, // TODO: implement followers
-          following: 0, // TODO: implement following
-          avatar: user.avatar_url
+          email: user.email || '',
+          phone: user.phone || '',
+          role: user.role || 'user',
+          memberType: isPremium ? 'Premium' : 'Free',
+          isPremium: isPremium,
+          subscriptionEndDate: subscriptionEndDate,
+          followers: 0,
+          following: 0,
+          avatar: user.avatar_url,
+          created_at: user.created_at
         });
       }
     } catch (error) {
@@ -65,35 +95,37 @@ export default function UserProfile() {
 
   const fetchFavoriteSongs = async () => {
     try {
-      // TODO: Call API to get favorite songs
-      setFavoriteSongs([
-        {
-          id: 1,
-          title: "Bài hát yêu thích 1",
-          artist: "Ca sĩ 1",
-          duration: "3:45",
-          thumbnail: null
-        }
-      ]);
+      const token = localStorage.getItem("token");
+      if (!token) return;
+
+      const response = await axios.get("http://localhost:5000/api/favorite-songs", {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+
+      if (response.data.success && response.data.favorites) {
+        setFavoriteSongs(response.data.favorites);
+      }
     } catch (error) {
       console.error("Error fetching favorite songs:", error);
+      setFavoriteSongs([]);
     }
   };
 
   const fetchRecentSongs = async () => {
     try {
-      // TODO: Call API to get recent songs
-      setRecentSongs([
-        {
-          id: 1,
-          title: "Bài hát gần đây 1",
-          artist: "Ca sĩ 1",
-          duration: "3:45",
-          thumbnail: null
-        }
-      ]);
+      const token = localStorage.getItem("token");
+      if (!token) return;
+
+      const response = await axios.get("http://localhost:5000/api/listening-history?limit=20", {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+
+      if (response.data.success && response.data.history) {
+        setRecentSongs(response.data.history);
+      }
     } catch (error) {
       console.error("Error fetching recent songs:", error);
+      setRecentSongs([]);
     }
   };
 
@@ -146,10 +178,10 @@ export default function UserProfile() {
           <div className="songs-grid">
             {favoriteSongs.length > 0 ? (
               favoriteSongs.map((song) => (
-                <div key={song.id} className="song-card">
+                <div key={song.song_id} className="song-card">
                   <div className="song-thumbnail">
-                    {song.thumbnail ? (
-                      <img src={song.thumbnail} alt={song.title} />
+                    {song.cover ? (
+                      <img src={song.cover} alt={song.title} />
                     ) : (
                       <div className="song-thumbnail-placeholder">
                         <BsMusicNoteBeamed size={40} />
@@ -158,8 +190,8 @@ export default function UserProfile() {
                   </div>
                   <div className="song-info">
                     <h4 className="song-title">{song.title}</h4>
-                    <p className="song-artist">{song.artist}</p>
-                    <span className="song-duration">{song.duration}</span>
+                    <p className="song-artist">{song.artist_name || song.artist}</p>
+                    <span className="song-duration">{Math.floor(song.duration / 60)}:{String(song.duration % 60).padStart(2, '0')}</span>
                   </div>
                 </div>
               ))
@@ -177,10 +209,10 @@ export default function UserProfile() {
           <div className="songs-grid">
             {recentSongs.length > 0 ? (
               recentSongs.map((song) => (
-                <div key={song.id} className="song-card">
+                <div key={`${song.song_id}-${song.listened_at}`} className="song-card">
                   <div className="song-thumbnail">
-                    {song.thumbnail ? (
-                      <img src={song.thumbnail} alt={song.title} />
+                    {song.cover ? (
+                      <img src={song.cover} alt={song.title} />
                     ) : (
                       <div className="song-thumbnail-placeholder">
                         <BsMusicNoteBeamed size={40} />
@@ -189,8 +221,13 @@ export default function UserProfile() {
                   </div>
                   <div className="song-info">
                     <h4 className="song-title">{song.title}</h4>
-                    <p className="song-artist">{song.artist}</p>
-                    <span className="song-duration">{song.duration}</span>
+                    <p className="song-artist">{song.artist_name || song.artist}</p>
+                    <span className="song-duration">{Math.floor(song.duration / 60)}:{String(song.duration % 60).padStart(2, '0')}</span>
+                    {song.listened_at && (
+                      <span className="song-played-time" style={{fontSize: '12px', color: '#888', marginTop: '4px'}}>
+                        {new Date(song.listened_at).toLocaleString('vi-VN')}
+                      </span>
+                    )}
                   </div>
                 </div>
               ))
@@ -230,9 +267,9 @@ export default function UserProfile() {
 
                   return (
                     <div 
-                      key={playlist.id} 
+                      key={playlist.playlist_id} 
                       className="playlist-card"
-                      onClick={() => navigate(`/playlist/${playlist.id}`)}
+                      onClick={() => navigate(`/playlist/${playlist.playlist_id}`)}
                     >
                       <div className="playlist-thumbnail">
                         {coverUrl ? (
@@ -293,18 +330,40 @@ export default function UserProfile() {
             
             <div className="profile-details">
               <h1 className="profile-username">{userInfo.username}</h1>
-              <span className="profile-member-type">{userInfo.memberType}</span>
+              <div className="profile-badges">
+                <span className={`profile-member-type ${userInfo.isPremium ? 'premium' : 'free'}`}>
+                  {userInfo.memberType}
+                </span>
+                {userInfo.role === 'admin' && (
+                  <span className="profile-role-badge admin">Admin</span>
+                )}
+              </div>
               
-              <div className="profile-stats">
-                <div className="stat-item">
-                  <span className="stat-label">Đang theo dõi</span>
-                  <span className="stat-value">{userInfo.following}</span>
-                </div>
-                <div className="stat-separator">·</div>
-                <div className="stat-item">
-                  <span className="stat-label">Người theo dõi</span>
-                  <span className="stat-value">{userInfo.followers}</span>
-                </div>
+              <div className="profile-info-details">
+                {userInfo.email && (
+                  <div className="info-row">
+                    <span className="info-label">📧 Email:</span>
+                    <span className="info-value">{userInfo.email}</span>
+                  </div>
+                )}
+                {userInfo.phone && (
+                  <div className="info-row">
+                    <span className="info-label">📱 Điện thoại:</span>
+                    <span className="info-value">{userInfo.phone}</span>
+                  </div>
+                )}
+                {userInfo.isPremium && userInfo.subscriptionEndDate && (
+                  <div className="info-row">
+                    <span className="info-label">⭐ Premium đến:</span>
+                    <span className="info-value">{new Date(userInfo.subscriptionEndDate).toLocaleDateString('vi-VN')}</span>
+                  </div>
+                )}
+                {userInfo.created_at && (
+                  <div className="info-row">
+                    <span className="info-label">📅 Tham gia:</span>
+                    <span className="info-value">{new Date(userInfo.created_at).toLocaleDateString('vi-VN')}</span>
+                  </div>
+                )}
               </div>
             </div>
 
@@ -324,7 +383,7 @@ export default function UserProfile() {
           >
             <AiOutlineHeart size={20} />
             <span>Bài hát Yêu thích</span>
-            <span className="tab-count">1 bài hát</span>
+            <span className="tab-count">{favoriteSongs.length} bài hát</span>
           </button>
           
           <button 
@@ -333,7 +392,7 @@ export default function UserProfile() {
           >
             <AiOutlineClockCircle size={20} />
             <span>Nghe gần đây</span>
-            <span className="tab-count">2 bài hát</span>
+            <span className="tab-count">{recentSongs.length} bài hát</span>
           </button>
           
           <button 

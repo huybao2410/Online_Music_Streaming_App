@@ -11,6 +11,14 @@ const userRoutes = require('./routes/users');
 const artistRoutes = require('./routes/artists');
 const songRoutes = require('./routes/songs');
 const genreRoutes = require('./routes/genres');
+const favoriteArtistsRoutes = require('./routes/favoriteArtists');
+const subscriptionsRoutes = require('./routes/subscriptions');
+const albumRoutes = require('./routes/albums');
+const adminAlbumsRoutes = require('./routes/adminAlbums');
+const paymentsRoutes = require('./routes/payments');
+const searchRoutes = require('./routes/search');
+const listeningHistoryRoutes = require('./routes/listening-history');
+const favoriteSongsRoutes = require('./routes/favorite-songs');
 
 const app = express();
 app.use(cors({ origin: process.env.CORS_ORIGIN || 'http://localhost:3000', credentials: true }));
@@ -26,6 +34,14 @@ app.use('/api/users', userRoutes);
 app.use('/api/artists', artistRoutes);
 app.use('/api/songs', songRoutes);
 app.use('/api/genres', genreRoutes);
+app.use('/api/favorite-artists', favoriteArtistsRoutes);
+app.use('/api/subscriptions', subscriptionsRoutes);
+app.use('/api/albums', albumRoutes);
+app.use('/api/admin/albums', adminAlbumsRoutes);
+app.use('/api', paymentsRoutes);
+app.use('/api/search', searchRoutes);
+app.use('/api/listening-history', listeningHistoryRoutes);
+app.use('/api/favorite-songs', favoriteSongsRoutes);
 
 app.get('/api/health', (req, res) => res.json({ message: 'Backend is running' }));
 

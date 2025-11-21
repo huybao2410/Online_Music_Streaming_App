@@ -45,94 +45,16 @@ export default function ArtistManagementContent() {
       setLoading(true);
       setError("");
       
-      console.log("Fetching artists from PHP API...");
+      console.log("📥 Admin: Fetching ALL artists from Node.js API...");
       
-      // Gọi endpoint get_artists.php
-      try {
-        const artistResponse = await axios.get(`${PHP_API_URL}/artist/get_artists.php`);
-        console.log("Artists API response:", artistResponse.data);
-        
-        if (artistResponse.data.status === "success" && Array.isArray(artistResponse.data.artists)) {
-          let artistsList = artistResponse.data.artists.map(artist => ({
-            artist_id: artist.artist_id,
-            name: artist.name,
-            bio: artist.bio || "",
-            avatar_url: fixLocalUrl(artist.avatar_url),
-            song_count: 0,
-          }));
-
-          // Count songs per artist từ get_songs.php
-          try {
-            const songsResponse = await axios.get(`${PHP_API_URL}/song/get_songs.php`);
-            if (songsResponse.data.status && Array.isArray(songsResponse.data.songs)) {
-              const songCountMap = new Map();
-              songsResponse.data.songs.forEach(song => {
-                if (song.artist_id) {
-                  songCountMap.set(song.artist_id, (songCountMap.get(song.artist_id) || 0) + 1);
-                }
-              });
-              
-              // Update song_count
-              artistsList = artistsList.map(artist => ({
-                ...artist,
-                song_count: songCountMap.get(artist.artist_id) || 0,
-              }));
-            }
-          } catch (songErr) {
-            console.warn("⚠️ Could not fetch songs for counting:", songErr.message);
-          }
-
-          // Apply client-side search filter
-          if (searchTerm) {
-            const searchLower = searchTerm.toLowerCase();
-            artistsList = artistsList.filter(artist => 
-              artist.name.toLowerCase().includes(searchLower)
-            );
-          }
-
-          setTotalArtists(artistsList.length);
-
-          // Apply pagination
-          const startIndex = (currentPage - 1) * artistsPerPage;
-          const paginatedArtists = artistsList.slice(startIndex, startIndex + artistsPerPage);
-          
-          setArtists(paginatedArtists);
-          console.log(`✅ Loaded ${paginatedArtists.length} artists from get_artists.php (total: ${artistsList.length})`);
-          setLoading(false);
-          return;
-        }
-      } catch (artistErr) {
-        console.warn("⚠️ get_artists.php not available, falling back to extracting from songs:", artistErr.message);
-      }
-
-      // Fallback: Lấy danh sách bài hát để extract artists
-      const response = await axios.get(`${PHP_API_URL}/song/get_songs.php`);
-      console.log("Songs response (fallback):", response.data);
+      // 🔴 QUAN TRỌNG: Admin cần hiển thị TẤT CẢ nghệ sĩ
+      // Sử dụng API mới: /api/artists/admin/all (trả về tất cả không filter)
       
-      if (response.data.status && Array.isArray(response.data.songs)) {
-        // Extract unique artists từ songs
-        const artistsMap = new Map();
-        response.data.songs.forEach(song => {
-          if (song.artist_id && song.artist && !artistsMap.has(song.artist_id)) {
-            artistsMap.set(song.artist_id, {
-              artist_id: song.artist_id,
-              name: song.artist,
-              bio: "",
-              avatar_url: song.cover || "", // Tạm dùng cover của bài hát
-              song_count: 0,
-            });
-          }
-        });
-
-        // Count songs per artist
-        response.data.songs.forEach(song => {
-          if (song.artist_id && artistsMap.has(song.artist_id)) {
-            const artist = artistsMap.get(song.artist_id);
-            artist.song_count++;
-          }
-        });
-        
-        let uniqueArtists = Array.from(artistsMap.values());
+      const response = await axios.get(`http://localhost:5000/api/artists/admin/all`);
+      console.log("📥 Artists response:", response.data);
+      
+      if ((response.data.status || response.data.success) && Array.isArray(response.data.artists)) {
+        let uniqueArtists = response.data.artists;
 
         // Apply client-side search filter
         if (searchTerm) {
@@ -149,6 +71,7 @@ export default function ArtistManagementContent() {
         const paginatedArtists = uniqueArtists.slice(startIndex, startIndex + artistsPerPage);
         
         setArtists(paginatedArtists);
+        console.log(`✅ Admin: Showing ${paginatedArtists.length} artists on page ${currentPage}/${Math.ceil(uniqueArtists.length / artistsPerPage)} (Total: ${uniqueArtists.length})`);
         console.log(`✅ Loaded ${paginatedArtists.length} artists from songs fallback (total: ${uniqueArtists.length})`);
       } else {
         console.warn("⚠️ API trả dữ liệu không hợp lệ:", response.data);
@@ -413,15 +336,18 @@ export default function ArtistManagementContent() {
                   <tr key={artist.artist_id}>
                     <td>{artist.artist_id}</td>
                     <td>
-                      {artist.avatar_url ? (
-                        <img
-                          src={`${PHP_API_URL}/${artist.avatar_url}`}
-                          alt={artist.name}
-                          className="avatar-thumb"
-                        />
-                      ) : (
-                        <div className="no-avatar"><FaUserAlt /></div>
-                      )}
+                      <img
+                        src={artist.avatar_url
+                          ? `${PHP_API_URL}/${artist.avatar_url}`
+                          : `https://ui-avatars.com/api/?name=${encodeURIComponent(artist.name)}&size=64&background=4a9b9b&color=fff`
+                        }
+                        alt={artist.name}
+                        className="avatar-thumb"
+                        onError={(e) => {
+                          e.target.onerror = null;
+                          e.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(artist.name)}&size=64&background=4a9b9b&color=fff`;
+                        }}
+                      />
                     </td>
                     <td className="artist-name">{artist.name}</td>
                     <td>{artist.song_count} bài hát</td>

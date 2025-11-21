@@ -1,9 +1,17 @@
-import { useContext, useEffect, useRef, useState } from "react";
+import { useContext, useEffect, useRef, useState, useCallback } from "react";
 import { PlayerContext } from "../context/PLayerContext";
-import { FaPlay, FaPause, FaStepBackward, FaStepForward } from "react-icons/fa";
-import { AiOutlineHeart, AiFillHeart } from "react-icons/ai";
+import {
+  FaPlay,
+  FaPause,
+  FaStepBackward,
+  FaStepForward,
+  FaRedo,
+  FaRandom,
+} from "react-icons/fa";
+import { AiOutlineHeart, AiFillHeart, AiOutlinePlus } from "react-icons/ai";
 import { IoVolumeHigh, IoVolumeMute } from "react-icons/io5";
 import AdOverlay from "../components/AdOverlay";
+import AddToPlaylistModal from "../components/AddToPlaylistModal";
 import axios from "axios";
 import "./Footer.css";
 
@@ -17,6 +25,10 @@ export default function Footer() {
   const [volume, setVolume] = useState(1);
   const [isMuted, setIsMuted] = useState(false);
   const [isLiked, setIsLiked] = useState(false);
+  const [isLoop, setIsLoop] = useState(false);
+  const [isShuffle, setIsShuffle] = useState(false);
+
+  // ❤️ favorites đồng bộ với localStorage
   const [favorites, setFavorites] = useState(() => {
     try {
       const saved = localStorage.getItem("favorites");
@@ -29,21 +41,43 @@ export default function Footer() {
   const [playCount, setPlayCount] = useState(0);
   const [showAd, setShowAd] = useState(false);
   const [adTriggered, setAdTriggered] = useState(false);
+  const [showPlaylistModal, setShowPlaylistModal] = useState(false);
 
-  // 📈 Cập nhật lượt phát bài hát (PHP API)
+  // 📈 Gửi API tăng lượt phát
   const updatePlayCount = async (songId) => {
     if (!songId) return;
     try {
       await axios.post("http://localhost:8081/music_API/song/update_play_count.php", {
         song_id: songId,
       });
-      console.log("✅ Đã tăng lượt phát cho bài:", songId);
     } catch (err) {
-      console.error("❌ Lỗi khi cập nhật play_count:", err);
+      console.error("❌ Lỗi cập nhật play_count:", err);
     }
   };
 
-  // ❤️ Đồng bộ yêu thích
+  // ⏮ & ⏭ chuyển bài
+  const playPrev = useCallback(() => {
+    if (!playlist?.length) return;
+    const idx = playlist.findIndex((s) => s.url === currentSong?.url);
+    const prev = playlist[(idx - 1 + playlist.length) % playlist.length];
+    if (prev) setCurrentSong(prev);
+  }, [playlist, currentSong, setCurrentSong]);
+
+  const playNext = useCallback(() => {
+    if (!playlist?.length) return;
+    let next;
+    const idx = playlist.findIndex((s) => s.url === currentSong?.url);
+
+    if (isShuffle) {
+      next = playlist[Math.floor(Math.random() * playlist.length)];
+    } else {
+      next = playlist[(idx + 1) % playlist.length];
+    }
+
+    if (next) setCurrentSong(next);
+  }, [playlist, currentSong, isShuffle, setCurrentSong]);
+
+  // ❤️ Kiểm tra & đồng bộ trạng thái tim
   useEffect(() => {
     if (currentSong?.url) {
       setIsLiked(favorites.some((fav) => fav.url === currentSong.url));
@@ -52,11 +86,28 @@ export default function Footer() {
     }
   }, [currentSong, favorites]);
 
+  // ⏱️ Lắng nghe thay đổi favorites từ tab khác hoặc SongList
+  useEffect(() => {
+    const handleStorageChange = (e) => {
+      if (e.key === "favorites") {
+        try {
+          const updated = JSON.parse(e.newValue);
+          setFavorites(updated || []);
+        } catch {
+          setFavorites([]);
+        }
+      }
+    };
+    window.addEventListener("storage", handleStorageChange);
+    return () => window.removeEventListener("storage", handleStorageChange);
+  }, []);
+
+  // 💾 Lưu favorites mỗi khi đổi (SongList cũng sẽ thấy)
   useEffect(() => {
     localStorage.setItem("favorites", JSON.stringify(favorites));
   }, [favorites]);
 
-  // 🎵 Cập nhật tiến độ phát nhạc
+  // 🎧 Cập nhật tiến độ phát nhạc
   useEffect(() => {
     const audio = audioRef.current;
     if (!audio) return;
@@ -68,18 +119,18 @@ export default function Footer() {
 
     const onLoaded = () => setDuration(audio.duration || 0);
 
-    // ✅ Khi bài hát phát xong
     const onEnded = () => {
       if (!playlist?.length) return;
+      if (isLoop) {
+        audio.currentTime = 0;
+        audio.play();
+        return;
+      }
 
-      // 🧠 Tăng playCount khi hết bài
       setPlayCount((prev) => {
         const newCount = prev + 1;
-
-        // 📈 Gọi API tăng lượt phát
         updatePlayCount(currentSong?.id);
 
-        // 🎬 Quảng cáo sau mỗi 2 bài (nếu không premium)
         const isPremium = localStorage.getItem("isPremium") === "true";
         if (!isPremium && newCount % 2 === 0 && !adTriggered) {
           setTimeout(() => {
@@ -91,10 +142,7 @@ export default function Footer() {
         return newCount;
       });
 
-      // Tự chuyển sang bài kế tiếp
-      const idx = playlist.findIndex((s) => s.url === currentSong?.url);
-      const next = playlist[(idx + 1) % playlist.length];
-      if (next) setCurrentSong(next);
+      playNext();
     };
 
     audio.addEventListener("timeupdate", onTimeUpdate);
@@ -106,7 +154,7 @@ export default function Footer() {
       audio.removeEventListener("loadedmetadata", onLoaded);
       audio.removeEventListener("ended", onEnded);
     };
-  }, [currentSong, playlist, setCurrentSong, adTriggered]);
+  }, [currentSong, playlist, isLoop, adTriggered, playNext]);
 
   const handleCloseAd = () => {
     setShowAd(false);
@@ -115,7 +163,7 @@ export default function Footer() {
     if (audio) audio.play();
   };
 
-  // 🎧 Điều khiển phát nhạc
+  // 🎵 Điều khiển phát nhạc
   useEffect(() => {
     const audio = audioRef.current;
     if (!audio) return;
@@ -143,20 +191,6 @@ export default function Footer() {
     }
   };
 
-  const playPrev = () => {
-    if (!playlist?.length) return;
-    const idx = playlist.findIndex((s) => s.url === currentSong.url);
-    const prev = playlist[(idx - 1 + playlist.length) % playlist.length];
-    if (prev) setCurrentSong(prev);
-  };
-
-  const playNext = () => {
-    if (!playlist?.length) return;
-    const idx = playlist.findIndex((s) => s.url === currentSong.url);
-    const next = playlist[(idx + 1) % playlist.length];
-    if (next) setCurrentSong(next);
-  };
-
   const seek = (e) => {
     const rect = e.currentTarget.getBoundingClientRect();
     const pct = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
@@ -171,13 +205,18 @@ export default function Footer() {
     return `${m}:${s}`;
   };
 
+  // ❤️ Toggle favorite (giống SongList)
   const toggleLike = () => {
     if (!currentSong?.url) return;
     const isFavorited = favorites.some((fav) => fav.url === currentSong.url);
     if (isFavorited) {
-      setFavorites(favorites.filter((fav) => fav.url !== currentSong.url));
+      const updated = favorites.filter((fav) => fav.url !== currentSong.url);
+      setFavorites(updated);
+      localStorage.setItem("favorites", JSON.stringify(updated));
     } else {
-      setFavorites([...favorites, { ...currentSong, addedAt: new Date().toISOString() }]);
+      const updated = [...favorites, { ...currentSong, addedAt: new Date().toISOString() }];
+      setFavorites(updated);
+      localStorage.setItem("favorites", JSON.stringify(updated));
     }
     setIsLiked(!isLiked);
   };
@@ -202,37 +241,70 @@ export default function Footer() {
   return (
     <>
       {showAd && <AdOverlay onClose={handleCloseAd} />}
-      <footer className="footer">
+      
+      <AddToPlaylistModal
+        isOpen={showPlaylistModal}
+        onClose={() => setShowPlaylistModal(false)}
+        song={currentSong}
+      />
+      
+      <footer
+        className="footer"
+        style={{
+          backgroundImage: currentSong?.cover ? `url(${currentSong.cover})` : "none",
+        }}
+      >
+        <div className="footer-overlay" />
         <div className="footer-wrapper">
           {/* Left */}
           <div className="footer-left">
-            {currentSong.cover ? (
-              <img src={currentSong.cover} alt={currentSong.title} className="track-image" />
-            ) : (
-              <div className="track-image-placeholder">♫</div>
-            )}
-            <div className="track-details">
-              <div className="track-name">{currentSong.title}</div>
-              <div className="track-artist">{currentSong.artist}</div>
+            <div className="track-info-container">
+              {currentSong.cover ? (
+                <img src={currentSong.cover} alt={currentSong.title} className="track-image" />
+              ) : (
+                <div className="track-image-placeholder">♫</div>
+              )}
+              <div className="track-details">
+                <div className="track-name">{currentSong.title}</div>
+                <div className="track-artist">{currentSong.artist}</div>
+              </div>
             </div>
-            <button
-              className={`like-btn ${isLiked ? "liked" : ""}`}
-              onClick={toggleLike}
-            >
-              {isLiked ? <AiFillHeart size={18} /> : <AiOutlineHeart size={18} />}
-            </button>
           </div>
 
           {/* Center */}
           <div className="footer-center">
             <div className="control-buttons">
-              <button className="control-btn" onClick={playPrev}><FaStepBackward size={16} /></button>
-              <button className="play-btn" onClick={togglePlay}>
-                {isPlaying ? <FaPause size={16} /> : <FaPlay size={16} />}
+              <button
+                className={`control-btn shuffle ${isShuffle ? "active" : ""}`}
+                onClick={() => setIsShuffle(!isShuffle)}
+              >
+                <FaRandom size={16} />
               </button>
-              <button className="control-btn" onClick={playNext}><FaStepForward size={16} /></button>
+
+              <button className="control-btn prev" onClick={playPrev}>
+                <FaStepBackward size={18} />
+              </button>
+
+              <button
+                className={`main-play-btn ${isPlaying ? "pause" : "play"}`}
+                onClick={togglePlay}
+              >
+                {isPlaying ? <FaPause size={20} /> : <FaPlay size={20} style={{ marginLeft: "3px" }} />}
+              </button>
+
+              <button className="control-btn next" onClick={playNext}>
+                <FaStepForward size={18} />
+              </button>
+
+              <button
+                className={`control-btn replay ${isLoop ? "active" : ""}`}
+                onClick={() => setIsLoop(!isLoop)}
+              >
+                <FaRedo size={16} />
+              </button>
             </div>
-            <div className="progress-section" style={{ marginTop: "-6px" }}>
+
+            <div className="progress-section">
               <span className="time">{formatTime(currentTime)}</span>
               <div className="progress-bar" onClick={seek}>
                 <div className="progress" style={{ width: `${progress}%` }} />
@@ -243,6 +315,20 @@ export default function Footer() {
 
           {/* Right */}
           <div className="footer-right">
+            <button 
+              className={`action-btn like-btn ${isLiked ? "liked" : ""}`} 
+              onClick={toggleLike}
+              title="Thêm vào yêu thích"
+            >
+              {isLiked ? <AiFillHeart size={20} /> : <AiOutlineHeart size={20} />}
+            </button>
+            <button 
+              className="action-btn playlist-btn" 
+              onClick={() => setShowPlaylistModal(true)}
+              title="Thêm vào playlist"
+            >
+              <AiOutlinePlus size={20} />
+            </button>
             <button
               className="volume-btn"
               onClick={() => {
@@ -266,11 +352,19 @@ export default function Footer() {
             </div>
           </div>
         </div>
-        <audio ref={audioRef} />
-        <div style={{ position: "absolute", right: 20, bottom: 60, fontSize: 12, opacity: 0.5 }}>
-  {`Lượt phát: ${playCount}`}
-</div>
 
+        <audio ref={audioRef} />
+        <div
+          style={{
+            position: "absolute",
+            right: 20,
+            bottom: 60,
+            fontSize: 12,
+            opacity: 0.5,
+          }}
+        >
+          {`Lượt phát: ${playCount}`}
+        </div>
       </footer>
     </>
   );

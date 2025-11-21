@@ -12,7 +12,6 @@ export default function EditPlaylist() {
   const fileInputRef = useRef(null);
 
   const [name, setName] = useState("");
-  const [description, setDescription] = useState("");
   const [isPublic, setIsPublic] = useState(false);
   const [coverImage, setCoverImage] = useState(null);
   const [coverPreview, setCoverPreview] = useState(null);
@@ -37,7 +36,6 @@ export default function EditPlaylist() {
       if (response.data.success) {
         const playlist = response.data.playlist;
         setName(playlist.name);
-        setDescription(playlist.description || "");
         setIsPublic(playlist.is_public === 1);
         
         // Set cover image URL (handle both full URLs and relative paths)
@@ -91,7 +89,6 @@ export default function EditPlaylist() {
       const formData = new FormData();
       
       formData.append('name', name);
-      formData.append('description', description);
       formData.append('is_public', isPublic ? '1' : '0');
       
       if (coverImage) {
@@ -197,20 +194,6 @@ export default function EditPlaylist() {
                 maxLength={100}
               />
               <span className="char-count">{name.length}/100</span>
-            </div>
-
-            <div className="form-group">
-              <label htmlFor="playlist-description">Mô tả</label>
-              <textarea
-                id="playlist-description"
-                placeholder="Thêm mô tả tùy chọn"
-                value={description}
-                onChange={(e) => setDescription(e.target.value)}
-                className="form-textarea"
-                rows={4}
-                maxLength={500}
-              />
-              <span className="char-count">{description.length}/500</span>
             </div>
 
             <div className="form-group">

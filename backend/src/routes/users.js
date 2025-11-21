@@ -44,7 +44,7 @@ const upload = multer({
 router.get('/profile', verifyToken, async (req, res) => {
   try {
     const [users] = await pool.query(
-      'SELECT id, username, email, avatar_url, role, created_at FROM users WHERE id = ?',
+      'SELECT id, username, email, phone_number, avatar_url, role, created_at FROM users WHERE id = ?',
       [req.user.id]
     );
 
@@ -64,7 +64,15 @@ router.get('/profile', verifyToken, async (req, res) => {
 
     return res.json({
       success: true,
-      user
+      user: {
+        user_id: user.id,
+        username: user.username,
+        email: user.email,
+        phone: user.phone_number,
+        avatar_url: user.avatar_url,
+        role: user.role,
+        created_at: user.created_at
+      }
     });
   } catch (error) {
     console.error('Error fetching profile:', error);
@@ -95,6 +103,16 @@ router.put('/profile',
 
     try {
       const { username, email, phone_number, date_of_birth } = req.body;
+      
+      // Check if user is Google account (based on password hash placeholder)
+      const [currentUser] = await pool.query(
+        'SELECT password_hash FROM users WHERE id = ?',
+        [req.user.id]
+      );
+      
+      const isGoogleAccount = currentUser.length > 0 && 
+        currentUser[0].password_hash.includes('GOOGLE_OAUTH_USER_NO_PASSWORD_HASH_PLACEHOLDER');
+      
       const updates = [];
       const values = [];
 
@@ -116,6 +134,14 @@ router.put('/profile',
       }
 
       if (email) {
+        // Prevent Google account from changing email
+        if (isGoogleAccount) {
+          return res.status(403).json({ 
+            success: false,
+            message: 'Tài khoản Google không thể thay đổi email' 
+          });
+        }
+        
         // Check if email already exists
         const [existing] = await pool.query(
           'SELECT id FROM users WHERE email = ? AND id != ?',
@@ -131,9 +157,15 @@ router.put('/profile',
         values.push(email);
       }
 
-      if (phone_number) {
+      if (phone_number !== undefined) {
         updates.push('phone_number = ?');
         values.push(phone_number);
+      }
+      
+      // Support 'phone' field as well (from frontend)
+      if (req.body.phone !== undefined) {
+        updates.push('phone_number = ?');
+        values.push(req.body.phone);
       }
 
       if (date_of_birth) {
@@ -293,5 +325,78 @@ router.delete('/avatar', verifyToken, async (req, res) => {
     });
   }
 });
+
+// Change password
+router.put('/change-password',
+  verifyToken,
+  body('currentPassword').notEmpty().withMessage('Vui lòng nhập mật khẩu hiện tại'),
+  body('newPassword')
+    .notEmpty().withMessage('Vui lòng nhập mật khẩu mới')
+    .isLength({ min: 6 }).withMessage('Mật khẩu mới phải có ít nhất 6 ký tự'),
+  async (req, res) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ 
+        success: false,
+        errors: errors.array() 
+      });
+    }
+
+    try {
+      const { currentPassword, newPassword } = req.body;
+
+      // Get current user
+      const [users] = await pool.query(
+        'SELECT id, password_hash FROM users WHERE id = ?',
+        [req.user.id]
+      );
+
+      if (!users.length) {
+        return res.status(404).json({ 
+          success: false,
+          message: 'Không tìm thấy người dùng' 
+        });
+      }
+
+      // Check if user is Google account (based on password hash placeholder)
+      const isGoogleAccount = users[0].password_hash.includes('GOOGLE_OAUTH_USER_NO_PASSWORD_HASH_PLACEHOLDER');
+      if (isGoogleAccount) {
+        return res.status(403).json({ 
+          success: false,
+          message: 'Tài khoản Google không thể đổi mật khẩu. Vui lòng quản lý mật khẩu qua Google Account.' 
+        });
+      }
+
+      // Verify current password
+      const isValidPassword = await bcrypt.compare(currentPassword, users[0].password_hash);
+      if (!isValidPassword) {
+        return res.status(401).json({ 
+          success: false,
+          message: 'Mật khẩu hiện tại không đúng' 
+        });
+      }
+
+      // Hash new password
+      const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+      // Update password
+      await pool.query(
+        'UPDATE users SET password = ? WHERE id = ?',
+        [hashedPassword, req.user.id]
+      );
+
+      return res.json({
+        success: true,
+        message: 'Đổi mật khẩu thành công'
+      });
+    } catch (error) {
+      console.error('Error changing password:', error);
+      return res.status(500).json({ 
+        success: false,
+        message: 'Lỗi khi đổi mật khẩu' 
+      });
+    }
+  }
+);
 
 module.exports = router;
