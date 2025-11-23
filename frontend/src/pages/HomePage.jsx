@@ -7,6 +7,14 @@ import { PlayerContext } from "../context/PLayerContext";
 import "../layout/Layout.css";
 import SongList from "../components/SongList";
 
+const fixLocalUrl = (url) => {
+  if (!url) return "";
+  if (url.startsWith("http")) {
+    return url.replace("10.0.2.2", "localhost");
+  }
+  return `http://localhost:8081/music_API/online_music/${url}`;
+};
+
 const HomePage = () => {
   const [activeTab, setActiveTab] = useState("all");
   const [allSongs, setAllSongs] = useState([]);
@@ -381,7 +389,7 @@ const HomePage = () => {
       {activeTab === "artists" && (
         <section className="artists-section">
           <div className="section-header">
-            <h2>🎤 Tất cả nghệ sĩ</h2>
+            <h2>Tất cả nghệ sĩ</h2>
           </div>
           {loadingArtists ? (
             <div style={{ padding: "30px", textAlign: "center" }}>
@@ -403,7 +411,7 @@ const HomePage = () => {
                   <div className="playlist-cover artist-cover">
                     {artist.avatar ? (
                       <img
-                        src={artist.avatar}
+                        src={fixLocalUrl(artist.avatar)}
                         alt={artist.name}
                         style={{ borderRadius: "50%" }}
                         onError={(e) => {
