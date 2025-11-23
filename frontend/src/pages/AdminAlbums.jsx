@@ -2,7 +2,6 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { FaPlus, FaEdit, FaTrash, FaMusic, FaTimes } from "react-icons/fa";
-import "../components/SongManagementContent.css";
 
 function AdminAlbums() {
   const [albums, setAlbums] = useState([]);
@@ -189,7 +188,7 @@ function AdminAlbums() {
             <div className="modal-body">
               <form id="album-form" onSubmit={handleSubmit} className="modal-form">
                 <div className="form-group">
-                  <label>Tên album <span className="required">*</span></label>
+                  <label>Tên album<span className="required">*</span></label>
                   <input type="text" name="name" value={formData.name} onChange={handleInputChange} required />
                 </div>
                 <div className="form-group">
