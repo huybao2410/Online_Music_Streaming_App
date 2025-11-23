@@ -2,7 +2,7 @@
 
 ## Các bảng mới được thêm:
 
-### 1. favorite_artists
+### 1. user_favorite_artists
 - Lưu nghệ sĩ yêu thích của user
 - File: `backend/migrations/create_favorite_artists_table.sql`
 
@@ -26,7 +26,7 @@
 # Vào thư mục backend
 cd backend
 
-# Chạy migration favorite_artists
+# Chạy migration user_favorite_artists
 mysql -u root music_app < migrations/create_favorite_artists_table.sql
 
 # Chạy migration subscriptions
@@ -42,8 +42,8 @@ node migrations/run-migration.js
 ## Kiểm tra bảng đã tạo thành công:
 
 ```sql
--- Kiểm tra bảng favorite_artists
-SELECT * FROM favorite_artists LIMIT 5;
+-- Kiểm tra bảng user_favorite_artists
+SELECT * FROM user_favorite_artists LIMIT 5;
 
 -- Kiểm tra bảng subscription_plans
 SELECT * FROM subscription_plans;

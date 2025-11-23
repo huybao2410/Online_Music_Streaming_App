@@ -12,7 +12,7 @@ router.get('/', verifyToken, async (req, res) => {
     
     const [favorites] = await pool.query(
       `SELECT a.*, fa.created_at as favorited_at
-       FROM favorite_artists fa
+       FROM user_favorite_artists fa
        JOIN artists a ON fa.artist_id = a.artist_id
        WHERE fa.user_id = ?
        ORDER BY fa.created_at DESC`,
@@ -60,7 +60,7 @@ router.post('/', verifyToken, async (req, res) => {
 
     // Add to favorites
     await pool.query(
-      'INSERT IGNORE INTO favorite_artists (user_id, artist_id) VALUES (?, ?)',
+      'INSERT IGNORE INTO user_favorite_artists (user_id, artist_id) VALUES (?, ?)',
       [userId, artist_id]
     );
 
@@ -84,7 +84,7 @@ router.delete('/:artist_id', verifyToken, async (req, res) => {
     const { artist_id } = req.params;
 
     await pool.query(
-      'DELETE FROM favorite_artists WHERE user_id = ? AND artist_id = ?',
+      'DELETE FROM user_favorite_artists WHERE user_id = ? AND artist_id = ?',
       [userId, artist_id]
     );
 
@@ -117,7 +117,7 @@ router.post('/bulk', verifyToken, async (req, res) => {
     // Insert multiple favorites
     const values = artist_ids.map(artist_id => [userId, artist_id]);
     await pool.query(
-      'INSERT IGNORE INTO favorite_artists (user_id, artist_id) VALUES ?',
+      'INSERT IGNORE INTO user_favorite_artists (user_id, artist_id) VALUES ?',
       [values]
     );
 
@@ -140,7 +140,7 @@ router.get('/check', verifyToken, async (req, res) => {
     const userId = req.user.id;
     
     const [result] = await pool.query(
-      'SELECT COUNT(*) as count FROM favorite_artists WHERE user_id = ?',
+      'SELECT COUNT(*) as count FROM user_favorite_artists WHERE user_id = ?',
       [userId]
     );
 

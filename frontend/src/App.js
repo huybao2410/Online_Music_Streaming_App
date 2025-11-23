@@ -18,6 +18,9 @@ import ArtistsPage from "./pages/ArtistsPage";
 import ArtistDetailPage from "./pages/ArtistDetailPage";
 import PremiumPage from "./pages/PremiumPage";
 import PaymentCallback from "./pages/PaymentCallback";
+import PremiumSuccess from "./pages/PremiumSuccess";
+
+
 
 // Component redirect dựa trên role khi vào trang chủ
 function RoleBasedRedirect() {
@@ -97,7 +100,8 @@ function App() {
         <Route path="/login" element={<LoginDialog />} />
         <Route path="/signup" element={<SignupDialog />} />
         <Route path="/artist-selection" element={<ArtistSelectionScreen />} />
-        <Route path="/premium-subscribe/check-payment-vnpay" element={<PaymentCallback />} />
+        <Route path="/return-vnpay" element={<PaymentCallback />} />
+        <Route path="/premium-success" element={<PremiumSuccess />} />
         
         {/* Route bảo vệ cho admin */}
         <Route 

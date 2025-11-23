@@ -1,7 +1,7 @@
--- Migration: Create favorite_artists table
+-- Migration: Create user_favorite_artists table
 -- Description: Store user's favorite artists
 
-CREATE TABLE IF NOT EXISTS favorite_artists (
+CREATE TABLE IF NOT EXISTS user_favorite_artists (
   id INT PRIMARY KEY AUTO_INCREMENT,
   user_id INT NOT NULL,
   artist_id INT NOT NULL,

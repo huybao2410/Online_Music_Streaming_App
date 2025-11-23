@@ -15,7 +15,6 @@ const favoriteArtistsRoutes = require('./routes/favoriteArtists');
 const subscriptionsRoutes = require('./routes/subscriptions');
 const albumRoutes = require('./routes/albums');
 const adminAlbumsRoutes = require('./routes/adminAlbums');
-const paymentsRoutes = require('./routes/payments');
 const searchRoutes = require('./routes/search');
 const listeningHistoryRoutes = require('./routes/listening-history');
 const favoriteSongsRoutes = require('./routes/favorite-songs');
@@ -26,7 +25,6 @@ app.use(express.json());
 
 // Serve static files (uploaded images)
 app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
-
 app.use('/api/auth', authRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/playlists', playlistRoutes);
@@ -38,12 +36,14 @@ app.use('/api/favorite-artists', favoriteArtistsRoutes);
 app.use('/api/subscriptions', subscriptionsRoutes);
 app.use('/api/albums', albumRoutes);
 app.use('/api/admin/albums', adminAlbumsRoutes);
-app.use('/api', paymentsRoutes);
 app.use('/api/search', searchRoutes);
 app.use('/api/listening-history', listeningHistoryRoutes);
 app.use('/api/favorite-songs', favoriteSongsRoutes);
 
 app.get('/api/health', (req, res) => res.json({ message: 'Backend is running' }));
+
+const vnpayRoutes = require("./routes/vnpay.routes");
+app.use("/api/vnpay", vnpayRoutes);
 
 // Test endpoint to check songs
 app.get('/api/test/songs', async (req, res) => {
