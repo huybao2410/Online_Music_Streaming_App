@@ -32,7 +32,7 @@ const upload = multer({
     const allowedTypes = /jpeg|jpg|png|gif/;
     const extname = allowedTypes.test(path.extname(file.originalname).toLowerCase());
     const mimetype = allowedTypes.test(file.mimetype);
-    
+
     if (mimetype && extname) {
       return cb(null, true);
     } else {
@@ -44,9 +44,9 @@ const upload = multer({
 // Middleware to check admin role
 const isAdmin = (req, res, next) => {
   if (req.user.role !== 'admin') {
-    return res.status(403).json({ 
+    return res.status(403).json({
       success: false,
-      message: 'Không có quyền truy cập' 
+      message: 'Không có quyền truy cập'
     });
   }
   next();
@@ -102,20 +102,23 @@ router.get('/admin/all', async (req, res) => {
 router.get('/', async (req, res) => {
   try {
     const { search, limit = 50, offset = 0 } = req.query;
-    
+
     let query = `
-      SELECT a.*, COUNT(DISTINCT s.song_id) as song_count
-      FROM artists a
-      LEFT JOIN songs s ON a.artist_id = s.artist_id
+      SELECT artist_id, name, bio, avatar_url
+      FROM artists
+      WHERE bio IS NOT NULL 
+        AND bio <> '' 
+        AND avatar_url IS NOT NULL 
+        AND avatar_url <> ''
     `;
     const params = [];
 
     if (search) {
-      query += ' WHERE a.name LIKE ?';
+      query += ' AND name LIKE ?';
       params.push(`%${search}%`);
     }
 
-    query += ' GROUP BY a.artist_id ORDER BY a.name ASC LIMIT ? OFFSET ?';
+    query += ' ORDER BY name ASC LIMIT ? OFFSET ?';
     params.push(parseInt(limit), parseInt(offset));
 
     const [artists] = await pool.query(query, params);
@@ -132,9 +135,9 @@ router.get('/', async (req, res) => {
     });
   } catch (error) {
     console.error('Error fetching artists:', error);
-    return res.status(500).json({ 
+    return res.status(500).json({
       success: false,
-      message: 'Lỗi khi tải danh sách nghệ sĩ' 
+      message: 'Lỗi khi tải danh sách nghệ sĩ'
     });
   }
 });
@@ -152,9 +155,9 @@ router.get('/:id', async (req, res) => {
     );
 
     if (!artists.length) {
-      return res.status(404).json({ 
+      return res.status(404).json({
         success: false,
-        message: 'Không tìm thấy nghệ sĩ' 
+        message: 'Không tìm thấy nghệ sĩ'
       });
     }
 
@@ -166,9 +169,9 @@ router.get('/:id', async (req, res) => {
     });
   } catch (error) {
     console.error('Error fetching artist:', error);
-    return res.status(500).json({ 
+    return res.status(500).json({
       success: false,
-      message: 'Lỗi khi tải thông tin nghệ sĩ' 
+      message: 'Lỗi khi tải thông tin nghệ sĩ'
     });
   }
 });
@@ -186,9 +189,9 @@ router.post('/',
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
       if (req.file) fs.unlinkSync(req.file.path);
-      return res.status(400).json({ 
+      return res.status(400).json({
         success: false,
-        errors: errors.array() 
+        errors: errors.array()
       });
     }
 
@@ -203,9 +206,9 @@ router.post('/',
 
       if (existing.length > 0) {
         if (req.file) fs.unlinkSync(req.file.path);
-        return res.status(400).json({ 
+        return res.status(400).json({
           success: false,
-          message: 'Nghệ sĩ đã tồn tại' 
+          message: 'Nghệ sĩ đã tồn tại'
         });
       }
 
@@ -230,9 +233,9 @@ router.post('/',
     } catch (error) {
       if (req.file) fs.unlinkSync(req.file.path);
       console.error('Error creating artist:', error);
-      return res.status(500).json({ 
+      return res.status(500).json({
         success: false,
-        message: 'Lỗi khi thêm nghệ sĩ' 
+        message: 'Lỗi khi thêm nghệ sĩ'
       });
     }
   }
@@ -251,9 +254,9 @@ router.put('/:id',
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
       if (req.file) fs.unlinkSync(req.file.path);
-      return res.status(400).json({ 
+      return res.status(400).json({
         success: false,
-        errors: errors.array() 
+        errors: errors.array()
       });
     }
 
@@ -265,9 +268,9 @@ router.put('/:id',
 
       if (!artists.length) {
         if (req.file) fs.unlinkSync(req.file.path);
-        return res.status(404).json({ 
+        return res.status(404).json({
           success: false,
-          message: 'Không tìm thấy nghệ sĩ' 
+          message: 'Không tìm thấy nghệ sĩ'
         });
       }
 
@@ -300,9 +303,9 @@ router.put('/:id',
       }
 
       if (updates.length === 0) {
-        return res.status(400).json({ 
+        return res.status(400).json({
           success: false,
-          message: 'Không có thông tin để cập nhật' 
+          message: 'Không có thông tin để cập nhật'
         });
       }
 
@@ -326,9 +329,9 @@ router.put('/:id',
     } catch (error) {
       if (req.file) fs.unlinkSync(req.file.path);
       console.error('Error updating artist:', error);
-      return res.status(500).json({ 
+      return res.status(500).json({
         success: false,
-        message: 'Lỗi khi cập nhật nghệ sĩ' 
+        message: 'Lỗi khi cập nhật nghệ sĩ'
       });
     }
   }
@@ -344,9 +347,9 @@ router.delete('/:id', verifyToken, isAdmin, async (req, res) => {
     );
 
     if (songs[0].count > 0) {
-      return res.status(400).json({ 
+      return res.status(400).json({
         success: false,
-        message: `Không thể xóa nghệ sĩ có ${songs[0].count} bài hát. Vui lòng xóa bài hát trước.` 
+        message: `Không thể xóa nghệ sĩ có ${songs[0].count} bài hát. Vui lòng xóa bài hát trước.`
       });
     }
 
@@ -357,9 +360,9 @@ router.delete('/:id', verifyToken, isAdmin, async (req, res) => {
     );
 
     if (!artists.length) {
-      return res.status(404).json({ 
+      return res.status(404).json({
         success: false,
-        message: 'Không tìm thấy nghệ sĩ' 
+        message: 'Không tìm thấy nghệ sĩ'
       });
     }
 
@@ -380,9 +383,9 @@ router.delete('/:id', verifyToken, isAdmin, async (req, res) => {
     });
   } catch (error) {
     console.error('Error deleting artist:', error);
-    return res.status(500).json({ 
+    return res.status(500).json({
       success: false,
-      message: 'Lỗi khi xóa nghệ sĩ' 
+      message: 'Lỗi khi xóa nghệ sĩ'
     });
   }
 });

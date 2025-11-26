@@ -44,19 +44,31 @@ const router = express.Router();
 router.get('/my-playlists', verifyToken, async (req, res) => {
   try {
     const [playlists] = await pool.query(
-      `SELECT p.*, 
-        COUNT(DISTINCT ps.song_id) as song_count,
-        GROUP_CONCAT(DISTINCT s.cover_url ORDER BY ps.added_at LIMIT 4) as cover_images
-       FROM playlists p
-       LEFT JOIN playlist_songs ps ON p.playlist_id = ps.playlist_id
-       LEFT JOIN songs s ON ps.song_id = s.song_id
-       WHERE p.user_id = ?
-       GROUP BY p.playlist_id
-       ORDER BY p.created_at DESC`,
+      `
+      SELECT 
+        playlists.*,
+        COUNT(DISTINCT ps.song_id) AS song_count,
+        (
+          SELECT GROUP_CONCAT(cover_url)
+          FROM (
+            SELECT s.cover_url
+            FROM playlist_songs ps
+            JOIN songs s ON ps.song_id = s.song_id
+            WHERE ps.playlist_id = playlists.playlist_id
+            ORDER BY ps.added_at DESC
+            LIMIT 4
+          ) AS limited_covers
+        ) AS cover_images
+      FROM playlists
+      LEFT JOIN playlist_songs ps ON playlists.playlist_id = ps.playlist_id
+      WHERE playlists.user_id = ?
+      GROUP BY playlists.playlist_id
+      ORDER BY playlists.created_at DESC
+      `,
       [req.user.id]
     );
 
-    return res.json({ 
+    return res.json({
       success: true,
       playlists: playlists.map(p => ({
         ...p,
@@ -65,12 +77,13 @@ router.get('/my-playlists', verifyToken, async (req, res) => {
     });
   } catch (error) {
     console.error('Error fetching playlists:', error);
-    return res.status(500).json({ 
+    return res.status(500).json({
       success: false,
-      message: 'Lỗi khi tải danh sách playlist' 
+      message: 'Lỗi khi tải danh sách playlist'
     });
   }
 });
+
 
 // Get playlist by ID
 router.get('/:id', verifyToken, async (req, res) => {

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
-import { FaCamera, FaUser, FaEnvelope, FaPhone, FaBirthdayCake, FaSave, FaTimes } from "react-icons/fa";
+import { FaCamera, FaUser, FaEnvelope, FaBirthdayCake, FaSave, FaTimes } from "react-icons/fa";
 import "./AdminProfile.css";
 
 export default function AdminProfile() {
@@ -244,22 +244,20 @@ export default function AdminProfile() {
           </div>
 
           <div className="info-grid">
+
             {/* Username */}
             <div className="info-item">
               <label>
                 <FaUser /> Tên người dùng
               </label>
-              {isEditing ? (
-                <input
-                  type="text"
-                  name="username"
-                  value={formData.username}
-                  onChange={handleInputChange}
-                  placeholder="Nhập tên người dùng"
-                />
-              ) : (
-                <p>{profile.username || "Chưa cập nhật"}</p>
-              )}
+              <input
+                type="text"
+                name="username"
+                value={isEditing ? formData.username : profile.username}
+                onChange={handleInputChange}
+                disabled={!isEditing}
+                className="profile-input"
+              />
             </div>
 
             {/* Email */}
@@ -267,35 +265,14 @@ export default function AdminProfile() {
               <label>
                 <FaEnvelope /> Email
               </label>
-              {isEditing ? (
-                <input
-                  type="email"
-                  name="email"
-                  value={formData.email}
-                  onChange={handleInputChange}
-                  placeholder="Nhập email"
-                />
-              ) : (
-                <p>{profile.email || "Chưa cập nhật"}</p>
-              )}
-            </div>
-
-            {/* Phone */}
-            <div className="info-item">
-              <label>
-                <FaPhone /> Số điện thoại
-              </label>
-              {isEditing ? (
-                <input
-                  type="tel"
-                  name="phone_number"
-                  value={formData.phone_number}
-                  onChange={handleInputChange}
-                  placeholder="Nhập số điện thoại"
-                />
-              ) : (
-                <p>{profile.phone_number || "Chưa cập nhật"}</p>
-              )}
+              <input
+                type="email"
+                name="email"
+                value={isEditing ? formData.email : profile.email}
+                onChange={handleInputChange}
+                disabled={!isEditing}
+                className="profile-input"
+              />
             </div>
 
             {/* Birthday */}

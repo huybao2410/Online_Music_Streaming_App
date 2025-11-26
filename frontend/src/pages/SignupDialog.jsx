@@ -2,7 +2,7 @@
 import React, { useState } from "react";
 import axios from "axios";
 import { AiOutlineClose, AiOutlineEye, AiOutlineEyeInvisible } from "react-icons/ai";
-import { FaFacebookF, FaGoogle, FaPhone, FaQrcode } from "react-icons/fa";
+import { FaGoogle } from "react-icons/fa";
 import { GoogleLogin } from "@react-oauth/google";
 import "./SignupDialog.css";
 
@@ -55,6 +55,7 @@ export default function SignupDialog({ onClose }) {
   };
 
   return (
+
     <div className="signup-overlay" onClick={onClose}>
       <div className="signup-dialog" onClick={(e) => e.stopPropagation()}>
         <button className="signup-close-btn" onClick={onClose}>
@@ -68,22 +69,12 @@ export default function SignupDialog({ onClose }) {
         <form onSubmit={handleSignup} className="signup-form">
           <div className="input-group">
             <input
-              type="tel"
-              placeholder="Nhập số điện thoại"
-              value={phone}
-              onChange={(e) => setPhone(e.target.value)}
-              className="signup-input"
-              required
-            />
-          </div>
-
-          <div className="input-group">
-            <input
               type="email"
-              placeholder="Nhập email (tùy chọn)"
+              placeholder="Nhập email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               className="signup-input"
+              required
             />
           </div>
 
@@ -141,11 +132,11 @@ export default function SignupDialog({ onClose }) {
               <span>
                 Tôi đã đọc, hiểu rõ, đồng ý hoàn toàn và tự nguyện với các điều khoản
                 liên quan đến việc thu thập, xử lý dữ liệu cá nhân, quyền và nghĩa vụ
-                của mình được quy định tại{" "}
+                của mình được quy định tại{' '}
                 <a href="#" className="terms-link">
                   Chính sách bảo mật
-                </a>{" "}
-                và{" "}
+                </a>{' '}
+                và{' '}
                 <a href="#" className="terms-link">
                   Điều khoản sử dụng
                 </a>
@@ -163,28 +154,20 @@ export default function SignupDialog({ onClose }) {
           <span>Hoặc đăng ký bằng</span>
         </div>
         <div className="social-signup-buttons">
-          <button className="social-btn facebook-btn">
-            <FaFacebookF size={18} />
-            <span>Facebook</span>
-          </button>
           <div className="social-btn google-btn" style={{ display: "flex", justifyContent: "center" }}>
             <GoogleLogin
               onSuccess={async (credentialResponse) => {
                 try {
                   setErr(null);
-                  
                   // Gửi credential đến backend để verify và tạo user
                   const res = await axios.post("http://localhost:5000/api/auth/google", {
                     credential: credentialResponse.credential
                   });
-
                   const { token, user, message } = res.data;
-
                   if (!token || !user) {
                     setErr("Đăng ký Google thất bại");
                     return;
                   }
-
                   // Lưu thông tin
                   localStorage.setItem("token", token);
                   localStorage.setItem("role", user.role);
@@ -193,23 +176,18 @@ export default function SignupDialog({ onClose }) {
                   if (user.avatar_url) {
                     localStorage.setItem("avatar", user.avatar_url);
                   }
-
                   // Phát sự kiện
                   window.dispatchEvent(new Event("storage"));
-
                   // Thông báo thành công
                   alert(`🎉 ${message}`);
-
                   // Đóng dialog
                   onClose?.();
-
                   // Redirect dựa trên role
                   if (user.role === 'admin') {
                     window.location.href = '/admin';
                   } else {
                     window.location.href = '/home';
                   }
-
                   console.log("✅ Đăng ký Google thành công:", user);
                 } catch (error) {
                   console.error("❌ Google signup error:", error);
@@ -222,17 +200,6 @@ export default function SignupDialog({ onClose }) {
               }}
             />
           </div>
-        </div>
-
-        <div className="social-signup-buttons">
-          <button className="social-btn phone-btn">
-            <FaPhone size={16} />
-            <span>Số điện thoại</span>
-          </button>
-          <button className="social-btn qr-btn">
-            <FaQrcode size={18} />
-            <span>Mã QR</span>
-          </button>
         </div>
 
         <div className="login-link">

@@ -160,7 +160,7 @@ export default function Header({ isLoginOpen, setIsLoginOpen }) {
         </button>
         <div className="brand">
           <span className="logo-icon">🎵</span>
-          <span className="logo-text">MusicDBG</span>
+          <span className="logo-text">VIVORA</span>
         </div>
       </div>
 

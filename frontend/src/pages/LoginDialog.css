@@ -285,6 +285,8 @@
 
 .google-btn {
   border-color: #ea4335;
+  width: 100%;
+  max-width: 100%;
 }
 
 .google-btn:hover {

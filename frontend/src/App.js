@@ -18,22 +18,23 @@ import ArtistsPage from "./pages/ArtistsPage";
 import ArtistDetailPage from "./pages/ArtistDetailPage";
 import PremiumPage from "./pages/PremiumPage";
 import PaymentCallback from "./pages/PaymentCallback";
+import PremiumSuccess from "./pages/PremiumSuccess";
 
 // Component redirect dựa trên role khi vào trang chủ
 function RoleBasedRedirect() {
   const navigate = useNavigate();
-  
+
   useEffect(() => {
     const role = localStorage.getItem("role");
     const token = localStorage.getItem("token");
-    
+
     if (token && role === "admin") {
       navigate("/admin", { replace: true });
     } else {
       navigate("/home", { replace: true });
     }
   }, [navigate]);
-  
+
   return null;
 }
 
@@ -41,15 +42,15 @@ function RoleBasedRedirect() {
 function AdminRoute({ children }) {
   const role = localStorage.getItem("role");
   const token = localStorage.getItem("token");
-  
+
   if (!token) {
     return <Navigate to="/login" replace />;
   }
-  
+
   if (role !== "admin") {
     return <Navigate to="/home" replace />;
   }
-  
+
   return children;
 }
 
@@ -57,12 +58,12 @@ function AdminRoute({ children }) {
 function UserRoute({ children }) {
   const role = localStorage.getItem("role");
   const token = localStorage.getItem("token");
-  
+
   // Nếu là admin, redirect về admin dashboard
   if (token && role === "admin") {
     return <Navigate to="/admin" replace />;
   }
-  
+
   return children;
 }
 
@@ -80,7 +81,7 @@ function App() {
           </UserRoute>
         }>
           <Route path="/home" element={<HomePage />} />
-          <Route path="/favorites" element={<FavoriteSongs />} />      
+          <Route path="/favorites" element={<FavoriteSongs />} />
           <Route path="/profile" element={<UserProfile />} />
           <Route path="/library" element={<LibraryScreen />} />
           <Route path="/playlist/:id" element={<PlaylistDetail />} />
@@ -97,16 +98,16 @@ function App() {
         <Route path="/login" element={<LoginDialog />} />
         <Route path="/signup" element={<SignupDialog />} />
         <Route path="/artist-selection" element={<ArtistSelectionScreen />} />
-        <Route path="/premium-subscribe/check-payment-vnpay" element={<PaymentCallback />} />
-        
+        <Route path="/return-vnpay" element={<PaymentCallback />} />
+        <Route path="/premium-success" element={<PremiumSuccess />} />
         {/* Route bảo vệ cho admin */}
-        <Route 
-          path="/admin" 
+        <Route
+          path="/admin"
           element={
             <AdminRoute>
               <AdminDashboard />
             </AdminRoute>
-          } 
+          }
         />
       </Routes>
     </Router>

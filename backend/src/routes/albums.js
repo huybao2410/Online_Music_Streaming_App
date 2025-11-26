@@ -17,7 +17,7 @@ router.get('/by-favorite-artists', verifyToken, async (req, res) => {
         a.avatar_url as cover_url,
         a.artist_id,
         COUNT(DISTINCT s.song_id) as song_count
-       FROM favorite_artists fa
+       FROM user_favorite_artists fa
        JOIN artists a ON fa.artist_id = a.artist_id
        LEFT JOIN songs s ON a.artist_id = s.artist_id
        WHERE fa.user_id = ?
@@ -102,7 +102,7 @@ router.get('/:albumId/favorite-status', verifyToken, async (req, res) => {
     const { albumId } = req.params;
     
     const [result] = await pool.query(
-      'SELECT COUNT(*) as count FROM favorite_artists WHERE user_id = ? AND artist_id = ?',
+      'SELECT COUNT(*) as count FROM user_favorite_artists WHERE user_id = ? AND artist_id = ?',
       [userId, albumId]
     );
 
@@ -129,7 +129,7 @@ router.post('/:albumId/favorite', verifyToken, async (req, res) => {
 
     if (action === 'add') {
       await pool.query(
-        'INSERT IGNORE INTO favorite_artists (user_id, artist_id) VALUES (?, ?)',
+        'INSERT IGNORE INTO user_favorite_artists (user_id, artist_id) VALUES (?, ?)',
         [userId, albumId]
       );
       return res.json({
@@ -138,7 +138,7 @@ router.post('/:albumId/favorite', verifyToken, async (req, res) => {
       });
     } else if (action === 'remove') {
       await pool.query(
-        'DELETE FROM favorite_artists WHERE user_id = ? AND artist_id = ?',
+        'DELETE FROM user_favorite_artists WHERE user_id = ? AND artist_id = ?',
         [userId, albumId]
       );
       return res.json({

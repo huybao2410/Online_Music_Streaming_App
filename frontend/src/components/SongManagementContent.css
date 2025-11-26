@@ -409,6 +409,26 @@
   overflow: hidden !important;
 }
 
+/* Make modal dialog text black for admin forms (labels, inputs, buttons) */
+.modal-box,
+.modal-box *,
+.modal-box .modal-header h3,
+.modal-box .modal-body,
+.modal-box .modal-actions {
+  color: #0b0b0b !important;
+}
+
+.modal-box .form-group label {
+  color: #0b0b0b !important;
+}
+
+.modal-box .form-group input,
+.modal-box .form-group select,
+.modal-box .form-group textarea {
+  color: #0b0b0b !important;
+  background: #fff !important;
+}
+
 @keyframes slideUp {
   from {
     opacity: 0;
@@ -472,7 +492,7 @@
 
 .modal-header h3 {
   margin: 0;
-  color: #1e40af !important;
+  color: #0b0b0b !important;
   font-size: 1.25rem;
   font-weight: 700;
   text-shadow: none;
@@ -517,7 +537,7 @@
   display: block;
   margin-bottom: 0.5rem;
   font-weight: 600;
-  color: #1f2937 !important;
+  color: #0b0b0b !important;
   font-size: 0.95rem;
 }
 
