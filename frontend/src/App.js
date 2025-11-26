@@ -18,7 +18,6 @@ import ArtistsPage from "./pages/ArtistsPage";
 import ArtistDetailPage from "./pages/ArtistDetailPage";
 import PremiumPage from "./pages/PremiumPage";
 import PaymentCallback from "./pages/PaymentCallback";
-import PremiumSuccess from "./pages/PremiumSuccess";
 
 
 
@@ -101,7 +100,7 @@ function App() {
         <Route path="/signup" element={<SignupDialog />} />
         <Route path="/artist-selection" element={<ArtistSelectionScreen />} />
         <Route path="/return-vnpay" element={<PaymentCallback />} />
-        <Route path="/premium-success" element={<PremiumSuccess />} />
+
         
         {/* Route bảo vệ cho admin */}
         <Route 
