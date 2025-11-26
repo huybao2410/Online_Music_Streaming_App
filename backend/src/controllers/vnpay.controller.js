@@ -107,74 +107,10 @@ exports.createPayment = async (req, res) => {
 };
 
 exports.vnpReturn = async (req, res) => {
-  try {
-    const vnpData = req.query;
-    const secureHash = vnpData.vnp_SecureHash;
-    delete vnpData.vnp_SecureHash;
-
-    const sorted = Object.keys(vnpData).sort().reduce((acc, key) => {
-      acc[key] = vnpData[key];
-      return acc;
-    }, {});
-
-    // Build hashData giống PHP
-    const hashData = Object.keys(sorted)
-      .map(k => `${encodeURIComponent(k)}=${encodeURIComponent(sorted[k])}`)
-      .join("&")
-      .replace(/%20/g, "+");
-
-    const checkHash = crypto.createHmac("sha512", VNP_HASH_SECRET)
-      .update(hashData)
-      .digest("hex");
-
-    // ❌ Sai chữ ký → từ chối
-    if (secureHash !== checkHash) {
-      return res.redirect("http://localhost:3000/premium-failed?reason=invalid-hash");
-    }
-
-    // ⭕ Thành công
-    if (vnpData.vnp_ResponseCode === "00") {
-      const txnRef = vnpData.vnp_TxnRef;
-      const amount = Number(vnpData.vnp_Amount) / 100;
-
-      // lấy transaction
-      const [txnRows] = await pool.query(
-        "SELECT * FROM transactions WHERE id = ? LIMIT 1",
-        [txnRef]
-      );
-
-      if (txnRows.length > 0) {
-        const txn = txnRows[0];
-
-        // cập nhật đơn
-        await pool.query(
-          "UPDATE transactions SET status='success' WHERE id = ?",
-          [txnRef]
-        );
-
-        // tạo subscription Premium
-        await pool.query(
-          `INSERT INTO user_subscriptions 
-           (user_id, subscription_plan_id, duration_days, status, payment_status)
-           VALUES (?, ?, ?, 'active', 'completed')`,
-          [txn.user_id, txn.plan_id, 30] // gói 1 tháng
-        );
-
-        return res.redirect(
-          `http://localhost:3000/premium-success?plan=${txn.plan_id}`
-        );
-      }
-    }
-
-    // ⭕ Không thành công
-    return res.redirect("http://localhost:3000/premium-failed");
-
-  } catch (err) {
-    console.error("vnpReturn error:", err);
-    return res.redirect("http://localhost:3000/premium-failed?reason=server-error");
-  }
+  // redirect to frontend callback with the query string VNPay returned
+  const query = Object.keys(req.query).map(k => `${encodeURIComponent(k)}=${encodeURIComponent(req.query[k])}`).join('&');
+  return res.redirect(`${VNP_RETURNURL}?${query}`);
 };
-;
 
 exports.vnpIpn = async (req, res) => {
   res.json({ RspCode: "00", Message: "Success" });

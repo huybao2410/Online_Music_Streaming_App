@@ -1,0 +1,21 @@
+{
+  "created_at": "2025-11-26T18:50:26.756Z",
+  "txnRef": "1764183026743",
+  "paymentUrl": "https://sandbox.vnpayment.vn/paymentv2/vpcpay.html?vnp_Amount=4900000&vnp_Command=pay&vnp_CreateDate=20251127015026&vnp_CurrCode=VND&vnp_IpAddr=%3A%3A1&vnp_Locale=vn&vnp_OrderInfo=Thanh+toan+goi+1+th%C3%A1ng+(user+46)&vnp_OrderType=billpayment&vnp_ReturnUrl=http%3A%2F%2Flocalhost%3A3000%2Freturn-vnpay%2Fpayment-callback&vnp_TmnCode=F7OIWXUC&vnp_TxnRef=1764183026743&vnp_Version=2.1.0&vnp_SecureHash=52c3d880768a9dddca89ff653273fa9fde4eab16fc859133695927ea0d7310e19e1e55b39c5ccad51505837e014d14dd773119a747517f2269a4e38bcd340e7e",
+  "inputData": {
+    "vnp_Version": "2.1.0",
+    "vnp_TmnCode": "F7OIWXUC",
+    "vnp_Amount": "4900000",
+    "vnp_Command": "pay",
+    "vnp_CreateDate": "20251127015026",
+    "vnp_CurrCode": "VND",
+    "vnp_IpAddr": "::1",
+    "vnp_Locale": "vn",
+    "vnp_OrderInfo": "Thanh toan goi 1 tháng (user 46)",
+    "vnp_OrderType": "billpayment",
+    "vnp_ReturnUrl": "http://localhost:3000/return-vnpay/payment-callback",
+    "vnp_TxnRef": "1764183026743"
+  },
+  "hashData": "vnp_Amount=4900000&vnp_Command=pay&vnp_CreateDate=20251127015026&vnp_CurrCode=VND&vnp_IpAddr=%3A%3A1&vnp_Locale=vn&vnp_OrderInfo=Thanh+toan+goi+1+th%C3%A1ng+(user+46)&vnp_OrderType=billpayment&vnp_ReturnUrl=http%3A%2F%2Flocalhost%3A3000%2Freturn-vnpay%2Fpayment-callback&vnp_TmnCode=F7OIWXUC&vnp_TxnRef=1764183026743&vnp_Version=2.1.0",
+  "vnpSecureHash": "52c3d880768a9dddca89ff653273fa9fde4eab16fc859133695927ea0d7310e19e1e55b39c5ccad51505837e014d14dd773119a747517f2269a4e38bcd340e7e"
+}
