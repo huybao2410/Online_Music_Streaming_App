@@ -12,7 +12,7 @@ router.get('/', verifyToken, async (req, res) => {
     
     const [favorites] = await pool.query(
       `SELECT a.*, fa.created_at as favorited_at
-       FROM favorite_artists fa
+       FROM user_favorite_artists fa
        JOIN artists a ON fa.artist_id = a.artist_id
        WHERE fa.user_id = ?
        ORDER BY fa.created_at DESC`,

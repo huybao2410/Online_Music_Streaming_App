@@ -3,13 +3,14 @@ const crypto = require("crypto");
 const { VNPay, ignoreLogger, ProductCode, dateFormat } = require("vnpay");
 
 const vnpay = new VNPay({
-  tmnCode: process.env.VNP_TMN_CODE,
-  secureSecret: process.env.VNP_HASH_SECRET,
+  tmnCode: process.env.VNPAY_TMNCODE,        // ✅ đúng tên
+  secureSecret: process.env.VNPAY_HASHSECRET, // ✅ đúng tên
   vnpayHost: process.env.VNP_HOST || "https://sandbox.vnpayment.vn",
   testMode: process.env.VNP_TEST === "true",
   hashAlgorithm: "SHA512",
   loggerFn: ignoreLogger,
 });
+
 
 function buildPaymentUrl({ amount, ipAddr, txnRef, orderInfo, returnUrl, locale = "vn", expireDate }) {
   const now = new Date();
@@ -44,7 +45,7 @@ function verifySignature(params) {
 
   const sorted = Object.keys(data).sort();
   const hashData = sorted.map(k => `${k}=${data[k]}`).join("&");
-  const computed = crypto.createHmac("sha512", process.env.VNP_HASH_SECRET).update(hashData).digest("hex");
+  const computed = crypto.createHmac("sha512", process.env.VNPAY_HASHSECRET).update(hashData).digest("hex");
   return computed.toLowerCase() === (secureHash || "").toLowerCase();
 }
 
