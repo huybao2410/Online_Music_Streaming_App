@@ -284,14 +284,20 @@
 }
 
 .google-btn {
-  border-color: #ea4335;
+  /* Xóa border và padding để nút Google tự hiển thị style của nó */
+  border: none !important; 
+  padding: 0 !important;
+  background: transparent !important;
   width: 100%;
-  max-width: 100%;
+  display: flex;
+  justify-content: center; /* Căn giữa nút Google */
 }
 
 .google-btn:hover {
   background: rgba(234, 67, 53, 0.15);
   border-color: #ea4335;
+  /* Override Google OAuth internal button */
+  color: #fff;
 }
 
 .phone-btn {

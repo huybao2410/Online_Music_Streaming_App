@@ -159,7 +159,6 @@ export default function SignupDialog({ onClose }) {
               onSuccess={async (credentialResponse) => {
                 try {
                   setErr(null);
-                  // Gửi credential đến backend để verify và tạo user
                   const res = await axios.post("http://localhost:5000/api/auth/google", {
                     credential: credentialResponse.credential
                   });
@@ -168,7 +167,6 @@ export default function SignupDialog({ onClose }) {
                     setErr("Đăng ký Google thất bại");
                     return;
                   }
-                  // Lưu thông tin
                   localStorage.setItem("token", token);
                   localStorage.setItem("role", user.role);
                   localStorage.setItem("username", user.username || user.email);
@@ -176,13 +174,9 @@ export default function SignupDialog({ onClose }) {
                   if (user.avatar_url) {
                     localStorage.setItem("avatar", user.avatar_url);
                   }
-                  // Phát sự kiện
                   window.dispatchEvent(new Event("storage"));
-                  // Thông báo thành công
                   alert(`🎉 ${message}`);
-                  // Đóng dialog
                   onClose?.();
-                  // Redirect dựa trên role
                   if (user.role === 'admin') {
                     window.location.href = '/admin';
                   } else {
@@ -198,6 +192,18 @@ export default function SignupDialog({ onClose }) {
                 console.log("Đăng ký Google thất bại");
                 setErr("Đăng ký Google thất bại");
               }}
+              render={renderProps => (
+                <button
+                  type="button"
+                  className="social-btn google-btn"
+                  style={{ width: '100%' }}
+                  onClick={renderProps.onClick}
+                  disabled={renderProps.disabled}
+                >
+                  <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google" style={{ width: 24, height: 24, marginRight: 8 }} />
+                  Đăng ký bằng Google
+                </button>
+              )}
             />
           </div>
         </div>

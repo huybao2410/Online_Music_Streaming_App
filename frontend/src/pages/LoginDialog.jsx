@@ -157,12 +157,14 @@ export default function LoginDialog({ onClose, onSuccess }) {
           <span>Hoặc đăng nhập bằng</span>
         </div>
         <div className="social-login-buttons">
-          <div className="social-btn google-btn" style={{ width: '100%' }}>
+          <div className="google-btn-wrapper"> {/* Bạn nên bỏ class social-btn đi để tránh bị viền kép */}
             <GoogleLogin
+              width="400"  // <--- THÊM DÒNG NÀY (Đơn vị là px, Google không nhận %)
+              theme="filled_blue" // Hoặc "outline" tùy bạn chọn cho đẹp
+              shape="rectangular"
               onSuccess={async (credentialResponse) => {
                 try {
                   setErr(null);
-                  // Gửi credential đến backend để verify và lưu user
                   const res = await axios.post("http://localhost:5000/api/auth/google", {
                     credential: credentialResponse.credential
                   });
@@ -171,7 +173,6 @@ export default function LoginDialog({ onClose, onSuccess }) {
                     setErr("Đăng nhập Google thất bại");
                     return;
                   }
-                  // Lưu thông tin
                   localStorage.setItem("token", token);
                   localStorage.setItem("role", user.role);
                   localStorage.setItem("username", user.username || user.email);
@@ -179,12 +180,9 @@ export default function LoginDialog({ onClose, onSuccess }) {
                   if (user.avatar_url) {
                     localStorage.setItem("avatar", user.avatar_url);
                   }
-                  // Phát sự kiện
                   window.dispatchEvent(new Event("storage"));
-                  // Đóng dialog
                   onSuccess?.();
                   onClose?.();
-                  // Redirect dựa trên role
                   if (user.role === 'admin') {
                     window.location.href = '/admin';
                   } else {
@@ -201,6 +199,18 @@ export default function LoginDialog({ onClose, onSuccess }) {
                 setErr("Đăng nhập Google thất bại");
               }}
               useOneTap
+              render={renderProps => (
+                <button
+                  type="button"
+                  className="social-btn google-btn"
+                  style={{ width: '100%' }}
+                  onClick={renderProps.onClick}
+                  disabled={renderProps.disabled}
+                >
+                  <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google" style={{ width: 24, height: 24, marginRight: 8 }} />
+                  Đăng nhập bằng Google
+                </button>
+              )}
             />
           </div>
         </div>

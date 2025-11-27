@@ -1,4 +1,3 @@
-// backend/src/routes/favoriteArtists.js
 const express = require('express');
 const pool = require('../config/db');
 const { verifyToken } = require('../middlewares/auth');
@@ -9,10 +8,10 @@ const router = express.Router();
 router.get('/', verifyToken, async (req, res) => {
   try {
     const userId = req.user.id;
-    
+
     const [favorites] = await pool.query(
       `SELECT a.*, fa.created_at as favorited_at
-       FROM favorite_artists fa
+       FROM user_favorite_artists fa
        JOIN artists a ON fa.artist_id = a.artist_id
        WHERE fa.user_id = ?
        ORDER BY fa.created_at DESC`,
@@ -138,7 +137,7 @@ router.post('/bulk', verifyToken, async (req, res) => {
 router.get('/check', verifyToken, async (req, res) => {
   try {
     const userId = req.user.id;
-    
+
     const [result] = await pool.query(
       'SELECT COUNT(*) as count FROM favorite_artists WHERE user_id = ?',
       [userId]
@@ -157,5 +156,3 @@ router.get('/check', verifyToken, async (req, res) => {
     });
   }
 });
-
-module.exports = router;
