@@ -30,21 +30,32 @@ export const getAlbumsByFavoriteArtists = async () => {
 /** 🟢 Lấy danh sách bài hát trong album */
 export const getAlbumSongs = async (albumId) => {
   try {
-    console.log("➡️ getAlbumSongs albumId=", albumId);
-    const res = await fetch(
-      `http://localhost:8081/music_API/online_music/album/get_album_songs.php?id=${albumId}`
-    );
-    const text = await res.text();
-    console.log("📥 getAlbumSongs raw text:", text);
-    const data = JSON.parse(text);
-    console.log("📥 getAlbumSongs parsed:", data);
-    if (Array.isArray(data)) return data;
+    const response = await axios.get(`${API_URL}/api/albums/${albumId}/songs`);
+
+    if (response.data.success && Array.isArray(response.data.songs)) {
+      return response.data.songs;
+    }
     return [];
-  } catch (err) {
-    console.error("Lỗi load album songs:", err);
+  } catch (error) {
+    console.error("❌ Lỗi khi lấy bài hát trong album:", error);
     return [];
   }
 };
+export const getAlbumInfo = async (albumId) => {
+  try {
+    const res = await fetch(
+      `http://localhost:8081/music_API/online_music/album/get_album_by_id.php?id=${albumId}`
+    );
+    const data = await res.json();
+
+    if (data.status) return data.album;
+    return null;
+  } catch (err) {
+    console.error("Lỗi getAlbumInfo:", err);
+    return null;
+  }
+};
+
 
 /** 🟢 Kiểm tra trạng thái yêu thích album */
 export const checkAlbumFavoriteStatus = async (albumId) => {
@@ -63,7 +74,21 @@ export const checkAlbumFavoriteStatus = async (albumId) => {
     return false;
   }
 };
-
+export const getAllAlbums = async () => {
+  try {
+    const response = await axios.get(
+      "http://localhost:8081/music_API/online_music/album/get_albums.php"
+    );
+    console.log("🔥 getAllAlbums response:", response.data);
+    if (response.data.status && Array.isArray(response.data.albums)) {
+      return response.data.albums;
+    }
+    return [];
+  } catch (error) {
+    console.error("❌ Lỗi getAllAlbums:", error);
+    return [];
+  }
+};
 /** 🟢 Toggle yêu thích album */
 export const toggleAlbumFavorite = async (albumId, isFavorite) => {
   try {
@@ -80,23 +105,3 @@ export const toggleAlbumFavorite = async (albumId, isFavorite) => {
     throw error;
   }
 };
-/** 🟢 Lấy tất cả albums từ PHP backend */
-export const getAllAlbums = async () => {
-  try {
-    const response = await axios.get(
-      "http://localhost:8081/music_API/online_music/album/get_albums.php"
-    );
-
-    console.log("🔥 API trả về albums:", response.data);
-
-    if (response.data.status && Array.isArray(response.data.albums)) {
-      return response.data.albums;
-    }
-
-    return [];
-  } catch (error) {
-    console.error("❌ Lỗi khi lấy albums:", error);
-    return [];
-  }
-};
-
