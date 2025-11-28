@@ -155,13 +155,13 @@ export default function Header({ isLoginOpen, setIsLoginOpen }) {
   return (
     <header className="header">
       <div className="header-left">
-        <button className="header-btn" onClick={() => navigate("/")}>
+        <button className="header-btn" onClick={() => navigate("/")}> 
           <HiHome size={24} />
         </button>
-        <div className="brand">
-          <span className="logo-icon">🎵</span>
-          <span className="logo-text">VIVORA</span>
-        </div>
+          <div className="brand" style={{display: 'flex', alignItems: 'center', gap: '12px'}}>
+            <img src={require('../assets/vivora_logo.jpg')} alt="Vivora Logo" className="vivora-logo" style={{height: 48, width: 'auto'}} />
+            <span className="logo-text" style={{fontSize: '2rem', fontWeight: 'bold', letterSpacing: '2px'}}>VIVORA</span>
+          </div>
       </div>
 
       <div className="header-center">

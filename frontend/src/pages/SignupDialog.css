@@ -1,4 +1,4 @@
-/* SignupDialog.css - NCT Style */
+/* SignupDialog.css */
 
 .signup-overlay {
   position: fixed;
@@ -12,6 +12,12 @@
   justify-content: center;
   z-index: 9999;
   backdrop-filter: blur(4px);
+  animation: fadeIn 0.2s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
 }
 
 .signup-dialog {
@@ -20,22 +26,14 @@
   border-radius: 12px;
   padding: 40px 45px;
   width: 90%;
-  max-width: 480px;
-  max-height: 90vh;
-  overflow-y: auto;
+  max-width: 450px;
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6);
   animation: slideIn 0.3s ease-out;
 }
 
 @keyframes slideIn {
-  from {
-    opacity: 0;
-    transform: translateY(-20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+  from { opacity: 0; transform: translateY(-20px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
 .signup-close-btn {
@@ -47,11 +45,7 @@
   color: #999;
   cursor: pointer;
   padding: 4px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
   transition: color 0.2s;
-  z-index: 1;
 }
 
 .signup-close-btn:hover {
@@ -70,7 +64,7 @@
   background: rgba(255, 59, 48, 0.15);
   border: 1px solid rgba(255, 59, 48, 0.4);
   color: #ff6b6b;
-  padding: 12px 16px;
+  padding: 10px 14px;
   border-radius: 8px;
   margin-bottom: 20px;
   font-size: 14px;
@@ -119,33 +113,10 @@
   padding: 4px;
   display: flex;
   align-items: center;
-  justify-content: center;
-  transition: color 0.2s;
 }
 
 .password-toggle:hover {
   color: #fff;
-}
-
-.checkbox-label {
-  display: flex;
-  align-items: flex-start;
-  gap: 8px;
-  color: #ccc;
-  font-size: 14px;
-  cursor: pointer;
-  user-select: none;
-}
-
-.checkbox-label input[type="checkbox"] {
-  margin-top: 2px;
-  cursor: pointer;
-  accent-color: #00d9ff;
-}
-
-.checkbox-label span {
-  flex: 1;
-  line-height: 1.5;
 }
 
 .terms-checkbox {
@@ -156,19 +127,29 @@
   margin-top: 4px;
 }
 
-.terms-checkbox .checkbox-label {
+.checkbox-label {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  color: #ccc;
   font-size: 13px;
-  line-height: 1.6;
+  cursor: pointer;
+  line-height: 1.5;
+}
+
+.checkbox-label input {
+  margin-top: 3px;
+  accent-color: #00d9ff;
+  width: 16px;
+  height: 16px;
 }
 
 .terms-link {
   color: #00d9ff;
   text-decoration: none;
-  transition: opacity 0.2s;
 }
 
 .terms-link:hover {
-  opacity: 0.8;
   text-decoration: underline;
 }
 
@@ -183,28 +164,24 @@
   font-weight: 600;
   cursor: pointer;
   margin-top: 8px;
-  transition: transform 0.2s, box-shadow 0.2s;
+  transition: transform 0.2s;
 }
 
 .signup-submit-btn:hover:not(:disabled) {
   transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(0, 217, 255, 0.4);
-}
-
-.signup-submit-btn:active:not(:disabled) {
-  transform: translateY(0);
+  box-shadow: 0 4px 15px rgba(0, 217, 255, 0.3);
 }
 
 .signup-submit-btn:disabled {
   background: #404040;
   cursor: not-allowed;
-  opacity: 0.6;
+  opacity: 0.7;
 }
 
 .signup-divider {
   position: relative;
   text-align: center;
-  margin: 28px 0 20px;
+  margin: 24px 0;
 }
 
 .signup-divider::before {
@@ -219,98 +196,57 @@
 
 .signup-divider span {
   position: relative;
-  display: inline-block;
   background: #2a2a2a;
   padding: 0 16px;
   color: #999;
   font-size: 14px;
 }
 
+/* Custom Google Button (Matching Login Style) */
 .social-signup-buttons {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
+  display: flex;
+  flex-direction: column;
   gap: 12px;
-  margin-bottom: 12px;
 }
 
-.social-signup-buttons:last-child {
-  margin-bottom: 0;
-}
-
-.social-btn {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  padding: 12px 16px;
-  border: 1px solid #404040;
-  border-radius: 8px;
-  background: #1a1a1a;
-  color: #fff;
-  font-size: 14px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.2s;
-}
-
-.social-btn:hover {
-  background: #333;
-  border-color: #555;
-  transform: translateY(-2px);
-}
-
-.facebook-btn {
-  border-color: #1877f2;
-}
-
-.facebook-btn:hover {
-  background: rgba(24, 119, 242, 0.15);
-  border-color: #1877f2;
-}
-
-.google-btn {
-  border-color: #ea4335;
+.custom-google-btn {
+  position: relative;
   width: 100%;
-  max-width: 100%;
-  height: 48px;
-  border-radius: 8px;
-  background: #1a1a1a;
-  color: #fff;
-  font-size: 16px;
-  font-weight: 500;
   display: flex;
   align-items: center;
   justify-content: center;
-  box-sizing: border-box;
-  margin: 0 auto;
+  gap: 10px;
+  padding: 12px 16px;
+  background-color: #eef5ff; 
+  border: 1px solid #dbeafe;
+  border-radius: 8px;
+  color: #1f2937;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
 }
 
-.google-btn:hover {
-  background: rgba(234, 67, 53, 0.15);
-  border-color: #ea4335;
-  /* Override Google OAuth internal button */
-  color: #fff;
+.custom-google-btn:hover {
+  background-color: #dbeafe;
+  border-color: #bfdbfe;
+  transform: translateY(-1px);
 }
 
-.phone-btn {
-  border-color: #10b981;
+.custom-google-btn:active {
+  transform: translateY(0);
+  background-color: #eef5ff;
 }
 
-.phone-btn:hover {
-  background: rgba(16, 185, 129, 0.15);
-  border-color: #10b981;
+.icon-wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: white;
+  padding: 2px;
+  border-radius: 50%;
 }
 
-.qr-btn {
-  border-color: #8b5cf6;
-}
-
-.qr-btn:hover {
-  background: rgba(139, 92, 246, 0.15);
-  border-color: #8b5cf6;
-}
-
-/* Login Link */
 .login-link {
   text-align: center;
   margin-top: 24px;
@@ -326,47 +262,19 @@
   color: #00d9ff;
   font-weight: 600;
   cursor: pointer;
-  font-size: 14px;
-  transition: opacity 0.2s;
   padding: 0;
   text-decoration: underline;
+  font-size: 14px;
 }
 
 .login-link button:hover {
   opacity: 0.8;
 }
 
-/* Responsive Design */
+/* Responsive */
 @media (max-width: 600px) {
   .signup-dialog {
     padding: 32px 24px;
-    max-width: 95%;
+    width: 95%;
   }
-
-  .signup-title {
-    font-size: 24px;
-  }
-
-  .social-signup-buttons {
-    grid-template-columns: 1fr;
-  }
-}
-
-/* Scrollbar styling */
-.signup-dialog::-webkit-scrollbar {
-  width: 8px;
-}
-
-.signup-dialog::-webkit-scrollbar-track {
-  background: #1a1a1a;
-  border-radius: 4px;
-}
-
-.signup-dialog::-webkit-scrollbar-thumb {
-  background: #404040;
-  border-radius: 4px;
-}
-
-.signup-dialog::-webkit-scrollbar-thumb:hover {
-  background: #555;
 }

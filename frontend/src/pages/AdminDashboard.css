@@ -103,8 +103,15 @@
   display: flex;
   flex-direction: column;
   height: 100vh;
-  overflow: hidden;
+  
+  /* QUAN TRỌNG: Dòng này ngăn không cho khung chính bị đẩy rộng ra theo bảng */
+  overflow: hidden; 
+  width: 100%; /* Bắt buộc */
+  max-width: 100%; /* Bắt buộc */
 }
+
+/* === TOP HEADER === */
+/* ... giữ nguyên các phần trên ... */
 
 /* === TOP HEADER === */
 .admin-top-header {
@@ -112,10 +119,11 @@
   padding: 20px 40px;
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: flex-end; /* Đổi thành flex-end để dồn sang phải */
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
   flex-shrink: 0;
   z-index: 50;
+  height: 80px; /* Chiều cao cố định */
 }
 
 .header-search {
@@ -322,9 +330,13 @@
   flex: 1;
   padding: 30px 40px;
   background: #f5f7fa;
+  
+  /* Cho phép cuộn DỌC của cả trang, nhưng ngăn cuộn NGANG của trang */
   overflow-y: auto;
-  overflow-x: hidden;
-  min-height: 0;
+  overflow-x: hidden; 
+  
+  width: 100%;
+  box-sizing: border-box;
 }
 
 /* === DASHBOARD OVERVIEW === */
@@ -1079,4 +1091,21 @@
   .search-input {
     width: 100%;
   }
+}
+
+/* ... Các style cũ giữ nguyên ... */
+
+/* Thêm màu Cyan cho Album */
+.stat-card-modern.cyan {
+  border-left-color: #06b6d4;
+}
+
+.stat-card-modern.cyan .card-icon {
+  background: rgba(6, 182, 212, 0.1);
+  color: #06b6d4;
+}
+
+.action-icon.cyan {
+  background: rgba(6, 182, 212, 0.1);
+  color: #06b6d4;
 }

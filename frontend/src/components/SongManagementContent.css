@@ -70,6 +70,7 @@
     opacity: 0;
     transform: translateY(-10px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
@@ -190,8 +191,13 @@
 }
 
 @keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
+  0% {
+    transform: rotate(0deg);
+  }
+
+  100% {
+    transform: rotate(360deg);
+  }
 }
 
 .empty-state {
@@ -390,8 +396,13 @@
 }
 
 @keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
 }
 
 .modal-box {
@@ -434,6 +445,7 @@
     opacity: 0;
     transform: translateY(20px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
@@ -456,7 +468,8 @@
 .modal-body {
   /* Flex child that should scroll: allow it to shrink below content height */
   flex: 1 1 auto !important;
-  min-height: 0 !important; /* critical for flexbox scrolling */
+  min-height: 0 !important;
+  /* critical for flexbox scrolling */
   overflow-y: auto !important;
   overflow-x: hidden !important;
   background: white;
@@ -664,15 +677,60 @@
     gap: 1rem;
   }
 
-  .filters-bar {
-    flex-direction: column;
-  }
+  /* ... (giữ nguyên phần trên) ... */
 
-  .search-box,
-  .filter-select {
-    width: 100%;
-  }
+/* Filters */
+.filters-bar {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+  flex-wrap: wrap;
+}
 
+/* --- FIX LỖI Ô TÌM KIẾM --- */
+.search-box {
+  position: relative;
+  flex: 1;
+  min-width: 250px;
+  background: white !important; /* Nền trắng cho container */
+  border-radius: 8px;
+}
+
+.search-box input {
+  width: 100%;
+  padding: 12px 12px 12px 45px !important; /* Padding trái né icon */
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  font-size: 1rem;
+  outline: none;
+  
+  /* Cưỡng chế màu nền trắng và chữ đen */
+  background-color: #ffffff !important;
+  color: #1f2937 !important;
+  box-shadow: none !important;
+}
+
+.search-box input:focus {
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1) !important;
+}
+
+/* Chỉnh vị trí icon kính lúp */
+.search-box svg, 
+.search-box .search-icon {
+  position: absolute;
+  left: 15px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #9ca3af;
+  z-index: 10;
+  pointer-events: none;
+  font-size: 1rem;
+}
+
+.search-icon-right {
+  display: none;
+}
   .form-row {
     grid-template-columns: 1fr;
   }

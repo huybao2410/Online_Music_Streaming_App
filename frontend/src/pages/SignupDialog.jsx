@@ -1,9 +1,7 @@
-// SignupDialog.jsx
 import React, { useState } from "react";
 import axios from "axios";
 import { AiOutlineClose, AiOutlineEye, AiOutlineEyeInvisible } from "react-icons/ai";
-import { FaGoogle } from "react-icons/fa";
-import { GoogleLogin } from "@react-oauth/google";
+// Đã xóa import FcGoogle và useGoogleLogin vì không dùng nữa
 import "./SignupDialog.css";
 
 export default function SignupDialog({ onClose }) {
@@ -15,6 +13,8 @@ export default function SignupDialog({ onClose }) {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [agreedToTerms, setAgreedToTerms] = useState(false);
   const [err, setErr] = useState(null);
+
+  // Đã xóa hàm signupGoogle
 
   const handleSignup = async (e) => {
     e.preventDefault();
@@ -36,18 +36,17 @@ export default function SignupDialog({ onClose }) {
     }
 
     try {
-      const res = await axios.post("http://localhost:5000/api/auth/register", {
-        phone_number: phone,
+      await axios.post("http://localhost:5000/api/auth/register", {
+        phone_number: phone, 
         email: email,
         password,
       });
 
       alert("🎉 Đăng ký thành công! Vui lòng đăng nhập.");
-      onClose?.();
-      setPhone("");
-      setEmail("");
-      setPassword("");
-      setConfirmPassword("");
+      
+      onClose();
+      window.dispatchEvent(new CustomEvent('openLogin'));
+      
     } catch (error) {
       console.error(error);
       setErr(error.response?.data?.message || "Đăng ký thất bại");
@@ -55,7 +54,6 @@ export default function SignupDialog({ onClose }) {
   };
 
   return (
-
     <div className="signup-overlay" onClick={onClose}>
       <div className="signup-dialog" onClick={(e) => e.stopPropagation()}>
         <button className="signup-close-btn" onClick={onClose}>
@@ -130,9 +128,9 @@ export default function SignupDialog({ onClose }) {
                 onChange={(e) => setAgreedToTerms(e.target.checked)}
               />
               <span>
-                Tôi đã đọc, hiểu rõ, đồng ý hoàn toàn và tự nguyện với các điều khoản
-                liên quan đến việc thu thập, xử lý dữ liệu cá nhân, quyền và nghĩa vụ
-                của mình được quy định tại{' '}
+                Tôi đã đọc, hiểu rõ, đồng ý hoàn toàn và tự nguyện với các
+                điều khoản liên quan đến việc thu thập, xử lý dữ liệu cá
+                nhân, quyền và nghĩa vụ của mình được quy định tại{' '}
                 <a href="#" className="terms-link">
                   Chính sách bảo mật
                 </a>{' '}
@@ -140,7 +138,7 @@ export default function SignupDialog({ onClose }) {
                 <a href="#" className="terms-link">
                   Điều khoản sử dụng
                 </a>
-                , cũng như các chính sách khác do NCT ban hành
+                , cũng như các chính sách khác do VIVORA ban hành
               </span>
             </label>
           </div>
@@ -150,69 +148,12 @@ export default function SignupDialog({ onClose }) {
           </button>
         </form>
 
-        <div className="signup-divider">
-          <span>Hoặc đăng ký bằng</span>
-        </div>
-        <div className="social-signup-buttons">
-          <div className="social-btn google-btn" style={{ display: "flex", justifyContent: "center" }}>
-            <GoogleLogin
-              onSuccess={async (credentialResponse) => {
-                try {
-                  setErr(null);
-                  const res = await axios.post("http://localhost:5000/api/auth/google", {
-                    credential: credentialResponse.credential
-                  });
-                  const { token, user, message } = res.data;
-                  if (!token || !user) {
-                    setErr("Đăng ký Google thất bại");
-                    return;
-                  }
-                  localStorage.setItem("token", token);
-                  localStorage.setItem("role", user.role);
-                  localStorage.setItem("username", user.username || user.email);
-                  localStorage.setItem("email", user.email);
-                  if (user.avatar_url) {
-                    localStorage.setItem("avatar", user.avatar_url);
-                  }
-                  window.dispatchEvent(new Event("storage"));
-                  alert(`🎉 ${message}`);
-                  onClose?.();
-                  if (user.role === 'admin') {
-                    window.location.href = '/admin';
-                  } else {
-                    window.location.href = '/home';
-                  }
-                  console.log("✅ Đăng ký Google thành công:", user);
-                } catch (error) {
-                  console.error("❌ Google signup error:", error);
-                  setErr(error.response?.data?.message || "Đăng ký Google thất bại");
-                }
-              }}
-              onError={() => {
-                console.log("Đăng ký Google thất bại");
-                setErr("Đăng ký Google thất bại");
-              }}
-              render={renderProps => (
-                <button
-                  type="button"
-                  className="social-btn google-btn"
-                  style={{ width: '100%' }}
-                  onClick={renderProps.onClick}
-                  disabled={renderProps.disabled}
-                >
-                  <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google" style={{ width: 24, height: 24, marginRight: 8 }} />
-                  Đăng ký bằng Google
-                </button>
-              )}
-            />
-          </div>
-        </div>
+        {/* Đã xóa phần divider và nút Google ở đây */}
 
         <div className="login-link">
           <span>Đã có tài khoản? </span>
           <button onClick={() => {
             onClose();
-            // Trigger login dialog - will be handled by parent
             window.dispatchEvent(new CustomEvent('openLogin'));
           }}>
             Đăng nhập ngay

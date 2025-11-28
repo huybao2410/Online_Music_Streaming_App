@@ -99,6 +99,8 @@
 }
 
 /* Filters */
+/* ... (giữ nguyên phần trên) ... */
+
 .filters-bar {
   display: flex;
   gap: 1rem;
@@ -106,38 +108,45 @@
   flex-wrap: wrap;
 }
 
+/* --- FIX LỖI Ô TÌM KIẾM --- */
 .search-box {
   position: relative;
   flex: 1;
   min-width: 250px;
-}
-
-.search-box svg {
-  position: absolute;
-  left: 1rem;
-  top: 50%;
-  transform: translateY(-50%);
-  color: #9ca3af;
+  background: white !important;
+  border-radius: 8px;
 }
 
 .search-box input {
   width: 100%;
-  padding: 0.75rem 1rem 0.75rem 3rem;
+  padding: 12px 12px 12px 45px !important;
   border: 2px solid #e5e7eb;
   border-radius: 8px;
   font-size: 1rem;
   outline: none;
-  transition: all 0.3s ease;
-  background: white !important;
+  
+  background-color: #ffffff !important;
   color: #1f2937 !important;
+  box-shadow: none !important;
 }
 
 .search-box input:focus {
   border-color: #3b82f6;
-  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1) !important;
 }
 
-/* Loading & Empty States */
+.search-box svg, 
+.search-box .search-icon {
+  position: absolute;
+  left: 15px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #9ca3af;
+  z-index: 10;
+  pointer-events: none;
+}
+
+/* ... (giữ nguyên phần dưới) ... */
 .loading-state {
   display: flex;
   flex-direction: column;

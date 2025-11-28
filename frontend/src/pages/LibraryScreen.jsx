@@ -2,8 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { IoAddCircleOutline } from 'react-icons/io5';
 import { RiPlayListLine } from 'react-icons/ri';
-import { BsMusicNoteBeamed } from 'react-icons/bs';
-import { getMyPlaylists, createPlaylist } from '../services/playlistService';
+import { getMyPlaylists } from '../services/playlistService';
+// 1. Import Component Modal mới
+import CreatePlaylistModal from '../components/CreatePlaylistModal'; 
 import './LibraryScreen.css';
 
 export default function LibraryScreen() {
@@ -11,11 +12,24 @@ export default function LibraryScreen() {
   const [playlists, setPlaylists] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [showCreateModal, setShowCreateModal] = useState(false);
-  const [newPlaylistName, setNewPlaylistName] = useState('');
-  const [isCreating, setIsCreating] = useState(false);
+
+  // Không cần state cho form cũ nữa (newPlaylistName, isCreating) vì Modal mới tự xử lý
 
   useEffect(() => {
     fetchPlaylists();
+  }, []);
+
+  // Lắng nghe sự kiện cập nhật playlist để reload danh sách
+  useEffect(() => {
+    const handlePlaylistUpdate = () => {
+      console.log("LibraryScreen: Playlist changed, reloading...");
+      fetchPlaylists();
+    };
+
+    window.addEventListener('playlistUpdated', handlePlaylistUpdate);
+    return () => {
+      window.removeEventListener('playlistUpdated', handlePlaylistUpdate);
+    };
   }, []);
 
   const fetchPlaylists = async () => {
@@ -28,29 +42,6 @@ export default function LibraryScreen() {
       console.error('Error fetching playlists:', error);
     } finally {
       setIsLoading(false);
-    }
-  };
-
-  const handleCreatePlaylist = async (e) => {
-    e.preventDefault();
-    if (!newPlaylistName.trim()) return;
-
-    setIsCreating(true);
-    try {
-      const response = await createPlaylist({ 
-        name: newPlaylistName.trim(),
-        is_public: false 
-      });
-      
-      if (response.success) {
-        setShowCreateModal(false);
-        setNewPlaylistName('');
-        fetchPlaylists();
-      }
-    } catch (error) {
-      alert(error.response?.data?.message || 'Lỗi khi tạo playlist');
-    } finally {
-      setIsCreating(false);
     }
   };
 
@@ -102,7 +93,7 @@ export default function LibraryScreen() {
       </div>
 
       <div className="playlists-grid">
-        {/* Create New Playlist Card */}
+        {/* Nút tạo playlist */}
         <div 
           className="playlist-card create-card"
           onClick={() => setShowCreateModal(true)}
@@ -117,7 +108,7 @@ export default function LibraryScreen() {
           </div>
         </div>
 
-        {/* Existing Playlists */}
+        {/* Danh sách playlist */}
         {playlists.map((playlist) => (
           <div
             key={playlist.playlist_id}
@@ -135,40 +126,12 @@ export default function LibraryScreen() {
         ))}
       </div>
 
-      {/* Create Playlist Modal */}
-      {showCreateModal && (
-        <div className="modal-overlay" onClick={() => setShowCreateModal(false)}>
-          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-            <h2>Tạo playlist mới</h2>
-            <form onSubmit={handleCreatePlaylist}>
-              <input
-                type="text"
-                placeholder="Nhập tên playlist"
-                value={newPlaylistName}
-                onChange={(e) => setNewPlaylistName(e.target.value)}
-                maxLength={100}
-                autoFocus
-              />
-              <div className="modal-actions">
-                <button
-                  type="button"
-                  className="btn-cancel"
-                  onClick={() => setShowCreateModal(false)}
-                >
-                  Hủy
-                </button>
-                <button
-                  type="submit"
-                  className="btn-create"
-                  disabled={!newPlaylistName.trim() || isCreating}
-                >
-                  {isCreating ? 'Đang tạo...' : 'Tạo'}
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
+      {/* 2. Sử dụng Component Modal mới thay cho form cũ */}
+      <CreatePlaylistModal 
+        isOpen={showCreateModal} 
+        onClose={() => setShowCreateModal(false)}
+        onSuccess={() => fetchPlaylists()} 
+      />
     </div>
   );
 }

@@ -1,4 +1,4 @@
-
+// backend/src/vnpay/vnpay.service.js
 const crypto = require("crypto");
 const { VNPay, ignoreLogger, ProductCode, dateFormat } = require("vnpay");
 
@@ -53,3 +53,4 @@ module.exports = {
   buildPaymentUrl,
   verifySignature,
 };
+    

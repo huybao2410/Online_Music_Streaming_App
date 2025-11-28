@@ -43,8 +43,14 @@ router.get('/users', verifyToken, isAdmin, async (req, res) => {
     
     const [users] = await pool.query(query, params);
     
-    // Add counts manually
+    // Add counts and provider manually
     for (let user of users) {
+      // Xác định provider
+      if (user.password_hash && user.password_hash.includes('GOOGLE_OAUTH_USER_NO_PASSWORD_HASH_PLACEHOLDER')) {
+        user.provider = 'google';
+      } else {
+        user.provider = 'local';
+      }
       try {
         // Try to get playlist count
         const [playlists] = await pool.query(
@@ -55,7 +61,6 @@ router.get('/users', verifyToken, isAdmin, async (req, res) => {
       } catch (err) {
         user.playlist_count = 0;
       }
-
       try {
         // Try to get favorites count (might not exist)
         const [favorites] = await pool.query(
@@ -114,7 +119,12 @@ router.get('/users/:id', verifyToken, isAdmin, async (req, res) => {
     }
 
     const user = users[0];
-
+    // Xác định provider
+    if (user.password_hash && user.password_hash.includes('GOOGLE_OAUTH_USER_NO_PASSWORD_HASH_PLACEHOLDER')) {
+      user.provider = 'google';
+    } else {
+      user.provider = 'local';
+    }
     // Add counts safely
     try {
       const [playlists] = await pool.query(
@@ -125,7 +135,6 @@ router.get('/users/:id', verifyToken, isAdmin, async (req, res) => {
     } catch (err) {
       user.playlist_count = 0;
     }
-
     try {
       const [favorites] = await pool.query(
         'SELECT COUNT(*) as count FROM favorites WHERE user_id = ?',
@@ -135,7 +144,6 @@ router.get('/users/:id', verifyToken, isAdmin, async (req, res) => {
     } catch (err) {
       user.favorite_count = 0;
     }
-
     try {
       const [history] = await pool.query(
         'SELECT COUNT(*) as count FROM listening_history WHERE user_id = ?',
@@ -145,7 +153,6 @@ router.get('/users/:id', verifyToken, isAdmin, async (req, res) => {
     } catch (err) {
       user.listen_count = 0;
     }
-
     return res.json({
       success: true,
       user

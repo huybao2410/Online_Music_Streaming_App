@@ -19,7 +19,6 @@ const paymentsRoutes = require('./routes/payments');
 const searchRoutes = require('./routes/search');
 const listeningHistoryRoutes = require('./routes/listening-history');
 const favoriteSongsRoutes = require('./routes/favorite-songs');
-const uploadAlbumCoverRoutes = require('./routes/album/uploadCover');
 
 const app = express();
 app.use(cors({ origin: process.env.CORS_ORIGIN || 'http://localhost:3000', credentials: true }));
@@ -42,7 +41,8 @@ app.use('/api/admin/albums', adminAlbumsRoutes);
 app.use('/api/search', searchRoutes);
 app.use('/api/listening-history', listeningHistoryRoutes);
 app.use('/api/favorite-songs', favoriteSongsRoutes);
-app.use('/api/upload-album-cover', uploadAlbumCoverRoutes);
+const uploadAlbumCoverRouter = require('./routes/album/uploadCover');
+app.use('/api/upload-album-cover', uploadAlbumCoverRouter);
 const vnpayRoutes = require("./routes/vnpay.routes");
 app.use("/api/vnpay", vnpayRoutes);
 

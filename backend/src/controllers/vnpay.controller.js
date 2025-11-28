@@ -67,7 +67,7 @@ exports.createPayment = async (req, res) => {
       ipAddr = ipAddr.replace("::ffff:", "");
     }
 
-    const txnRef = `P${"OnlineMusicWeb"}_${Date.now()}_${Math.floor(Math.random() * 1000)}`
+    const txnRef = `P${"OnlineMusicWeb"}_${Date.now()}_${Math.floor(Math.random()*1000)}`
 
     // ✅ KHÔNG DÙNG TIẾNG VIỆT CÓ DẤU
     const orderInfo = `Thanh toan goi ${plan.id} user ${user_id}`;
@@ -109,4 +109,3 @@ exports.vnpReturn = async (req, res) => {
 exports.vnpIpn = async (req, res) => {
   res.json({ RspCode: "00", Message: "Success" });
 };
-

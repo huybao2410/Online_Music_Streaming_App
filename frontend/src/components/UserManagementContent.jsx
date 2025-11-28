@@ -10,10 +10,12 @@ import {
   FaUser,
   FaUserShield,
   FaGoogle,
+  FaUsers,
 } from "react-icons/fa";
 import "./UserManagementContent.css";
 
 const NODE_API_URL = "http://localhost:5000/api";
+const GOOGLE_PLACEHOLDER = '$2a$10$GOOGLE_OAUTH_USER_NO_PASSWORD_HASH_PLACEHOLDER';
 
 const UserManagementContent = () => {
   const [users, setUsers] = useState([]);
@@ -22,7 +24,7 @@ const UserManagementContent = () => {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
-  
+
   // Filter states
   const [roleFilter, setRoleFilter] = useState("all");
   const [statusFilter, setStatusFilter] = useState("all");
@@ -90,14 +92,21 @@ const UserManagementContent = () => {
       result = result.filter((user) => user.status === statusFilter);
     }
 
-    // Filter by auth type
+    // --- SỬA LỖI LOGIC LỌC TÀI KHOẢN ---
     if (authFilter !== "all") {
       if (authFilter === "local") {
-        result = result.filter((user) => user.password_hash !== null);
+        // Local: Password khác null VÀ khác chuỗi placeholder
+        result = result.filter((user) =>
+          user.password_hash !== null && user.password_hash !== GOOGLE_PLACEHOLDER
+        );
       } else if (authFilter === "google") {
-        result = result.filter((user) => user.password_hash === null);
+        // Google: Password là null HOẶC là chuỗi placeholder
+        result = result.filter((user) =>
+          user.password_hash === null || user.password_hash === GOOGLE_PLACEHOLDER
+        );
       }
     }
+    // ------------------------------------
 
     setFilteredUsers(result);
     setCurrentPage(1);
@@ -113,9 +122,11 @@ const UserManagementContent = () => {
     setCurrentPage(pageNumber);
   };
 
-  // Get auth type badge
+  // --- SỬA LỖI HIỂN THỊ BADGE ---
   const getAuthBadge = (user) => {
-    if (user.password_hash === null) {
+    const isGoogle = user.password_hash === null || user.password_hash === GOOGLE_PLACEHOLDER;
+
+    if (isGoogle) {
       return (
         <span className="auth-badge google">
           <FaGoogle /> Google
@@ -128,8 +139,8 @@ const UserManagementContent = () => {
       </span>
     );
   };
+  // -----------------------------
 
-  // Get role badge
   const getRoleBadge = (role) => {
     if (role === "admin") {
       return (
@@ -145,7 +156,6 @@ const UserManagementContent = () => {
     );
   };
 
-  // Get status badge
   const getStatusBadge = (status) => {
     const statusMap = {
       active: { icon: <FaCheckCircle />, className: "status-badge active", text: "Hoạt động" },
@@ -160,7 +170,6 @@ const UserManagementContent = () => {
     );
   };
 
-  // Open edit modal
   const handleEdit = (user) => {
     setEditingUser(user);
     setFormData({
@@ -172,7 +181,6 @@ const UserManagementContent = () => {
     setSuccess("");
   };
 
-  // Save user changes
   const handleSaveUser = async () => {
     if (!editingUser) return;
 
@@ -183,7 +191,6 @@ const UserManagementContent = () => {
     try {
       const token = localStorage.getItem("token");
 
-      // Update role if changed
       if (formData.role !== editingUser.role) {
         await axios.patch(
           `${NODE_API_URL}/admin/users/${editingUser.id}/role`,
@@ -192,7 +199,6 @@ const UserManagementContent = () => {
         );
       }
 
-      // Update status if changed
       if (formData.status !== editingUser.status) {
         await axios.patch(
           `${NODE_API_URL}/admin/users/${editingUser.id}/status`,
@@ -212,7 +218,6 @@ const UserManagementContent = () => {
     }
   };
 
-  // Delete user
   const handleDelete = async (userId, username) => {
     if (!window.confirm(`Bạn có chắc muốn xóa người dùng "${username}"?`)) {
       return;
@@ -235,7 +240,6 @@ const UserManagementContent = () => {
     }
   };
 
-  // Toggle ban/unban
   const handleToggleBan = async (user) => {
     const newStatus = user.status === "banned" ? "active" : "banned";
     const action = newStatus === "banned" ? "cấm" : "bỏ cấm";
@@ -265,12 +269,18 @@ const UserManagementContent = () => {
 
   return (
     <div className="user-management-container">
-      {/* Header */}
-      <div className="management-header">
-        <h2>Quản lý người dùng</h2>
-      </div>
 
-      {/* Alerts */}
+      {/* --- SỬA PHẦN HEADER TẠI ĐÂY --- */}
+      <div className="content-header">
+        <div className="header-left">
+          <h2>
+            <FaUsers /> Quản lý người dùng
+          </h2>
+          <p>
+            Tổng số: <strong>{users.length}</strong> tài khoản
+          </p>
+        </div>
+      </div>
       {error && (
         <div className="alert alert-error">
           {error}
@@ -288,7 +298,7 @@ const UserManagementContent = () => {
         </div>
       )}
 
-      {/* Filters */}
+      {/* --- PHẦN Ô TÌM KIẾM ĐÃ SỬA --- */}
       <div className="filters-section">
         <div className="search-box">
           <FaSearch className="search-icon" />
@@ -321,8 +331,8 @@ const UserManagementContent = () => {
           </select>
         </div>
       </div>
+      {/* ----------------------------- */}
 
-      {/* Users Table */}
       {loading && !users.length ? (
         <div className="loading-spinner">
           <div className="spinner"></div>
@@ -411,7 +421,6 @@ const UserManagementContent = () => {
             </table>
           </div>
 
-          {/* Pagination */}
           {totalPages > 1 && (
             <div className="pagination">
               <button
@@ -442,7 +451,6 @@ const UserManagementContent = () => {
         </>
       )}
 
-      {/* Edit Modal */}
       {showEditModal && editingUser && (
         <div className="modal-overlay" onClick={() => setShowEditModal(false)}>
           <div className="modal-box" onClick={(e) => e.stopPropagation()}>
@@ -455,21 +463,11 @@ const UserManagementContent = () => {
 
             <div className="modal-body">
               <div className="user-info-display">
-                <p>
-                  <strong>ID:</strong> {editingUser.id}
-                </p>
-                <p>
-                  <strong>Tên:</strong> {editingUser.username || <em>Chưa đặt</em>}
-                </p>
-                <p>
-                  <strong>Email:</strong> {editingUser.email || <em>Không có</em>}
-                </p>
-                <p>
-                  <strong>SĐT:</strong> {editingUser.phone_number || <em>Không có</em>}
-                </p>
-                <p>
-                  <strong>Loại TK:</strong> {getAuthBadge(editingUser)}
-                </p>
+                <p><strong>ID:</strong> {editingUser.id}</p>
+                <p><strong>Tên:</strong> {editingUser.username || <em>Chưa đặt</em>}</p>
+                <p><strong>Email:</strong> {editingUser.email || <em>Không có</em>}</p>
+                <p><strong>SĐT:</strong> {editingUser.phone_number || <em>Không có</em>}</p>
+                <p><strong>Loại TK:</strong> {getAuthBadge(editingUser)}</p>
               </div>
 
               <form className="modal-form">

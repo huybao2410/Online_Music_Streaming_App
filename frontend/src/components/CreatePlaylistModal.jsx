@@ -1,19 +1,19 @@
-// CreatePlaylistModal.jsx
 import React, { useState } from "react";
 import { AiOutlineClose } from "react-icons/ai";
-import { RiPlayListLine } from "react-icons/ri";
 import axios from "axios";
 import "./CreatePlaylistModal.css";
 
 export default function CreatePlaylistModal({ isOpen, onClose, onSuccess }) {
   const [name, setName] = useState("");
-  const [description, setDescription] = useState("");
-  const [isPublic, setIsPublic] = useState(false);
+  // Mặc định là công khai (true) giống trong ảnh
+  const [isPublic, setIsPublic] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (!name.trim()) return;
+
     setError(null);
     setIsLoading(true);
 
@@ -28,38 +28,25 @@ export default function CreatePlaylistModal({ isOpen, onClose, onSuccess }) {
       const response = await axios.post(
         "http://localhost:5000/api/playlists",
         {
-          name,
-          description,
-          is_public: isPublic
+          name: name.trim(),
+          is_public: isPublic // Gửi giá trị public/private lên server
         },
         {
-          headers: {
-            Authorization: `Bearer ${token}`
-          }
+          headers: { Authorization: `Bearer ${token}` }
         }
       );
 
       if (response.data.success) {
-        // Reset form
+        window.dispatchEvent(new Event("playlistUpdated"));
         setName("");
-        setDescription("");
-        setIsPublic(false);
+        setIsPublic(true); // Reset về mặc định
         
-        // Call success callback
-        if (onSuccess) {
-          onSuccess(response.data.playlist);
-        }
-
-        // Close modal
+        if (onSuccess) onSuccess(response.data.playlist);
         onClose();
       }
     } catch (err) {
       console.error("Error creating playlist:", err);
-      setError(
-        err.response?.data?.message || 
-        err.response?.data?.errors?.[0]?.msg ||
-        "Lỗi khi tạo playlist"
-      );
+      setError(err.response?.data?.message || "Lỗi khi tạo playlist");
     } finally {
       setIsLoading(false);
     }
@@ -68,52 +55,63 @@ export default function CreatePlaylistModal({ isOpen, onClose, onSuccess }) {
   if (!isOpen) return null;
 
   return (
-    <div className="create-playlist-overlay" onClick={onClose}>
-      <div className="create-playlist-modal" onClick={(e) => e.stopPropagation()}>
-        <button className="modal-close-btn" onClick={onClose}>
-          <AiOutlineClose size={24} />
+    <div className="nct-modal-overlay" onClick={onClose}>
+      <div className="nct-modal" onClick={(e) => e.stopPropagation()}>
+        <button className="nct-close-btn" onClick={onClose}>
+          <AiOutlineClose size={20} />
         </button>
 
-        <div className="modal-header">
-          <div className="modal-drag-indicator"></div>
-          <div className="modal-icon">
-            🎧
-          </div>
-          <h2 className="modal-title">Đặt tên cho danh sách phát của bạn</h2>
-        </div>
+        <h3 className="nct-modal-title">Tạo playlist mới</h3>
 
-        {error && <div className="modal-error">{error}</div>}
+        {error && <div className="nct-error">{error}</div>}
 
-        <form onSubmit={handleSubmit} className="playlist-form">
-          <div className="form-group">
+        <form onSubmit={handleSubmit} className="nct-form">
+          <div className="nct-input-wrapper">
             <input
-              id="playlist-name"
               type="text"
-              placeholder="......."
+              className="nct-input"
+              placeholder="Nhập tên playlist"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              className="form-input-large"
-              required
               maxLength={100}
               autoFocus
             />
+            <span className="nct-char-count">{name.length}/100</span>
           </div>
 
-          <div className="modal-actions">
-            <button
-              type="button"
-              className="btn-cancel-new"
+          <div className="nct-radio-group">
+            <label 
+              className="nct-radio-label" 
+              onClick={() => setIsPublic(true)}
+            >
+              <div className={`nct-radio-circle ${isPublic ? 'active' : ''}`}></div>
+              <span>Công khai</span>
+            </label>
+
+            <label 
+              className="nct-radio-label" 
+              onClick={() => setIsPublic(false)}
+            >
+              <div className={`nct-radio-circle ${!isPublic ? 'active' : ''}`}></div>
+              <span>Riêng tư</span>
+            </label>
+          </div>
+
+          <div className="nct-modal-footer">
+            <button 
+              type="button" 
+              className="nct-btn nct-btn-cancel"
               onClick={onClose}
               disabled={isLoading}
             >
               Hủy
             </button>
-            <button
-              type="submit"
-              className="btn-create-new"
-              disabled={isLoading || !name.trim()}
+            <button 
+              type="submit" 
+              className="nct-btn nct-btn-save"
+              disabled={!name.trim() || isLoading}
             >
-              {isLoading ? "Đang tạo..." : "Tạo"}
+              {isLoading ? "Đang lưu..." : "Lưu"}
             </button>
           </div>
         </form>

@@ -1,0 +1,95 @@
+# Mô tả chức năng các file code trong dự án Online_Music_Streaming_App
+
+---
+## 1. Frontend
+
+### Phía người dùng (User)
+- **src/pages/HomePage.jsx**: Trang chủ, hiển thị danh sách bài hát, album, nghệ sĩ nổi bật.
+- **src/pages/SearchPage.jsx**: Trang tìm kiếm, hiển thị kết quả bài hát, nghệ sĩ, album theo từ khóa.
+- **src/pages/LibraryScreen.jsx**: Quản lý thư viện cá nhân (playlist, bài hát yêu thích, nghệ sĩ yêu thích).
+- **src/pages/SignupDialog.jsx**: Đăng ký tài khoản người dùng.
+- **src/pages/LoginDialog.jsx**: Đăng nhập tài khoản người dùng.
+- **src/pages/PremiumPage.jsx**: Đăng ký/nâng cấp tài khoản Premium, thanh toán qua VNPay.
+- **src/components/SongList.jsx**: Hiển thị danh sách bài hát, hỗ trợ phát nhạc.
+- **src/components/SearchSuggestions.jsx**: Gợi ý tìm kiếm realtime khi nhập từ khóa.
+- **src/components/ArtistList.jsx**: Hiển thị danh sách nghệ sĩ.
+- **src/components/AlbumList.jsx**: Hiển thị danh sách album.
+- **src/components/MusicPlayer.jsx**: Trình phát nhạc, điều khiển phát/tạm dừng, tua, lặp lại.
+- **src/components/CreatePlaylistModal.jsx**: Tạo playlist mới.
+- **src/components/AddSongToPlaylistModal.jsx**: Thêm bài hát vào playlist.
+- **src/components/EditProfileModal.jsx**: Sửa thông tin cá nhân.
+- **src/components/PremiumExpiredModal.jsx**: Thông báo hết hạn Premium.
+- **src/layout/Header.jsx**: Thanh điều hướng, tìm kiếm, truy cập nhanh các chức năng.
+- **src/layout/MiniPlayer.jsx**: Trình phát nhạc mini ở dưới cùng màn hình.
+
+### Phía quản lý (Admin)
+- **src/pages/AdminDashboard.jsx**: Trang tổng quan quản trị, thống kê hệ thống.
+- **src/pages/AdminAlbumsPage.jsx**: Quản lý album (thêm, sửa, xóa album).
+- **src/pages/AdminArtistsPage.jsx**: Quản lý nghệ sĩ (thêm, sửa, xóa nghệ sĩ).
+- **src/pages/AdminSongsPage.jsx**: Quản lý bài hát (thêm, sửa, xóa bài hát).
+- **src/components/AdminAddEditAlbum.jsx**: Form thêm/sửa album cho admin.
+- **src/components/AdminAddEditArtist.jsx**: Form thêm/sửa nghệ sĩ cho admin.
+- **src/components/AdminAddEditSong.jsx**: Form thêm/sửa bài hát cho admin.
+- **src/pages/AdminUsersPage.jsx**: Quản lý người dùng (xem, khóa, xóa tài khoản).
+- **src/pages/AdminPaymentsPage.jsx**: Quản lý giao dịch thanh toán.
+
+---
+## 2. Backend
+
+### API cho người dùng
+- **backend/src/routes/songs.js**: API lấy danh sách bài hát, chi tiết bài hát, thêm/sửa/xóa bài hát.
+- **backend/src/routes/albums.js**: API lấy danh sách album, chi tiết album, thêm/sửa/xóa album.
+- **backend/src/routes/artists.js**: API lấy danh sách nghệ sĩ, chi tiết nghệ sĩ, thêm/sửa/xóa nghệ sĩ.
+- **backend/src/routes/playlists.js**: API quản lý playlist cá nhân (tạo, sửa, xóa, thêm bài hát vào playlist).
+- **backend/src/routes/favoriteArtists.js**: API quản lý nghệ sĩ yêu thích của user.
+- **backend/src/routes/favorite-songs.js**: API quản lý bài hát yêu thích của user.
+- **backend/src/routes/search.js**: API tìm kiếm bài hát, nghệ sĩ, album.
+- **backend/src/routes/users.js**: API đăng ký, đăng nhập, lấy/sửa thông tin user.
+- **backend/src/routes/subscriptions.js**: API quản lý gói Premium, kiểm tra trạng thái Premium.
+- **backend/src/routes/payments.js**: API tạo giao dịch thanh toán qua VNPay.
+
+### API cho admin
+- **backend/src/routes/adminAlbums.js**: API quản lý album cho admin.
+- **backend/src/routes/adminArtists.js**: API quản lý nghệ sĩ cho admin.
+- **backend/src/routes/adminUsers.js**: API quản lý người dùng cho admin.
+- **backend/src/routes/adminPayments.js**: API quản lý giao dịch thanh toán cho admin.
+
+### Cấu hình, tiện ích
+- **backend/src/config/db.js**: Kết nối database MySQL.
+- **backend/src/middlewares/auth.js**: Xác thực JWT, phân quyền user/admin.
+- **backend/src/middlewares/uploadAlbumCover.js**: Xử lý upload ảnh album.
+- **backend/src/vnpay/vnpay.service.js**: Tạo URL thanh toán VNPay, xác thực callback.
+- **backend/src/utils/**: Các hàm tiện ích chung.
+
+---
+## 3. PHP API (cho mobile Flutter)
+- **music_API/online_music/album/manage_albums.php**: Quản lý album (thêm/sửa/xóa) cho mobile.
+- **music_API/online_music/artist/get_artists.php**: Lấy danh sách nghệ sĩ cho mobile.
+- **music_API/online_music/song/get_songs.php**: Lấy danh sách bài hát cho mobile.
+- **music_API/online_music/search/get_search.php**: API tìm kiếm cho mobile.
+- **music_API/online_music/album/upload_cover.php**: Upload ảnh album cho mobile.
+
+---
+## 4. Database
+- **music_app.sql**: File cấu trúc và dữ liệu mẫu cho database MySQL.
+
+---
+## 5. Tài liệu
+- **API_ARCHITECTURE.md**: Mô tả kiến trúc API backend.
+- **README.md**: Hướng dẫn sử dụng dự án.
+- **START_APP.md**: Hướng dẫn khởi động ứng dụng.
+- **TROUBLESHOOTING.md**: Hướng dẫn xử lý lỗi thường gặp.
+- **docs/SONG_MANAGEMENT_GUIDE.md**: Hướng dẫn quản lý bài hát cho admin.
+
+---
+## 6. Cấu hình giao diện
+- **frontend/src/pages/*.css, components/*.css, layout/*.css**: Các file CSS cho từng màn hình, component.
+
+---
+## 7. Hình ảnh, upload
+- **uploads/**: Thư mục chứa ảnh cover album, avatar nghệ sĩ, bài hát, playlist.
+
+---
+# Ghi chú
+- Các file có thể thay đổi hoặc bổ sung theo từng phiên bản dự án.
+- Nếu cần mô tả chi tiết hơn cho từng file, vui lòng yêu cầu cụ thể tên file hoặc chức năng.

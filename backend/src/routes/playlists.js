@@ -40,38 +40,35 @@ const upload = multer({
 
 const router = express.Router();
 
+// --- ĐOẠN ĐÃ SỬA LỖI ---
 // Get all playlists of current user
 router.get('/my-playlists', verifyToken, async (req, res) => {
   try {
-    const [playlists] = await pool.query(
-      `
+    // Sử dụng SUBSTRING_INDEX để lấy 4 URL đầu tiên sau khi GROUP_CONCAT
+    const query = `
       SELECT 
-        playlists.*,
+        p.*,
         COUNT(DISTINCT ps.song_id) AS song_count,
-        (
-          SELECT GROUP_CONCAT(cover_url)
-          FROM (
-            SELECT s.cover_url
-            FROM playlist_songs ps
-            JOIN songs s ON ps.song_id = s.song_id
-            WHERE ps.playlist_id = playlists.playlist_id
-            ORDER BY ps.added_at DESC
-            LIMIT 4
-          ) AS limited_covers
+        SUBSTRING_INDEX(
+          GROUP_CONCAT(s.cover_url ORDER BY ps.added_at DESC SEPARATOR ','), 
+          ',', 
+          4
         ) AS cover_images
-      FROM playlists
-      LEFT JOIN playlist_songs ps ON playlists.playlist_id = ps.playlist_id
-      WHERE playlists.user_id = ?
-      GROUP BY playlists.playlist_id
-      ORDER BY playlists.created_at DESC
-      `,
-      [req.user.id]
-    );
+      FROM playlists p
+      LEFT JOIN playlist_songs ps ON p.playlist_id = ps.playlist_id
+      LEFT JOIN songs s ON ps.song_id = s.song_id
+      WHERE p.user_id = ?
+      GROUP BY p.playlist_id
+      ORDER BY p.created_at DESC
+    `;
+
+    const [playlists] = await pool.query(query, [req.user.id]);
 
     return res.json({
       success: true,
       playlists: playlists.map(p => ({
         ...p,
+        // Chuyển chuỗi cover_images thành mảng, nếu null thì trả về mảng rỗng
         cover_images: p.cover_images ? p.cover_images.split(',') : []
       }))
     });
@@ -83,6 +80,7 @@ router.get('/my-playlists', verifyToken, async (req, res) => {
     });
   }
 });
+// --- HẾT ĐOẠN SỬA ---
 
 
 // Get playlist by ID
