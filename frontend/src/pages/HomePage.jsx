@@ -6,6 +6,7 @@ import { getAlbumsByFavoriteArtists } from "../services/albumService";
 import { PlayerContext } from "../context/PLayerContext";
 import "../layout/Layout.css";
 import SongList from "../components/SongList";
+import { getAllAlbums } from "../services/albumService";
 
 const fixLocalUrl = (url) => {
   if (!url) return "";
@@ -13,6 +14,10 @@ const fixLocalUrl = (url) => {
     return url.replace("10.0.2.2", "localhost");
   }
   return `http://localhost:8081/music_API/online_music/${url}`;
+};
+const fixAlbumUrl = (url) => {
+  if (!url) return "";
+  return url.replace("10.0.2.2", "localhost");
 };
 
 const HomePage = () => {
@@ -32,6 +37,21 @@ const HomePage = () => {
 
   const { setPlaylist, setCurrentSong } = useContext(PlayerContext);
   const navigate = useNavigate();
+const handleLoadAlbums = async () => {
+  setActiveTab("albums");
+  setSelectedGenre(null);
+  setLoadingAlbums(true);
+
+  try {
+    const data = await getAllAlbums();
+    setAlbums(data || []);
+  } catch (error) {
+    console.error("❌ Lỗi khi load albums:", error);
+    setAlbums([]);
+  } finally {
+    setLoadingAlbums(false);
+  }
+};
 
   // 🆕 Kiểm tra localStorage khi component mount
   useEffect(() => {
@@ -154,12 +174,12 @@ const HomePage = () => {
   // 🟢 Load albums
   useEffect(() => {
     const loadAlbums = async () => {
-      const token = localStorage.getItem("token");
-      if (!token) return;
+  // KHÔNG CHẶN TOKEN NỮA
 
       try {
         setLoadingAlbums(true);
-        const data = await getAlbumsByFavoriteArtists();
+        const data = await getAllAlbums();
+
         setAlbums(data);
       } catch (error) {
         console.error("Error loading albums:", error);
@@ -295,14 +315,12 @@ const HomePage = () => {
         </button>
 
         <button
-          className={`filter-btn ${activeTab === "albums" ? "active" : ""}`}
-          onClick={() => {
-            setActiveTab("albums");
-            setSelectedGenre(null);
-          }}
-        >
-          Albums
-        </button>
+  className={`filter-btn ${activeTab === "albums" ? "active" : ""}`}
+  onClick={handleLoadAlbums}
+>
+  Albums
+</button>
+
 
         <button
           className={`filter-btn ${activeTab === "artists" ? "active" : ""}`}
@@ -342,44 +360,45 @@ const HomePage = () => {
           ) : (
             <div className="playlist-grid">
               {albums.map((album) => (
-                <div
-                  key={album.album_id}
-                  className="playlist-item"
-                  onClick={() => navigate(`/album/${album.album_id}`)}
-                  style={{ cursor: "pointer" }}
-                >
-                  <div className="playlist-cover" style={{ position: "relative" }}>
-                    <img
-                      src={album.cover_url}
-                      alt={album.album_name}
-                      onError={(e) => {
-                        e.target.src = "https://placehold.co/300x300";
-                      }}
-                    />
-                    {/* Badge "Album" */}
-                    <div
-                      style={{
-                        position: "absolute",
-                        bottom: "10px",
-                        right: "10px",
-                        background: "rgba(0, 0, 0, 0.7)",
-                        color: "#fff",
-                        padding: "4px 10px",
-                        borderRadius: "6px",
-                        fontSize: "12px",
-                        fontWeight: "bold",
-                        letterSpacing: "0.5px",
-                      }}
-                    >
-                      Album
-                    </div>
-                  </div>
-                  <div className="playlist-info">
-                    <h3>{album.album_name}</h3>
-                    <p>{album.song_count} bài hát</p>
-                  </div>
-                </div>
-              ))}
+  <div
+    key={album.album_id}
+    className="playlist-item"
+    onClick={() => navigate(`/album/${album.album_id}`)}
+    style={{ cursor: "pointer" }}
+  >
+    <div className="playlist-cover" style={{ position: "relative" }}>
+      <img
+  src={fixAlbumUrl(album.cover_url)}
+  alt={album.name}
+  onError={(e) => (e.target.src = "https://placehold.co/300x300")}
+/>
+
+
+      {/* Badge "Album" */}
+      <div
+        style={{
+          position: "absolute",
+          bottom: "10px",
+          right: "10px",
+          background: "rgba(0, 0, 0, 0.7)",
+          color: "#fff",
+          padding: "4px 10px",
+          borderRadius: "6px",
+          fontSize: "12px",
+          fontWeight: "bold",
+        }}
+      >
+        Album
+      </div>
+    </div>
+
+    <div className="playlist-info">
+      <h3>{album.name}</h3>
+      <p>{album.song_count} bài hát</p>
+    </div>
+  </div>
+))}
+
             </div>
           )}
         </section>
@@ -617,37 +636,38 @@ const HomePage = () => {
           ) : (
             <>
               {/* Section 1: Để bạn bắt đầu - Albums scroll ngang */}
-              {albums.length > 0 && (
-                <section className="discover-section" style={{ marginBottom: "30px" }}>
-                  <div className="section-header">
-                    <h2>💿 Để bạn bắt đầu</h2>
-                  </div>
-                  <div className="horizontal-scroll">
-                    {albums.map((album) => (
-                      <div
-                        key={album.album_id}
-                        className="album-card"
-                        onClick={() => navigate(`/album/${album.album_id}`)}
-                        style={{ cursor: "pointer" }}
-                      >
-                        <div className="album-cover-wrapper">
-                          <img
-                            src={album.cover_url}
-                            alt={album.album_name}
-                            onError={(e) => {
-                              e.target.src = "https://placehold.co/300x300";
-                            }}
-                          />
-                          <div className="album-badge">Album</div>
-                        </div>
-                        <div className="album-info">
-                          <h4>{album.album_name}</h4>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </section>
-              )}
+{albums.length > 0 && (
+  <section className="discover-section" style={{ marginBottom: "30px" }}>
+    <div className="section-header">
+      <h2>💿 Để bạn bắt đầu</h2>
+    </div>
+
+    <div className="horizontal-scroll">
+      {albums.map((album) => (
+        <div
+          key={album.album_id}
+          className="album-card"
+          onClick={() => navigate(`/album/${album.album_id}`)}
+          style={{ cursor: "pointer" }}
+        >
+          <div className="album-cover-wrapper">
+            <img
+  src={fixAlbumUrl(album.cover_url)}
+  alt={album.name}
+  onError={(e) => (e.target.src = "https://placehold.co/300x300")}
+/>
+
+            <div className="album-badge">Album</div>
+          </div>
+
+          <div className="album-info">
+            <h4>{album.name}</h4>
+          </div>
+        </div>
+      ))}
+    </div>
+  </section>
+)}
 
               {/* Section 2: Gợi ý cho bạn - Bài hát theo cột */}
               {allSongs.length > 0 && (

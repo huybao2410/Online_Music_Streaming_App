@@ -30,14 +30,18 @@ export const getAlbumsByFavoriteArtists = async () => {
 /** 🟢 Lấy danh sách bài hát trong album */
 export const getAlbumSongs = async (albumId) => {
   try {
-    const response = await axios.get(`${API_URL}/api/albums/${albumId}/songs`);
-
-    if (response.data.success && Array.isArray(response.data.songs)) {
-      return response.data.songs;
-    }
+    console.log("➡️ getAlbumSongs albumId=", albumId);
+    const res = await fetch(
+      `http://localhost:8081/music_API/online_music/album/get_album_songs.php?id=${albumId}`
+    );
+    const text = await res.text();
+    console.log("📥 getAlbumSongs raw text:", text);
+    const data = JSON.parse(text);
+    console.log("📥 getAlbumSongs parsed:", data);
+    if (Array.isArray(data)) return data;
     return [];
-  } catch (error) {
-    console.error("❌ Lỗi khi lấy bài hát trong album:", error);
+  } catch (err) {
+    console.error("Lỗi load album songs:", err);
     return [];
   }
 };
@@ -76,3 +80,23 @@ export const toggleAlbumFavorite = async (albumId, isFavorite) => {
     throw error;
   }
 };
+/** 🟢 Lấy tất cả albums từ PHP backend */
+export const getAllAlbums = async () => {
+  try {
+    const response = await axios.get(
+      "http://localhost:8081/music_API/online_music/album/get_albums.php"
+    );
+
+    console.log("🔥 API trả về albums:", response.data);
+
+    if (response.data.status && Array.isArray(response.data.albums)) {
+      return response.data.albums;
+    }
+
+    return [];
+  } catch (error) {
+    console.error("❌ Lỗi khi lấy albums:", error);
+    return [];
+  }
+};
+

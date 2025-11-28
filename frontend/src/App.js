@@ -19,6 +19,7 @@ import ArtistDetailPage from "./pages/ArtistDetailPage";
 import PremiumPage from "./pages/PremiumPage";
 import PaymentCallback from "./pages/PaymentCallback";
 import PremiumSuccess from "./pages/PremiumSuccess";
+import AlbumDetail from "./pages/AlbumDetailPage";
 
 // Component redirect dựa trên role khi vào trang chủ
 function RoleBasedRedirect() {
@@ -91,6 +92,8 @@ function App() {
           <Route path="/premium-upgrade" element={<PremiumPage />} />
           <Route path="/artists" element={<ArtistsPage />} />
           <Route path="/artist/:artistId" element={<ArtistDetailPage />} />
+          <Route path="/album/:album_id" element={<AlbumDetailPage />} />
+
         </Route>
 
         {/* Routes công khai */}
@@ -109,6 +112,7 @@ function App() {
             </AdminRoute>
           }
         />
+        
       </Routes>
     </Router>
   );

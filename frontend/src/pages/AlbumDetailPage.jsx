@@ -1,10 +1,21 @@
 import React, { useState, useEffect, useContext } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { HiHeart, HiOutlineHeart, HiArrowLeft } from "react-icons/hi2";
-import { getAlbumSongs, checkAlbumFavoriteStatus, toggleAlbumFavorite } from "../services/albumService";
+import {
+  getAlbumSongs,
+  getAlbumInfo,
+  checkAlbumFavoriteStatus,
+  toggleAlbumFavorite,
+} from "../services/albumService";
 import { PlayerContext } from "../context/PLayerContext";
 import SongList from "../components/SongList";
 import "./AlbumDetailPage.css";
+
+const fixUrl = (url) => {
+  if (!url) return "";
+  // If running in emulator vs browser, normalize 10.0.2.2 -> localhost
+  return url.replace("10.0.2.2", "localhost");
+};
 
 const AlbumDetailPage = () => {
   const { albumId } = useParams();
@@ -18,30 +29,59 @@ const AlbumDetailPage = () => {
 
   useEffect(() => {
     loadAlbumData();
+    // eslint-disable-next-line
   }, [albumId]);
 
   const loadAlbumData = async () => {
     try {
       setLoading(true);
-      
-      // Load songs
-      const songsData = await getAlbumSongs(albumId);
-      setSongs(songsData);
+      console.log("📡 Loading albumId:", albumId);
 
-      // Get album info from first song
-      if (songsData.length > 0) {
+      // 1) songs
+      const songsData = await getAlbumSongs(albumId);
+      console.log("🎵 songsData:", songsData);
+      // normalize cover/audio urls
+      const normalizedSongs = (songsData || []).map(s => ({
+        ...s,
+        cover_url: s.cover_url ? fixUrl(s.cover_url) : "",
+        audio_url: s.audio_url ? fixUrl(s.audio_url) : ""
+      }));
+      setSongs(normalizedSongs);
+
+      // 2) album info
+      const info = await getAlbumInfo(albumId);
+      console.log("ℹ️ album info:", info);
+      if (info) {
         setAlbumInfo({
-          name: songsData[0].artist,
-          cover: songsData[0].cover_url,
-          artist_id: songsData[0].artist_id
+          name: info.name || info.album_name || "Unknown album",
+          artist: info.artist || info.artist_name || "",
+          cover: fixUrl(info.cover_url || info.cover || ""),
         });
+      } else {
+        // Try to infer name/cover from first song (fallback)
+        if (normalizedSongs.length > 0) {
+          setAlbumInfo({
+            name: normalizedSongs[0].artist || "Unknown album",
+            artist: normalizedSongs[0].artist || "",
+            cover: normalizedSongs[0].cover_url || "",
+          });
+        } else {
+          setAlbumInfo(null);
+        }
       }
 
-      // Check favorite status
-      const favoriteStatus = await checkAlbumFavoriteStatus(albumId);
-      setIsFavorite(favoriteStatus);
-    } catch (error) {
-      console.error("Error loading album:", error);
+      // 3) favorite status (if endpoint available)
+      try {
+        const fav = await checkAlbumFavoriteStatus(albumId);
+        setIsFavorite(fav);
+      } catch (e) {
+        console.warn("Favorite endpoint error (ignored):", e);
+      }
+
+    } catch (err) {
+      console.error("Lỗi load album:", err);
+      setSongs([]);
+      setAlbumInfo(null);
     } finally {
       setLoading(false);
     }
@@ -54,7 +94,7 @@ const AlbumDetailPage = () => {
       await toggleAlbumFavorite(albumId, newStatus);
     } catch (error) {
       console.error("Error toggling favorite:", error);
-      setIsFavorite(!isFavorite); // Revert on error
+      setIsFavorite(!isFavorite);
     }
   };
 
@@ -63,70 +103,46 @@ const AlbumDetailPage = () => {
     setCurrentSong(index);
   };
 
-  if (loading) {
-    return (
-      <div className="album-detail-page">
-        <div className="loading">Đang tải...</div>
-      </div>
-    );
-  }
-
-  if (!albumInfo) {
-    return (
-      <div className="album-detail-page">
-        <div className="error">Không tìm thấy album</div>
-      </div>
-    );
-  }
+  if (loading) return <div className="album-detail-page"><p>Đang tải...</p></div>;
+  if (!albumInfo) return <div className="album-detail-page"><p>Không tìm thấy album</p></div>;
 
   return (
     <div className="album-detail-page">
-      {/* Header with album cover and info */}
-      <div className="album-header">
-        <div className="album-cover-wrapper">
-          <img 
-            src={albumInfo.cover} 
-            alt={albumInfo.name}
-            className="album-cover"
-            onError={(e) => {
-              e.target.src = 'https://placehold.co/300x300';
-            }}
-          />
-          <div className="album-overlay"></div>
-        </div>
+      <button className="back-button" onClick={() => navigate(-1)}>
+        <HiArrowLeft size={24} />
+      </button>
 
-        <button className="back-button" onClick={() => navigate(-1)}>
-          <HiArrowLeft size={24} />
-        </button>
+      <div className="album-header">
+        <img
+          src={albumInfo.cover || "https://placehold.co/300x300"}
+          alt={albumInfo.name}
+          className="album-cover"
+          onError={(e) => (e.target.src = "https://placehold.co/300x300")}
+        />
 
         <div className="album-info">
-          <div className="album-details">
-            <h1 className="album-name">{albumInfo.name}</h1>
-            <p className="album-meta">{songs.length} bài hát</p>
-          </div>
-          
-          <button 
-            className="favorite-button"
-            onClick={handleToggleFavorite}
-          >
-            {isFavorite ? (
-              <HiHeart size={32} className="heart-icon filled" />
-            ) : (
-              <HiOutlineHeart size={32} className="heart-icon" />
-            )}
-          </button>
+          <h1>{albumInfo.name}</h1>
+          <p>{songs.length} bài hát</p>
         </div>
+
+        <button className="favorite-button" onClick={handleToggleFavorite}>
+          {isFavorite ? <HiHeart size={32} /> : <HiOutlineHeart size={32} />}
+        </button>
       </div>
 
-      {/* Divider */}
-      <div className="divider"></div>
-
-      {/* Song list */}
-      <div className="album-songs">
+      <div className="song-list">
         {songs.length === 0 ? (
-          <p className="no-songs">Chưa có bài hát nào trong album này</p>
+          <p>Chưa có bài hát nào trong album này</p>
         ) : (
-          <SongList songs={songs} onPlay={handlePlaySong} />
+          songs.map((song, idx) => (
+            <div key={song.song_id} className="song-row" onClick={() => handlePlaySong(song, idx)}>
+              <img src={song.cover_url || "https://placehold.co/80"} alt={song.title} className="song-cover" onError={(e)=> e.target.src="https://placehold.co/80"} />
+              <div className="song-info">
+                <h3>{song.title}</h3>
+                <p>{song.artist}</p>
+              </div>
+            </div>
+          ))
         )}
       </div>
     </div>
