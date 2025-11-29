@@ -1,148 +1,152 @@
-import { useContext, useEffect, useState } from "react";
+import React, { useState, useEffect, useContext } from "react";
 import { getSongs } from "../services/songService";
+import { getFavoriteSongIds, toggleSongFavorite } from "../services/favoriteService";
 import { PlayerContext } from "../context/PLayerContext";
-import { AiOutlineHeart, AiFillHeart } from "react-icons/ai";
-import { BsPlusCircle } from "react-icons/bs";
-import AddToPlaylistModal from "./AddToPlaylistModal";
-import "./SongList.css";
+import { AiFillHeart, AiOutlineHeart } from "react-icons/ai";
+import { FaPlay, FaPlus } from "react-icons/fa"; 
+import AddSongToPlaylistModal from "./AddSongToPlaylistModal"; // Import Modal
+import "../pages/HomePage.css"; 
 
-function SongList() {
+export default function SongList() {
   const [songs, setSongs] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [favorites, setFavorites] = useState(() => {
-    try {
-      const saved = localStorage.getItem("favorites");
-      return saved ? JSON.parse(saved) : [];
-    } catch {
-      return [];
-    }
-  });
-  const [selectedSong, setSelectedSong] = useState(null);
-  const [showPlaylistModal, setShowPlaylistModal] = useState(false);
   const { setPlaylist, setCurrentSong } = useContext(PlayerContext);
+  
+  // State cho Modal thêm playlist
+  const [showAddModal, setShowAddModal] = useState(false);
+  const [selectedSongId, setSelectedSongId] = useState(null);
 
   useEffect(() => {
-    const fetchSongs = async () => {
-      try {
-        setLoading(true);
-        const data = await getSongs();
-        setSongs(data);
-        setPlaylist(data);
-      } catch (err) {
-        setError(err.message);
-      } finally {
-        setLoading(false);
-      }
-    };
+    fetchSongsAndFavorites();
+  }, []);
 
-    fetchSongs();
-  }, [setPlaylist]);
-
-  useEffect(() => {
+  const fetchSongsAndFavorites = async () => {
+    setLoading(true);
     try {
-      localStorage.setItem("favorites", JSON.stringify(favorites));
-    } catch (error) {
-      console.error("Error saving favorites:", error);
-    }
-  }, [favorites]);
-
-  const toggleFavorite = (e, song) => {
-    e.stopPropagation();
-    const isFavorited = favorites.some((fav) => fav.url === song.url);
-
-    if (isFavorited) {
-      setFavorites(favorites.filter((fav) => fav.url !== song.url));
-    } else {
-      setFavorites([
-        ...favorites,
-        {
-          ...song,
-          addedAt: new Date().toISOString(),
-        },
+      const [allSongs, favIds] = await Promise.all([
+        getSongs(),
+        getFavoriteSongIds()
       ]);
+      
+      const favSet = new Set(favIds.map(id => String(id)));
+
+      const mergedSongs = allSongs.map(song => ({
+        ...song,
+        is_favorite: favSet.has(String(song.id))
+      }));
+
+      setSongs(mergedSongs || []);
+    } catch (error) {
+      console.error("Error fetching songs:", error);
+    } finally {
+      setLoading(false);
     }
   };
 
-  const handleAddToPlaylist = (e, song) => {
+  const fixUrl = (url) => {
+    if (!url) return "";
+    if (url.startsWith("http")) return url.replace("10.0.2.2", "localhost");
+    return `http://localhost:8081/music_API/online_music/${url}`;
+  };
+
+  const handleToggleFavorite = async (e, song) => {
     e.stopPropagation();
-    setSelectedSong(song);
-    setShowPlaylistModal(true);
+    const token = localStorage.getItem("token");
+    if (!token) {
+      alert("Vui lòng đăng nhập!");
+      return;
+    }
+
+    // Optimistic Update
+    const newStatus = !song.is_favorite;
+    setSongs(prev => prev.map(s => s.id === song.id ? { ...s, is_favorite: newStatus } : s));
+
+    try {
+      await toggleSongFavorite(song.id);
+    } catch (err) {
+      // Revert nếu lỗi
+      setSongs(prev => prev.map(s => s.id === song.id ? { ...s, is_favorite: !newStatus } : s));
+    }
   };
 
-  const isFavorite = (song) => {
-    return favorites.some((fav) => fav.url === song.url);
+  const handleAddToPlaylist = (e, songId) => {
+    e.stopPropagation();
+    const token = localStorage.getItem("token");
+    if (!token) {
+      alert("Vui lòng đăng nhập!");
+      return;
+    }
+    setSelectedSongId(songId);
+    setShowAddModal(true);
   };
 
-  if (loading) {
-    return <div style={{ padding: "20px" }}>Đang tải danh sách bài hát...</div>;
-  }
-
-  if (error) {
-    return <div style={{ padding: "20px", color: "red" }}>Lỗi: {error}</div>;
-  }
-
-  if (songs.length === 0) {
-    return <div style={{ padding: "20px" }}>Không có bài hát nào</div>;
-  }
+  if (loading) return <div style={{ padding: "30px", textAlign: "center", color: "#888" }}>Đang tải bài hát...</div>;
 
   return (
-    <div className="song-list-container">
-      <h2>Danh sách bài hát</h2>
+    <section className="songs-section">
+      <div className="section-header">
+        <h2>🎵 Danh sách bài hát</h2>
+      </div>
 
-      <div className="songs-grid">
+      <div className="playlist-grid">
         {songs.map((song) => (
           <div
-            key={song.url}
-            className="sl-item"
-            onClick={() => setCurrentSong(song)}
+            key={song.id}
+            className="playlist-item music-style-card"
+            onClick={() => {
+              setPlaylist(songs);
+              setCurrentSong(song);
+            }}
           >
-            <div className="sl-cover">
-              {song.cover ? (
-                <img src={song.cover} alt={song.title} />
-              ) : (
-                <div className="sl-placeholder">♫</div>
-              )}
+            <div className="card-image-wrapper">
+              <img 
+                src={fixUrl(song.cover)} 
+                alt={song.title}
+                onError={(e) => (e.target.src = "https://placehold.co/300x300")}
+              />
+            </div>
+            
+            <div className="card-info">
+              <h3 className="card-title" title={song.title}>{song.title}</h3>
+              <p className="card-artist" title={song.artist}>{song.artist}</p>
             </div>
 
-            <div className="sl-info">
-              <div className="sl-title">{song.title}</div>
-              <div className="sl-artist">{song.artist}</div>
-            </div>
-
-            <div className="sl-actions">
-              <button
-                className={`sl-btn sl-fav ${isFavorite(song) ? "active" : ""}`}
-                onClick={(e) => toggleFavorite(e, song)}
+            {/* 3 NÚT: TIM - PLAY - CỘNG */}
+            <div className="card-actions">
+              <button 
+                className={`action-btn-circle heart ${song.is_favorite ? 'active' : ''}`}
+                onClick={(e) => handleToggleFavorite(e, song)}
+                title="Yêu thích"
               >
-                {isFavorite(song) ? (
-                  <AiFillHeart size={20} />
-                ) : (
-                  <AiOutlineHeart size={20} />
-                )}
+                {song.is_favorite ? <AiFillHeart /> : <AiOutlineHeart />}
               </button>
 
-              <button
-                className="sl-btn sl-add"
-                onClick={(e) => handleAddToPlaylist(e, song)}
+              <button className="action-btn-circle play" title="Phát nhạc">
+                <FaPlay size={12} style={{ marginLeft: "2px" }} />
+              </button>
+
+              <button 
+                className="action-btn-circle add"
+                onClick={(e) => handleAddToPlaylist(e, song.id)}
+                title="Thêm vào Playlist"
               >
-                <BsPlusCircle size={20} />
+                <FaPlus size={14} />
               </button>
             </div>
           </div>
         ))}
       </div>
 
-      <AddToPlaylistModal
-        isOpen={showPlaylistModal}
-        onClose={() => {
-          setShowPlaylistModal(false);
-          setSelectedSong(null);
-        }}
-        song={selectedSong}
-      />
-    </div>
+      {/* Modal Thêm vào Playlist (Sử dụng lại component có sẵn) */}
+      {showAddModal && (
+        <AddSongToPlaylistModal
+          isOpen={showAddModal}
+          onClose={() => setShowAddModal(false)}
+          songId={selectedSongId} // Bạn cần sửa AddSongToPlaylistModal để nhận prop songId nếu chưa có
+          // Nếu Modal hiện tại chỉ nhận playlistId, bạn cần sửa Modal để hiển thị danh sách playlist cho user chọn
+          // (Xem ghi chú bên dưới)
+        />
+      )}
+    </section>
   );
 }
-
-export default SongList;

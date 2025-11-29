@@ -2177,3 +2177,95 @@ button {
   margin-top: 60px;     /* header cao ~60px */
   margin-bottom: 60px;  /* footer cao ~60px */
 }
+/* =======================================================
+   FIX LỖI VỠ LAYOUT GRID (CHỈ ÁP DỤNG CHO MAIN VIEW)
+======================================================= */
+
+/* 1. Cấu hình Grid chuẩn */
+.playlist-grid, 
+.artists-grid, 
+.albums-grid,
+.card-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); 
+  gap: 24px;
+  width: 100%;
+  padding-bottom: 32px;
+}
+
+/* 2. Fix thẻ Card (Trừ Sidebar ra) */
+.playlist-item, 
+.artist-card, 
+.album-card, 
+.playlist-card {
+  min-width: 0;      
+  width: 100%;       
+  overflow: hidden;  
+  box-sizing: border-box;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+}
+
+/* 3. Fix khung ảnh (ĐÃ BỎ .item-cover của Sidebar) */
+.playlist-cover, 
+.card-image-wrapper, 
+.artist-image-wrapper,
+.card-media {
+  width: 100%;
+  aspect-ratio: 1 / 1; /* Vuông */
+  overflow: hidden;
+  border-radius: 8px;
+  margin-bottom: 12px;
+  flex-shrink: 0;
+  position: relative;
+}
+
+/* 4. Fix ảnh bên trong (ĐÃ BỎ .item-cover img) */
+.playlist-cover img, 
+.card-image-wrapper img, 
+.artist-image-wrapper img,
+.card-media img {
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: cover !important;
+  display: block;
+}
+
+/* 5. Fix Text (ĐÃ BỎ .item-title, .item-subtitle) */
+.playlist-info h3, 
+.playlist-info h4, 
+.card-title, 
+.artist-name {
+  width: 100%;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: block;
+  font-size: 16px;
+  font-weight: 700;
+  color: #fff;
+  margin-bottom: 4px;
+}
+
+.playlist-info p, 
+.card-description, 
+.artist-role {
+  width: 100%;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: block;
+  font-size: 14px;
+  color: #a7a7a7;
+}
+
+/* 6. Responsive cho Mobile */
+@media (max-width: 768px) {
+  .playlist-grid, 
+  .artists-grid, 
+  .albums-grid {
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); 
+    gap: 16px;
+  }
+}

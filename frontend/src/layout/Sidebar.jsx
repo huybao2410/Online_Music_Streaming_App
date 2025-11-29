@@ -7,6 +7,8 @@ import {
   HiChevronDown,
   HiMusicalNote,
 } from "react-icons/hi2";
+// Thêm icon đĩa nhạc cho Album
+import { FaCompactDisc } from "react-icons/fa"; 
 import CreatePlaylistModal from "../components/CreatePlaylistModal";
 import { getFavoriteArtists } from "../services/favoriteArtistService";
 import { getGenres } from "../services/genreService";
@@ -157,6 +159,7 @@ export default function Sidebar({ isLoginOpen, setIsLoginOpen }) {
                     </button>
                   </div>
 
+                  {/* Mục Bài hát đã thích */}
                   <button
                     onClick={() => navigate("/favorites")}
                     className="library-item"
@@ -171,6 +174,23 @@ export default function Sidebar({ isLoginOpen, setIsLoginOpen }) {
                       </span>
                     </div>
                   </button>
+
+                  {/* --- MỤC MỚI: ALBUM ĐÃ THÍCH --- */}
+                  <button
+                    onClick={() => navigate("/favorite-albums")}
+                    className="library-item"
+                  >
+                    <div className="item-cover" style={{ background: "linear-gradient(135deg, #450af5, #8e44ad)", display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '4px' }}>
+                      <FaCompactDisc size={28} color="white" />
+                    </div>
+                    <div className="item-info">
+                      <span className="item-title">Album đã thích</span>
+                      <span className="item-subtitle">
+                        <span className="item-type">Album</span>
+                      </span>
+                    </div>
+                  </button>
+                  {/* --------------------------------- */}
 
                   {/* Nghệ sĩ yêu thích - Mục cố định */}
                   <button
@@ -198,45 +218,8 @@ export default function Sidebar({ isLoginOpen, setIsLoginOpen }) {
                     </div>
                   </button>
 
-                  {/* Danh sách nghệ sĩ yêu thích */}
-                  {favoriteArtists.length > 0 && (
-                    <>
-                      {favoriteArtists.slice(0, 5).map((artist) => (
-                        <button
-                          key={artist.artist_id}
-                          className="library-item"
-                          onClick={() => navigate(`/artist/${artist.artist_id}`)}
-                        >
-                          <div className="item-cover artist">
-                            {artist.cover_url ? (
-                              <img 
-                                src={artist.cover_url.startsWith('http') 
-                                  ? artist.cover_url 
-                                  : `http://localhost:8081/music_API/${artist.cover_url}`
-                                } 
-                                alt={artist.name}
-                                onError={(e) => {
-                                  e.target.style.display = 'none';
-                                  e.target.parentElement.querySelector('.artist-placeholder')?.style.setProperty('display', 'flex');
-                                }}
-                              />
-                            ) : null}
-                            <div className="artist-placeholder" style={{ display: artist.cover_url ? 'none' : 'flex' }}>🎤</div>
-                          </div>
-                          <div className="item-info">
-                            <span className="item-title">{artist.name}</span>
-                            <span className="item-subtitle">
-                              <span className="item-type">Nghệ sĩ</span>
-                            </span>
-                          </div>
-                        </button>
-                      ))}
-                    </>
-                  )}
-
                   {playlists.map((playlist) => {
                     let coverUrl = null;
-                    
                     if (playlist.cover_url) {
                       coverUrl = playlist.cover_url.startsWith("http")
                         ? playlist.cover_url
@@ -265,7 +248,7 @@ export default function Sidebar({ isLoginOpen, setIsLoginOpen }) {
                             <img src={coverUrl} alt={playlist.name} />
                           ) : (
                             <div className="playlist-placeholder">
-                              <HiPlus size={24} />
+                              <HiMusicalNote size={24} />
                             </div>
                           )}
                         </div>

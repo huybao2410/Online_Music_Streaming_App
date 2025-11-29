@@ -43,6 +43,37 @@ export default function Footer() {
   const [adTriggered, setAdTriggered] = useState(false);
   const [showPlaylistModal, setShowPlaylistModal] = useState(false);
 
+  // ⭐ NEW – Premium state
+  const [isPremium, setIsPremium] = useState(false);
+
+  // ⭐ NEW – Lấy user ID
+  const userId = localStorage.getItem("user_id");
+
+  // ⭐ NEW – Check Premium bằng API
+  useEffect(() => {
+    if (!userId) {
+      setIsPremium(false);
+      return;
+    }
+
+    const fetchPremium = async () => {
+      try {
+        const res = await axios.get(
+          `http://localhost:8081/music_API/user/check_premium.php?user_id=${userId}`
+        );
+        setIsPremium(res.data.is_premium === true);
+      } catch (err) {
+        console.error("❌ Lỗi kiểm tra Premium:", err);
+      }
+    };
+
+    fetchPremium();
+
+    // Cập nhật mỗi 60s để đảm bảo realtime
+    const interval = setInterval(fetchPremium, 60000);
+    return () => clearInterval(interval);
+  }, [userId]);
+
   // 📈 Gửi API tăng lượt phát
   const updatePlayCount = async (songId) => {
     if (!songId) return;
@@ -77,7 +108,7 @@ export default function Footer() {
     if (next) setCurrentSong(next);
   }, [playlist, currentSong, isShuffle, setCurrentSong]);
 
-  // ❤️ Kiểm tra & đồng bộ trạng thái tim
+  // ❤️ Đồng bộ trạng thái tim
   useEffect(() => {
     if (currentSong?.url) {
       setIsLiked(favorites.some((fav) => fav.url === currentSong.url));
@@ -86,13 +117,12 @@ export default function Footer() {
     }
   }, [currentSong, favorites]);
 
-  // ⏱️ Lắng nghe thay đổi favorites từ tab khác hoặc SongList
+  // Lắng nghe favorites thay đổi
   useEffect(() => {
     const handleStorageChange = (e) => {
       if (e.key === "favorites") {
         try {
-          const updated = JSON.parse(e.newValue);
-          setFavorites(updated || []);
+          setFavorites(JSON.parse(e.newValue) || []);
         } catch {
           setFavorites([]);
         }
@@ -102,12 +132,12 @@ export default function Footer() {
     return () => window.removeEventListener("storage", handleStorageChange);
   }, []);
 
-  // 💾 Lưu favorites mỗi khi đổi (SongList cũng sẽ thấy)
+  // Lưu favorites
   useEffect(() => {
     localStorage.setItem("favorites", JSON.stringify(favorites));
   }, [favorites]);
 
-  // 🎧 Cập nhật tiến độ phát nhạc
+  // 🎧 Cập nhật tiến độ & xử lý hết bài
   useEffect(() => {
     const audio = audioRef.current;
     if (!audio) return;
@@ -121,6 +151,7 @@ export default function Footer() {
 
     const onEnded = () => {
       if (!playlist?.length) return;
+
       if (isLoop) {
         audio.currentTime = 0;
         audio.play();
@@ -131,14 +162,15 @@ export default function Footer() {
         const newCount = prev + 1;
         updatePlayCount(currentSong?.id);
 
-        const isPremium = localStorage.getItem("isPremium") === "true";
+        // ⭐ Sửa lại: dùng isPremium từ API
         if (!isPremium && newCount % 2 === 0 && !adTriggered) {
           setTimeout(() => {
-            if (audio) audio.pause();
+            audio.pause();
             setShowAd(true);
             setAdTriggered(true);
           }, 300);
         }
+
         return newCount;
       });
 
@@ -154,35 +186,34 @@ export default function Footer() {
       audio.removeEventListener("loadedmetadata", onLoaded);
       audio.removeEventListener("ended", onEnded);
     };
-  }, [currentSong, playlist, isLoop, adTriggered, playNext]);
+  }, [currentSong, playlist, isLoop, adTriggered, playNext, isPremium]);
 
   const handleCloseAd = () => {
     setShowAd(false);
     setAdTriggered(false);
-    const audio = audioRef.current;
-    if (audio) audio.play();
+    audioRef.current?.play();
   };
 
-  // 🎵 Điều khiển phát nhạc
+  // Điều khiển play/pause
   useEffect(() => {
     const audio = audioRef.current;
     if (!audio) return;
+
     audio.volume = isMuted ? 0 : volume;
 
-    if (currentSong) {
-      if (audio.src !== currentSong.url) {
-        audio.src = currentSong.url;
-        audio
-          .play()
-          .then(() => setIsPlaying(true))
-          .catch(() => setIsPlaying(false));
-      }
+    if (currentSong && audio.src !== currentSong.url) {
+      audio.src = currentSong.url;
+      audio
+        .play()
+        .then(() => setIsPlaying(true))
+        .catch(() => setIsPlaying(false));
     }
   }, [currentSong, volume, isMuted]);
 
   const togglePlay = () => {
     const audio = audioRef.current;
     if (!audio) return;
+
     if (isPlaying) {
       audio.pause();
       setIsPlaying(false);
@@ -205,19 +236,18 @@ export default function Footer() {
     return `${m}:${s}`;
   };
 
-  // ❤️ Toggle favorite (giống SongList)
+  // ❤️ Toggle favorite
   const toggleLike = () => {
     if (!currentSong?.url) return;
+
     const isFavorited = favorites.some((fav) => fav.url === currentSong.url);
-    if (isFavorited) {
-      const updated = favorites.filter((fav) => fav.url !== currentSong.url);
-      setFavorites(updated);
-      localStorage.setItem("favorites", JSON.stringify(updated));
-    } else {
-      const updated = [...favorites, { ...currentSong, addedAt: new Date().toISOString() }];
-      setFavorites(updated);
-      localStorage.setItem("favorites", JSON.stringify(updated));
-    }
+
+    const updated = isFavorited
+      ? favorites.filter((fav) => fav.url !== currentSong.url)
+      : [...favorites, { ...currentSong, addedAt: new Date().toISOString() }];
+
+    setFavorites(updated);
+    localStorage.setItem("favorites", JSON.stringify(updated));
     setIsLiked(!isLiked);
   };
 
@@ -240,14 +270,16 @@ export default function Footer() {
 
   return (
     <>
+      {/* QUẢNG CÁO */}
       {showAd && <AdOverlay onClose={handleCloseAd} />}
-      
+
+      {/* MODAL PLAYLIST */}
       <AddToPlaylistModal
         isOpen={showPlaylistModal}
         onClose={() => setShowPlaylistModal(false)}
         song={currentSong}
       />
-      
+
       <footer
         className="footer"
         style={{
@@ -256,7 +288,7 @@ export default function Footer() {
       >
         <div className="footer-overlay" />
         <div className="footer-wrapper">
-          {/* Left */}
+          {/* LEFT */}
           <div className="footer-left">
             <div className="track-info-container">
               {currentSong.cover ? (
@@ -264,6 +296,7 @@ export default function Footer() {
               ) : (
                 <div className="track-image-placeholder">♫</div>
               )}
+
               <div className="track-details">
                 <div className="track-name">{currentSong.title}</div>
                 <div className="track-artist">{currentSong.artist}</div>
@@ -271,7 +304,7 @@ export default function Footer() {
             </div>
           </div>
 
-          {/* Center */}
+          {/* CENTER */}
           <div className="footer-center">
             <div className="control-buttons">
               <button
@@ -289,7 +322,11 @@ export default function Footer() {
                 className={`main-play-btn ${isPlaying ? "pause" : "play"}`}
                 onClick={togglePlay}
               >
-                {isPlaying ? <FaPause size={20} /> : <FaPlay size={20} style={{ marginLeft: "3px" }} />}
+                {isPlaying ? (
+                  <FaPause size={20} />
+                ) : (
+                  <FaPlay size={20} style={{ marginLeft: "3px" }} />
+                )}
               </button>
 
               <button className="control-btn next" onClick={playNext}>
@@ -313,22 +350,24 @@ export default function Footer() {
             </div>
           </div>
 
-          {/* Right */}
+          {/* RIGHT */}
           <div className="footer-right">
-            <button 
-              className={`action-btn like-btn ${isLiked ? "liked" : ""}`} 
+            <button
+              className={`action-btn like-btn ${isLiked ? "liked" : ""}`}
               onClick={toggleLike}
               title="Thêm vào yêu thích"
             >
               {isLiked ? <AiFillHeart size={20} /> : <AiOutlineHeart size={20} />}
             </button>
-            <button 
-              className="action-btn playlist-btn" 
+
+            <button
+              className="action-btn playlist-btn"
               onClick={() => setShowPlaylistModal(true)}
               title="Thêm vào playlist"
             >
               <AiOutlinePlus size={20} />
             </button>
+
             <button
               className="volume-btn"
               onClick={() => {
@@ -339,6 +378,7 @@ export default function Footer() {
             >
               {isMuted || volume === 0 ? <IoVolumeMute size={18} /> : <IoVolumeHigh size={18} />}
             </button>
+
             <div
               className="volume-control"
               onClick={(e) => {
@@ -354,6 +394,7 @@ export default function Footer() {
         </div>
 
         <audio ref={audioRef} />
+
         <div
           style={{
             position: "absolute",

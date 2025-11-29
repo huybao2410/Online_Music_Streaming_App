@@ -21,7 +21,7 @@ router.get('/', verifyToken, async (req, res) => {
         a.name as artist_name,
         s.genre_id,
         g.name as genre_name
-      FROM favorites_songs fs
+      FROM favorite_songs fs
       JOIN songs s ON fs.song_id = s.song_id
       LEFT JOIN artists a ON s.artist_id = a.artist_id
       LEFT JOIN genres g ON s.genre_id = g.genre_id

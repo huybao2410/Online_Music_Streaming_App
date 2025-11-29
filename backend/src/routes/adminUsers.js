@@ -20,11 +20,11 @@ router.get('/users', verifyToken, isAdmin, async (req, res) => {
   try {
     console.log('Admin users route hit, user:', req.user);
     const { search, limit = 50, offset = 0 } = req.query;
-    
+
     // Simple query without subqueries for now
     let query = `
       SELECT id, username, email, phone_number, avatar_url, 
-             role, status, is_premium, premium_expire,
+             role, status,
              password_hash, created_at
       FROM users
     `;
@@ -40,9 +40,9 @@ router.get('/users', verifyToken, isAdmin, async (req, res) => {
 
     console.log('Executing query:', query);
     console.log('With params:', params);
-    
+
     const [users] = await pool.query(query, params);
-    
+
     // Add counts and provider manually
     for (let user of users) {
       // Xác định provider
@@ -72,7 +72,7 @@ router.get('/users', verifyToken, isAdmin, async (req, res) => {
         user.favorite_count = 0;
       }
     }
-    
+
     console.log('Found users:', users.length);
 
     // Get total count
@@ -105,7 +105,7 @@ router.get('/users/:id', verifyToken, isAdmin, async (req, res) => {
   try {
     const [users] = await pool.query(
       `SELECT id, username, email, phone_number, avatar_url,
-              role, status, is_premium, premium_expire,
+              role, status,
               password_hash, created_at
        FROM users WHERE id = ?`,
       [req.params.id]
@@ -170,7 +170,7 @@ router.get('/users/:id', verifyToken, isAdmin, async (req, res) => {
 router.patch('/users/:id/role', verifyToken, isAdmin, async (req, res) => {
   try {
     const { role } = req.body;
-    
+
     if (!['user', 'admin'].includes(role)) {
       return res.status(400).json({ 
         success: false,
@@ -187,7 +187,7 @@ router.patch('/users/:id/role', verifyToken, isAdmin, async (req, res) => {
     }
 
     await pool.query('UPDATE users SET role = ? WHERE id = ?', [role, req.params.id]);
-    
+
     return res.json({ 
       success: true,
       message: 'Cập nhật role thành công' 
@@ -205,7 +205,7 @@ router.patch('/users/:id/role', verifyToken, isAdmin, async (req, res) => {
 router.patch('/users/:id/status', verifyToken, isAdmin, async (req, res) => {
   try {
     const { status } = req.body;
-    
+
     if (!['active', 'inactive', 'banned'].includes(status)) {
       return res.status(400).json({ 
         success: false,
@@ -222,7 +222,7 @@ router.patch('/users/:id/status', verifyToken, isAdmin, async (req, res) => {
     }
 
     await pool.query('UPDATE users SET status = ? WHERE id = ?', [status, req.params.id]);
-    
+
     return res.json({ 
       success: true,
       message: 'Cập nhật trạng thái thành công' 
@@ -249,7 +249,7 @@ router.delete('/users/:id', verifyToken, isAdmin, async (req, res) => {
 
     // Check if user exists
     const [users] = await pool.query('SELECT id FROM users WHERE id = ?', [req.params.id]);
-    
+
     if (!users.length) {
       return res.status(404).json({ 
         success: false,
@@ -259,7 +259,7 @@ router.delete('/users/:id', verifyToken, isAdmin, async (req, res) => {
 
     // Delete user (cascade will handle related records)
     await pool.query('DELETE FROM users WHERE id = ?', [req.params.id]);
-    
+
     return res.json({ 
       success: true,
       message: 'Xóa người dùng thành công' 
