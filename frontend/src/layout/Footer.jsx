@@ -28,16 +28,6 @@ export default function Footer() {
   const [isLoop, setIsLoop] = useState(false);
   const [isShuffle, setIsShuffle] = useState(false);
 
-  // ❤️ favorites đồng bộ với localStorage
-  const [favorites, setFavorites] = useState(() => {
-    try {
-      const saved = localStorage.getItem("favorites");
-      return saved ? JSON.parse(saved) : [];
-    } catch {
-      return [];
-    }
-  });
-
   const [playCount, setPlayCount] = useState(0);
   const [showAd, setShowAd] = useState(false);
   const [adTriggered, setAdTriggered] = useState(false);
@@ -45,6 +35,7 @@ export default function Footer() {
 
   // ⭐ NEW – Premium state
   const [isPremium, setIsPremium] = useState(false);
+  const [favorites, setFavorites] = useState([]); // Thêm state favorites
 
   // ⭐ NEW – Lấy user ID
   const userId = localStorage.getItem("user_id");
@@ -55,11 +46,10 @@ export default function Footer() {
       setIsPremium(false);
       return;
     }
-
     const fetchPremium = async () => {
       try {
         const res = await axios.get(
-          `http://localhost:8081/music_API/user/check_premium.php?user_id=${userId}`
+          `http://localhost:8081/music_API/online_music/user/check_premium.php?user_id=${userId}`
         );
         setIsPremium(res.data.is_premium === true);
       } catch (err) {
@@ -78,11 +68,20 @@ export default function Footer() {
   const updatePlayCount = async (songId) => {
     if (!songId) return;
     try {
-      await axios.post("http://localhost:8081/music_API/song/update_play_count.php", {
+      await axios.post("http://localhost:8081/music_API/online_music/song/update_play_count.php", {
         song_id: songId,
       });
     } catch (err) {
       console.error("❌ Lỗi cập nhật play_count:", err);
+    }
+  };
+
+  // Hàm đóng quảng cáo
+  const handleCloseAd = () => {
+    setShowAd(false);
+    if (audioRef.current) {
+      audioRef.current.play().catch(e => console.error("Play error:", e));
+      setIsPlaying(true);
     }
   };
 
@@ -110,12 +109,21 @@ export default function Footer() {
 
   // ❤️ Đồng bộ trạng thái tim
   useEffect(() => {
-    if (currentSong?.url) {
-      setIsLiked(favorites.some((fav) => fav.url === currentSong.url));
-    } else {
-      setIsLiked(false);
-    }
-  }, [currentSong, favorites]);
+    const checkFavorite = async () => {
+      if (!currentSong?.id) return setIsLiked(false);
+      const token = localStorage.getItem("token");
+      if (!token) return setIsLiked(false);
+      try {
+        const res = await axios.get(`http://localhost:5000/api/favorite-songs/check/${currentSong.id}`, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        setIsLiked(res.data.is_favorite);
+      } catch {
+        setIsLiked(false);
+      }
+    };
+    checkFavorite();
+  }, [currentSong]);
 
   // Lắng nghe favorites thay đổi
   useEffect(() => {
@@ -175,8 +183,9 @@ export default function Footer() {
       });
 
       playNext();
-    };
+    }; // <--- Đã thêm dấu đóng ngoặc cho hàm onEnded
 
+    // --- BỔ SUNG PHẦN BỊ THIẾU: Đăng ký sự kiện ---
     audio.addEventListener("timeupdate", onTimeUpdate);
     audio.addEventListener("loadedmetadata", onLoaded);
     audio.addEventListener("ended", onEnded);
@@ -186,13 +195,7 @@ export default function Footer() {
       audio.removeEventListener("loadedmetadata", onLoaded);
       audio.removeEventListener("ended", onEnded);
     };
-  }, [currentSong, playlist, isLoop, adTriggered, playNext, isPremium]);
-
-  const handleCloseAd = () => {
-    setShowAd(false);
-    setAdTriggered(false);
-    audioRef.current?.play();
-  };
+  }, [currentSong, playlist, isLoop, isPremium, adTriggered, playNext]); // <--- Đã thêm mảng dependency và đóng useEffect
 
   // Điều khiển play/pause
   useEffect(() => {
@@ -238,17 +241,28 @@ export default function Footer() {
 
   // ❤️ Toggle favorite
   const toggleLike = () => {
-    if (!currentSong?.url) return;
-
-    const isFavorited = favorites.some((fav) => fav.url === currentSong.url);
-
-    const updated = isFavorited
-      ? favorites.filter((fav) => fav.url !== currentSong.url)
-      : [...favorites, { ...currentSong, addedAt: new Date().toISOString() }];
-
-    setFavorites(updated);
-    localStorage.setItem("favorites", JSON.stringify(updated));
-    setIsLiked(!isLiked);
+    if (!currentSong?.id) return;
+    const token = localStorage.getItem("token");
+    if (!token) {
+      alert("Vui lòng đăng nhập!");
+      return;
+    }
+    // Gọi API Node.js để toggle yêu thích
+    axios.get(`http://localhost:5000/api/favorite-songs/check/${currentSong.id}`, {
+      headers: { Authorization: `Bearer ${token}` }
+    }).then(res => {
+      if (res.data.is_favorite) {
+        // Đã yêu thích, xóa
+        axios.delete(`http://localhost:5000/api/favorite-songs/remove/${currentSong.id}`, {
+          headers: { Authorization: `Bearer ${token}` }
+        }).then(() => setIsLiked(false));
+      } else {
+        // Chưa yêu thích, thêm
+        axios.post(`http://localhost:5000/api/favorite-songs/add`, { song_id: currentSong.id }, {
+          headers: { Authorization: `Bearer ${token}` }
+        }).then(() => setIsLiked(true));
+      }
+    });
   };
 
   if (!currentSong) {
@@ -277,7 +291,7 @@ export default function Footer() {
       <AddToPlaylistModal
         isOpen={showPlaylistModal}
         onClose={() => setShowPlaylistModal(false)}
-        song={currentSong}
+        songId={currentSong?.id}
       />
 
       <footer
@@ -394,7 +408,6 @@ export default function Footer() {
         </div>
 
         <audio ref={audioRef} />
-
         <div
           style={{
             position: "absolute",

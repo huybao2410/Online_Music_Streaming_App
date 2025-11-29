@@ -2,14 +2,13 @@ import React, { useState, useEffect, useContext } from "react";
 import { useNavigate } from "react-router-dom";
 import { getSongs, getSongsByGenre } from "../services/songService";
 import { getArtists } from "../services/artistService";
-import { getAllAlbums, toggleAlbumFavorite, getFavoriteAlbumIds } from "../services/albumService";
+import { getAllAlbums, toggleAlbumFavorite, getFavoriteAlbumIds, addFavoriteAlbum, removeFavoriteAlbum } from "../services/albumService";
 import { PlayerContext } from "../context/PLayerContext";
 import "../layout/Layout.css";
 import "./HomePage.css";
 import SongList from "../components/SongList";
 import { AiFillHeart, AiOutlineHeart } from "react-icons/ai";
 import { FaPlay } from "react-icons/fa";
-
 
 const fixLocalUrl = (url) => {
   if (!url) return "";
@@ -43,7 +42,7 @@ const HomePage = () => {
   const { setPlaylist, setCurrentSong } = useContext(PlayerContext);
   const navigate = useNavigate();
 
-  // --- LOGIC ALBUMS ---
+  // --- LOGIC LOAD ALBUMS ---
   const handleLoadAlbums = async () => {
     setActiveTab("albums");
     setSelectedGenre(null);
@@ -77,15 +76,14 @@ const HomePage = () => {
   };
 
   const handleToggleFavorite = async (e, album) => {
-    e.stopPropagation(); 
-    
+      console.log('Toggle favorite album:', album.album_id, 'Trạng thái:', album.is_favorite);
+    e.stopPropagation();
     const token = localStorage.getItem("token");
     if (!token) {
-      alert("Vui lòng đăng nhập!");
+      alert("Vui lòng đăng nhập để thêm vào yêu thích!");
       return;
     }
-    
-    // 1. Cập nhật giao diện NGAY LẬP TỨC
+
     const newStatus = !album.is_favorite;
     setAlbums(prevAlbums => 
       prevAlbums.map(a => 
@@ -96,15 +94,21 @@ const HomePage = () => {
     );
 
     try {
-      // 2. Gọi API (Đảm bảo hàm toggleAlbumFavorite trong service hoạt động)
-      // Truyền đúng tham số mà service yêu cầu
-      await toggleAlbumFavorite(album.album_id, newStatus); 
-      
-      // Dispatch event
+      if (newStatus) {
+        await addFavoriteAlbum(album.album_id);
+      } else {
+        await removeFavoriteAlbum(album.album_id);
+      }
+      // Sau khi thao tác, load lại danh sách ID album yêu thích
+      const favIds = await getFavoriteAlbumIds();
+      const favSet = new Set(favIds.map(id => String(id)));
+      setAlbums(prevAlbums => prevAlbums.map(a => ({
+        ...a,
+        is_favorite: favSet.has(String(a.album_id))
+      })));
       window.dispatchEvent(new Event("playlistUpdated"));
     } catch (err) {
       console.error("Lỗi toggle favorite:", err);
-      // Revert nếu lỗi
       setAlbums(prevAlbums => 
         prevAlbums.map(a => 
           a.album_id === album.album_id 
@@ -190,6 +194,7 @@ const HomePage = () => {
     initLoad();
   }, []);
 
+  // --- FIX LỖI REFERENCE ERROR Ở ĐÂY ---
   useEffect(() => {
     if (activeTab === "all") {
       const loadSongs = async () => {
@@ -197,31 +202,31 @@ const HomePage = () => {
           setLoading(true);
           const songs = await getSongs();
           setAllSongs(songs);
+          
           if (songs.length > 0) {
+             // 1. Khai báo biến trước
              const shuffled = [...songs].sort(() => Math.random() - 0.5);
              const mixSize = Math.ceil(songs.length / 4);
+
+             // 2. Sử dụng biến để set state Daily Mixes
              setDailyMixes([
                 { id: 1, name: "Daily Mix 1", description: "Yêu thích", songs: shuffled.slice(0, mixSize), cover: shuffled[0]?.cover },
                 { id: 2, name: "Daily Mix 2", description: "Khám phá", songs: shuffled.slice(mixSize, mixSize * 2), cover: shuffled[mixSize]?.cover },
                 { id: 3, name: "Daily Mix 3", description: "Thư giãn", songs: shuffled.slice(mixSize * 2, mixSize * 3), cover: shuffled[mixSize * 2]?.cover },
                 { id: 4, name: "Daily Mix 4", description: "Năng động", songs: shuffled.slice(mixSize * 3), cover: shuffled[mixSize * 3]?.cover },
              ]);
-             setRecommendations([
-                { id: 1, name: "Top Hits", description: "Hot nhất", songs: shuffled.slice(0, 5), cover: shuffled[0]?.cover },
-                { id: 2, name: "Nhạc Việt", description: "V-Pop", songs: shuffled.slice(5, 10), cover: shuffled[5]?.cover },
-                { id: 3, name: "Chill", description: "Cuối tuần", songs: recShuffled.slice(recSize * 2, recSize * 3), cover: recShuffled[recSize * 2]?.cover }, // Add missing parts if any
-                { id: 4, name: "Party", description: "Sôi động", songs: recShuffled.slice(recSize * 3), cover: recShuffled[recSize * 3]?.cover },
-             ]);
-             // Fix lại recShuffled vì biến này không tồn tại ở trên
+
+             // 3. Khai báo biến cho Recommendations
              const recShuffled = [...songs].sort(() => Math.random() - 0.5);
              const recSize = Math.ceil(songs.length / 4);
-             const recs = [
-              { id: 1, name: "Top Hits", description: "Hot nhất", songs: recShuffled.slice(0, recSize), cover: recShuffled[0]?.cover },
-              { id: 2, name: "Nhạc Việt", description: "V-Pop", songs: recShuffled.slice(recSize, recSize * 2), cover: recShuffled[recSize]?.cover },
-              { id: 3, name: "Chill", description: "Cuối tuần", songs: recShuffled.slice(recSize * 2, recSize * 3), cover: recShuffled[recSize * 2]?.cover },
-              { id: 4, name: "Party", description: "Sôi động", songs: recShuffled.slice(recSize * 3), cover: recShuffled[recSize * 3]?.cover },
-             ];
-             setRecommendations(recs);
+
+             // 4. Sử dụng biến để set state Recommendations (ĐÃ FIX)
+             setRecommendations([
+                { id: 1, name: "Top Hits", description: "Hot nhất", songs: recShuffled.slice(0, recSize), cover: recShuffled[0]?.cover },
+                { id: 2, name: "Nhạc Việt", description: "V-Pop", songs: recShuffled.slice(recSize, recSize * 2), cover: recShuffled[recSize]?.cover },
+                { id: 3, name: "Chill", description: "Cuối tuần", songs: recShuffled.slice(recSize * 2, recSize * 3), cover: recShuffled[recSize * 2]?.cover },
+                { id: 4, name: "Party", description: "Sôi động", songs: recShuffled.slice(recSize * 3), cover: recShuffled[recSize * 3]?.cover },
+             ]);
           }
         } catch (error) { console.error(error); }
         finally { setLoading(false); }
@@ -231,7 +236,7 @@ const HomePage = () => {
   }, [activeTab]);
 
   const handlePlayMix = (mix) => {
-    if (mix.songs?.length > 0) {
+    if (mix.songs && mix.songs.length > 0) {
       setPlaylist(mix.songs);
       setCurrentSong(mix.songs[0]);
     }
@@ -249,7 +254,6 @@ const HomePage = () => {
 
       {activeTab === "music" && <SongList />}
 
-      {/* 💿 TAB ALBUMS (Giao diện mới) */}
       {activeTab === "albums" && (
         <section className="albums-section">
           <div className="section-header">
@@ -290,7 +294,6 @@ const HomePage = () => {
         </section>
       )}
 
-      {/* 🎤 TAB ARTISTS */}
       {activeTab === "artists" && (
         <section className="artists-section">
           <div className="section-header"><h2>Tất cả nghệ sĩ</h2></div>
@@ -309,7 +312,6 @@ const HomePage = () => {
         </section>
       )}
 
-      {/* 🏠 TAB ALL (Đầy đủ nội dung) */}
       {activeTab === "all" && (
         <>
           {albums.length > 0 && (
@@ -319,7 +321,7 @@ const HomePage = () => {
                 {albums.map((album) => (
                   <div key={album.album_id} className="album-card" onClick={() => navigate(`/album/${album.album_id}`)}>
                     <div className="album-cover-wrapper">
-                      <img src={fixAlbumUrl(album.cover_url)} alt={album.name} />
+                      <img src={fixAlbumUrl(album.cover_url)} alt={album.name} onError={(e) => (e.target.src = "https://placehold.co/300x300")} />
                       <div className="album-badge">Album</div>
                     </div>
                     <div className="album-info"><h4>{album.name}</h4></div>

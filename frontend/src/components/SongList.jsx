@@ -4,7 +4,8 @@ import { getFavoriteSongIds, toggleSongFavorite } from "../services/favoriteServ
 import { PlayerContext } from "../context/PLayerContext";
 import { AiFillHeart, AiOutlineHeart } from "react-icons/ai";
 import { FaPlay, FaPlus } from "react-icons/fa"; 
-import AddSongToPlaylistModal from "./AddSongToPlaylistModal"; // Import Modal
+import AddToPlaylistModal from "./AddToPlaylistModal"; 
+import CreatePlaylistModal from "./CreatePlaylistModal";
 import "../pages/HomePage.css"; 
 
 export default function SongList() {
@@ -12,8 +13,9 @@ export default function SongList() {
   const [loading, setLoading] = useState(true);
   const { setPlaylist, setCurrentSong } = useContext(PlayerContext);
   
-  // State cho Modal thêm playlist
-  const [showAddModal, setShowAddModal] = useState(false);
+  // State cho Modal
+  const [showAddToPlaylistModal, setShowAddToPlaylistModal] = useState(false);
+  const [showCreateModal, setShowCreateModal] = useState(false);
   const [selectedSongId, setSelectedSongId] = useState(null);
 
   useEffect(() => {
@@ -30,10 +32,20 @@ export default function SongList() {
       
       const favSet = new Set(favIds.map(id => String(id)));
 
-      const mergedSongs = allSongs.map(song => ({
-        ...song,
-        is_favorite: favSet.has(String(song.id))
-      }));
+      // --- FIX QUAN TRỌNG: Map song_id thành id ---
+      const mergedSongs = allSongs.map(song => {
+        // API PHP trả về 'song_id', API khác có thể trả 'id'
+        // Ta ưu tiên lấy giá trị nào tồn tại
+        const validId = song.song_id || song.id;
+
+        return {
+          ...song,
+          id: validId, // Gán chuẩn vào id để dùng trong JSX
+          song_id: validId, // Giữ lại song_id cho chắc
+          is_favorite: favSet.has(String(validId))
+        };
+      });
+      // --------------------------------------------
 
       setSongs(mergedSongs || []);
     } catch (error) {
@@ -57,27 +69,45 @@ export default function SongList() {
       return;
     }
 
-    // Optimistic Update
-    const newStatus = !song.is_favorite;
-    setSongs(prev => prev.map(s => s.id === song.id ? { ...s, is_favorite: newStatus } : s));
-
     try {
-      await toggleSongFavorite(song.id);
+      const newStatus = await toggleSongFavorite(song.id);
+      setSongs(prev => prev.map(s => s.id === song.id ? { ...s, is_favorite: newStatus } : s));
     } catch (err) {
-      // Revert nếu lỗi
-      setSongs(prev => prev.map(s => s.id === song.id ? { ...s, is_favorite: !newStatus } : s));
+      alert("Lỗi khi cập nhật bài hát yêu thích!");
     }
   };
 
   const handleAddToPlaylist = (e, songId) => {
     e.stopPropagation();
+    
+    // Debug xem ID có bị undefined không
+    console.log("Add Song Clicked. ID:", songId);
+
     const token = localStorage.getItem("token");
     if (!token) {
       alert("Vui lòng đăng nhập!");
       return;
     }
+    
+    if (!songId) {
+      alert("Lỗi: Không tìm thấy ID bài hát (Dữ liệu lỗi).");
+      return;
+    }
+
     setSelectedSongId(songId);
-    setShowAddModal(true);
+    setShowAddToPlaylistModal(true);
+  };
+
+  const handleOpenCreateFromAddModal = () => {
+     setShowAddToPlaylistModal(false);
+     setShowCreateModal(true);
+  };
+
+  const handlePlaylistCreated = () => {
+    window.dispatchEvent(new Event("playlistUpdated"));
+    if (selectedSongId) {
+        setShowAddToPlaylistModal(true);
+    }
   };
 
   if (loading) return <div style={{ padding: "30px", textAlign: "center", color: "#888" }}>Đang tải bài hát...</div>;
@@ -111,7 +141,6 @@ export default function SongList() {
               <p className="card-artist" title={song.artist}>{song.artist}</p>
             </div>
 
-            {/* 3 NÚT: TIM - PLAY - CỘNG */}
             <div className="card-actions">
               <button 
                 className={`action-btn-circle heart ${song.is_favorite ? 'active' : ''}`}
@@ -137,16 +166,22 @@ export default function SongList() {
         ))}
       </div>
 
-      {/* Modal Thêm vào Playlist (Sử dụng lại component có sẵn) */}
-      {showAddModal && (
-        <AddSongToPlaylistModal
-          isOpen={showAddModal}
-          onClose={() => setShowAddModal(false)}
-          songId={selectedSongId} // Bạn cần sửa AddSongToPlaylistModal để nhận prop songId nếu chưa có
-          // Nếu Modal hiện tại chỉ nhận playlistId, bạn cần sửa Modal để hiển thị danh sách playlist cho user chọn
-          // (Xem ghi chú bên dưới)
-        />
-      )}
+      <AddToPlaylistModal
+        isOpen={showAddToPlaylistModal}
+        onClose={() => setShowAddToPlaylistModal(false)}
+        songId={selectedSongId}
+        onCreateNew={handleOpenCreateFromAddModal}
+      />
+
+      <CreatePlaylistModal 
+        isOpen={showCreateModal}
+        onClose={() => {
+            setShowCreateModal(false);
+            if (selectedSongId) setShowAddToPlaylistModal(true);
+        }}
+        onSuccess={handlePlaylistCreated}
+      />
+
     </section>
   );
 }

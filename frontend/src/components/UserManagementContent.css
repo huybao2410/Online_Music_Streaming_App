@@ -9,10 +9,8 @@
   min-width: 1400px;
   display: block;
 }
-/* User Management Content Styles - Final Fix */
 
 .user-management-container {
-  /* Container chính phải chiếm 100% nhưng không được hơn */
   width: 100%;
   max-width: 100%;
   display: flex;

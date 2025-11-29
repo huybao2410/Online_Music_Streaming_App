@@ -15,7 +15,7 @@ export const getSongs = async () => {
 
     if (response.data.status && Array.isArray(response.data.songs)) {
       const fixedSongs = response.data.songs.map((song) => ({
-        id: song.id || null,
+        id: song.song_id || null,
         title: song.title || "Không rõ tên",
         artist: song.artist || "Không rõ nghệ sĩ",
         cover: fixLocalUrl(song.cover),

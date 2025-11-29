@@ -1,14 +1,17 @@
-import { useEffect, useState } from 'react';
-import { getMyPlaylists, addSongToPlaylist, createPlaylist } from '../services/playlistService';
-import './AddToPlaylistModal.css';
-import { upsertExternalSong } from '../services/songService';
+import React, { useState, useEffect } from "react";
+import axios from "axios";
+import { AiOutlineClose, AiOutlinePlus } from "react-icons/ai";
+import { BiSearch } from "react-icons/bi";
+import { RiPlayListLine } from "react-icons/ri";
+import "./AddToPlaylistModal.css";
 
-function AddToPlaylistModal({ isOpen, onClose, song }) {
+const API_URL = "http://localhost:5000/api";
+
+export default function AddToPlaylistModal({ isOpen, onClose, songId, onCreateNew }) {
   const [playlists, setPlaylists] = useState([]);
+  const [searchTerm, setSearchTerm] = useState("");
   const [loading, setLoading] = useState(false);
-  const [showCreateNew, setShowCreateNew] = useState(false);
-  const [newPlaylistName, setNewPlaylistName] = useState('');
-  const [creating, setCreating] = useState(false);
+  const [addedStatus, setAddedStatus] = useState({});
 
   useEffect(() => {
     if (isOpen) {
@@ -19,249 +22,126 @@ function AddToPlaylistModal({ isOpen, onClose, song }) {
   const fetchPlaylists = async () => {
     try {
       setLoading(true);
-      const data = await getMyPlaylists();
-      console.log('Playlists data:', data);
-      
-      // Handle different response formats
-      if (Array.isArray(data)) {
-        setPlaylists(data);
-      } else if (data && Array.isArray(data.playlists)) {
-        setPlaylists(data.playlists);
-      } else if (data && typeof data === 'object') {
-        // If data is an object, try to extract playlists array
-        const playlistArray = Object.values(data).filter(item => 
-          item && typeof item === 'object' && (item.id || item.playlist_id)
-        );
-        setPlaylists(playlistArray);
-      } else {
-        setPlaylists([]);
+      const token = localStorage.getItem("token");
+      const res = await axios.get(`${API_URL}/playlists/my-playlists`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      if (res.data.success) {
+        setPlaylists(res.data.playlists);
       }
     } catch (error) {
-      console.error('Error fetching playlists:', error);
-      setPlaylists([]);
-      
-      // Check if it's an authentication error
-      if (error.response?.status === 401) {
-        alert('Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.');
-      } else {
-        alert('Không thể tải danh sách playlist. Vui lòng thử lại.');
-      }
+      console.error("Lỗi tải playlist:", error);
     } finally {
       setLoading(false);
     }
   };
 
-  const deriveSongId = (s) => {
-    if (!s) return null;
-    // Prefer explicit numeric id from Node API
-    if (typeof s.id === 'number') return s.id;
-    // Some APIs may use song_id
-    if (typeof s.song_id === 'number') return s.song_id;
-    // If still missing, cannot add to playlist (PHP source lacks id)
-    return null;
-  };
-
-  const handleAddToPlaylist = async (playlistId) => {
-    console.log('Song data:', song);
-    let sid = deriveSongId(song);
-    console.log('Derived song ID:', sid);
-    
-    if (!sid) {
-      // Try to import the external song into Node backend to get an id
-      try {
-        console.log('Importing song to Node backend...');
-        const importData = {
-          external_url: song.audio_url || song.url,
-          title: song.title,
-          artist_name: song.artist || song.artist_name,
-          cover_url: song.cover_url || song.cover || null
-        };
-        console.log('Import data:', importData);
-        
-        const created = await upsertExternalSong(importData);
-        console.log('Created song:', created);
-        sid = created?.song?.id || created?.id;
-      } catch (err) {
-        console.error('Import external song failed:', err);
-        alert('Không thể import bài hát vào hệ thống. Vui lòng thử lại.');
-        return;
-      }
-    }
-    
-    if (!sid) {
-      alert('Không thể xác định ID bài hát để thêm vào playlist');
+  const handleAddSong = async (playlistId) => {
+    if (!songId) {
+      alert("Lỗi: Không tìm thấy ID bài hát!");
       return;
     }
 
     try {
-      console.log('Adding song', sid, 'to playlist', playlistId);
-      const resp = await addSongToPlaylist(playlistId, sid);
-      console.log('Add song response:', resp);
-      
-      // Trigger event to reload sidebar playlists
-      window.dispatchEvent(new Event('playlistUpdated'));
-      
-      alert(resp?.message || 'Đã thêm bài hát vào playlist!');
-      onClose();
+      const token = localStorage.getItem("token");
+      await axios.post(
+        `${API_URL}/playlists/${playlistId}/songs`,
+        { song_id: songId },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+
+      setAddedStatus((prev) => ({ ...prev, [playlistId]: true }));
     } catch (error) {
-      console.error('Error adding song to playlist:', error);
-      alert(error?.response?.data?.message || 'Không thể thêm bài hát vào playlist');
+      console.error("Lỗi thêm bài hát:", error);
+      // Hiển thị lỗi chi tiết nếu có
+      const msg = error.response?.data?.message || 
+                  (error.response?.data?.errors ? error.response.data.errors[0].msg : "Không thể thêm bài hát");
+      alert(msg);
     }
   };
 
-  const handleCreatePlaylist = async (e) => {
-    e.preventDefault();
-    if (!newPlaylistName.trim()) {
-      alert('Vui lòng nhập tên playlist');
-      return;
-    }
-
-    try {
-      setCreating(true);
-      const response = await createPlaylist({
-        name: newPlaylistName,
-        description: ''
-      });
-      console.log('Create playlist response:', response);
-      const playlistId = response?.playlist?.id || response?.id;
-      let sid = deriveSongId(song);
-      if (!sid) {
-        try {
-          const created = await upsertExternalSong({
-            url: song.url,
-            title: song.title,
-            artist: song.artist,
-          });
-          sid = created?.id;
-        } catch (err) {
-          console.warn('Import external song failed:', err);
-        }
-      }
-      if (!playlistId) {
-        alert('Tạo playlist thành công nhưng không lấy được ID playlist.');
-        return;
-      }
-      if (!sid) {
-        alert('Tạo playlist thành công. Tuy nhiên bài hát không có ID để thêm (hãy dùng danh sách từ Node API).');
-      } else {
-        try {
-          const addResp = await addSongToPlaylist(playlistId, sid);
-          alert(addResp?.message || 'Đã tạo playlist và thêm bài hát!');
-        } catch (addErr) {
-          console.error('Add after create error:', addErr);
-          alert(addErr?.response?.data?.message || 'Tạo playlist thành công nhưng thêm bài hát thất bại');
-        }
-      }
-      onClose();
-      setNewPlaylistName('');
-      setShowCreateNew(false);
-    } catch (error) {
-      console.error('Error creating playlist:', error);
-      alert(error?.response?.data?.message || 'Không thể tạo playlist mới');
-    } finally {
-      setCreating(false);
+  const handleCreateNew = () => {
+    onClose();
+    if (onCreateNew && typeof onCreateNew === 'function') {
+      onCreateNew();
+    } else {
+      console.error("Chưa truyền hàm onCreateNew cho Modal");
     }
   };
+
+  const filteredPlaylists = playlists.filter((pl) =>
+    pl.name.toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
   if (!isOpen) return null;
 
   return (
-    <div className="modal-overlay" onClick={onClose}>
-      <div className="add-to-playlist-modal" onClick={(e) => e.stopPropagation()}>
-        <div className="modal-header">
+    <div className="add-playlist-overlay" onClick={onClose}>
+      <div className="add-playlist-modal" onClick={(e) => e.stopPropagation()}>
+        <div className="apm-header">
           <h3>Thêm vào playlist</h3>
-          <button className="close-btn" onClick={onClose}>×</button>
+          <button className="apm-close-btn" onClick={onClose}>
+            <AiOutlineClose size={20} />
+          </button>
         </div>
 
-        {song && (
-          <div className="song-info">
-            {song.cover && <img src={song.cover} alt={song.title} />}
-            <div>
-              <div className="song-title">{song.title}</div>
-              <div className="song-artist">{song.artist}</div>
-            </div>
+        <div className="apm-search-container">
+          <BiSearch className="apm-search-icon" />
+          <input
+            type="text"
+            placeholder="Nhập tên playlist"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="apm-search-input"
+            autoFocus
+          />
+        </div>
+
+        <div className="apm-create-btn" onClick={handleCreateNew}>
+          <div className="apm-plus-icon">
+            <AiOutlinePlus size={20} />
           </div>
-        )}
+          <span>Tạo playlist mới</span>
+        </div>
 
-        <div className="modal-content">
-          {loading ? (
-            <div className="loading">Đang tải...</div>
-          ) : (
-            <>
-              {!showCreateNew ? (
-                <>
-                  <div className="playlists-list">
-                    {!Array.isArray(playlists) || playlists.length === 0 ? (
-                      <div className="empty-message">
-                        Bạn chưa có playlist nào
+        <div className="apm-list-container">
+          <div className="apm-list-title">Playlist của bạn</div>
+          <div className="apm-scroll-area">
+            {loading ? (
+              <p className="apm-loading">Đang tải...</p>
+            ) : filteredPlaylists.length === 0 ? (
+              <p className="apm-empty">Không tìm thấy playlist nào</p>
+            ) : (
+              filteredPlaylists.map((playlist) => {
+                 let coverUrl = null;
+                 if (playlist.cover_url) {
+                    coverUrl = playlist.cover_url.startsWith("http") ? playlist.cover_url : `http://localhost:5000${playlist.cover_url}`;
+                 } else if (playlist.cover_images && playlist.cover_images[0]) {
+                    coverUrl = playlist.cover_images[0].startsWith("http") ? playlist.cover_images[0] : `http://localhost:8081/music_API/online_music/${playlist.cover_images[0]}`;
+                 }
+
+                return (
+                  <div key={playlist.playlist_id} className="apm-item">
+                    <div className="apm-item-left">
+                      <div className="apm-cover">
+                        {coverUrl ? <img src={coverUrl} alt={playlist.name} /> : <div className="apm-cover-placeholder"><RiPlayListLine /></div>}
                       </div>
-                    ) : (
-                      playlists.map((playlist) => {
-                        const playlistId = playlist.playlist_id || playlist.id;
-                        return (
-                          <div
-                            key={playlistId}
-                            className="playlist-item"
-                            onClick={() => handleAddToPlaylist(playlistId)}
-                          >
-                            <div className="playlist-info">
-                              {playlist.cover_url ? (
-                                <img src={playlist.cover_url} alt={playlist.name} />
-                              ) : (
-                                <div className="playlist-placeholder">♫</div>
-                              )}
-                              <div>
-                                <div className="playlist-name">{playlist.name}</div>
-                                <div className="playlist-count">
-                                  {playlist.song_count || 0} bài hát
-                                </div>
-                              </div>
-                            </div>
-                          </div>
-                        );
-                      })
-                    )}
-                  </div>
-
-                  <button
-                    className="create-new-btn"
-                    onClick={() => setShowCreateNew(true)}
-                  >
-                    + Tạo playlist mới
-                  </button>
-                </>
-              ) : (
-                <form onSubmit={handleCreatePlaylist} className="create-form">
-                  <input
-                    type="text"
-                    placeholder="Tên playlist"
-                    value={newPlaylistName}
-                    onChange={(e) => setNewPlaylistName(e.target.value)}
-                    autoFocus
-                  />
-                  <div className="form-buttons">
-                    <button
-                      type="button"
-                      className="cancel-btn"
-                      onClick={() => {
-                        setShowCreateNew(false);
-                        setNewPlaylistName('');
-                      }}
+                      <span className="apm-name">{playlist.name}</span>
+                    </div>
+                    <button 
+                      className={`apm-add-btn ${addedStatus[playlist.playlist_id] ? 'added' : ''}`}
+                      onClick={() => handleAddSong(playlist.playlist_id)}
+                      disabled={addedStatus[playlist.playlist_id]}
                     >
-                      Hủy
-                    </button>
-                    <button type="submit" className="submit-btn" disabled={creating}>
-                      {creating ? 'Đang tạo...' : 'Tạo và thêm bài hát'}
+                      {addedStatus[playlist.playlist_id] ? "Đã thêm" : "Thêm vào"}
                     </button>
                   </div>
-                </form>
-              )}
-            </>
-          )}
+                );
+              })
+            )}
+          </div>
         </div>
       </div>
     </div>
   );
 }
-
-export default AddToPlaylistModal;

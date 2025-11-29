@@ -10,6 +10,7 @@ import UserProfile from "./pages/UserProfile";
 import PlaylistDetail from "./pages/PlaylistDetail";
 import EditPlaylist from "./pages/EditPlaylist";
 import FavoriteSongs from "./pages/FavoriteSongs";
+import FavoriteAlbums from "./pages/FavoriteAlbums";
 import SearchPage from "./pages/SearchPage";
 import ArtistSelectionScreen from "./pages/ArtistSelectionScreen";
 import AlbumDetailPage from "./pages/AlbumDetailPage";
@@ -83,6 +84,7 @@ function App() {
         }>
           <Route path="/home" element={<HomePage />} />
           <Route path="/favorites" element={<FavoriteSongs />} />
+          <Route path="/favorite-albums" element={<FavoriteAlbums />} />
           <Route path="/profile" element={<UserProfile />} />
           <Route path="/library" element={<LibraryScreen />} />
           <Route path="/playlist/:id" element={<PlaylistDetail />} />

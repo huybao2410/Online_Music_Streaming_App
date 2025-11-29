@@ -78,19 +78,55 @@ export const getAlbumsByFavoriteArtists = async () => {
 };
 
 // --- CÁC HÀM MỚI BỔ SUNG CHO TÍNH NĂNG YÊU THÍCH ---
+/** Thêm album vào danh sách yêu thích */
+export const addFavoriteAlbum = async (albumId) => {
+  try {
+    const token = localStorage.getItem("token");
+    if (!token) throw new Error("Chưa đăng nhập");
+    const response = await axios.post(
+      `${NODE_API_URL}/favorite-albums/add`,
+      { album_id: albumId },
+      { headers: { Authorization: `Bearer ${token}` } }
+    );
+    return response.data;
+  } catch (error) {
+    console.error("Lỗi thêm album yêu thích:", error);
+    throw error;
+  }
+};
+
+/** Xóa album khỏi danh sách yêu thích */
+export const removeFavoriteAlbum = async (albumId) => {
+  try {
+    const token = localStorage.getItem("token");
+    if (!token) throw new Error("Chưa đăng nhập");
+    const response = await axios.delete(
+      `${NODE_API_URL}/favorite-albums/remove/${albumId}`,
+      { headers: { Authorization: `Bearer ${token}` } }
+    );
+    return response.data;
+  } catch (error) {
+    console.error("Lỗi xóa album yêu thích:", error);
+    throw error;
+  }
+};
 
 /** 🟢 Lấy danh sách ID album đã thích (Gọi Node.js API) */
+/** 🟢 Lấy danh sách ID album đã thích */
 export const getFavoriteAlbumIds = async () => {
   try {
     const token = localStorage.getItem("token");
     if (!token) return [];
     
-    // Gọi API Node.js để lấy danh sách ID
     const response = await axios.get(`${NODE_API_URL}/favorite-albums`, {
       headers: { Authorization: `Bearer ${token}` }
     });
     
-    return response.data.favorites || [];
+    if (response.data.success && Array.isArray(response.data.favorites)) {
+      // FIX: API trả về mảng object album, cần map lấy album_id
+      return response.data.favorites.map(album => album.album_id);
+    }
+    return [];
   } catch (error) {
     console.error("Lỗi lấy favorite albums:", error);
     return [];

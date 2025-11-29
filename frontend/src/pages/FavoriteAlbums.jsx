@@ -21,7 +21,16 @@ const FavoriteAlbums = () => {
       const res = await axios.get("http://localhost:5000/api/favorite-albums", {
         headers: { Authorization: `Bearer ${token}` }
       });
-      if (res.data.success) setFavorites(res.data.favorites);
+      if (res.data.success) {
+        // Chuẩn hóa dữ liệu trả về
+        const mapped = res.data.favorites.map(album => ({
+          album_id: album.album_id || album.id,
+          name: album.name || album.album_name,
+          artist_name: album.artist_name || album.artist,
+          cover_url: album.cover || album.cover_url,
+        }));
+        setFavorites(mapped);
+      }
     } catch (err) {
       console.error("Lỗi tải album yêu thích", err);
     }

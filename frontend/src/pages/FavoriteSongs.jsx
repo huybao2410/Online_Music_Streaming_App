@@ -8,31 +8,58 @@ const FavoriteSongs = () => {
   const { setPlaylist, setCurrentSong } = useContext(PlayerContext);
 
   useEffect(() => {
-    // Load từ localStorage
-    try {
-      const saved = localStorage.getItem('favorites');
-      const data = saved ? JSON.parse(saved) : [];
-      setFavorites(data);
-    } catch (error) {
-      console.error('Error loading favorites:', error);
-    }
+    const fetchFavorites = async () => {
+      const token = localStorage.getItem('token');
+      if (!token) return setFavorites([]);
+      try {
+        const res = await fetch('http://localhost:5000/api/favorite-songs', {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        const data = await res.json();
+        if (data.success) {
+          // Map lại để trường url lấy từ audio, cover lấy từ cover nếu có
+          const mapped = data.favorites.map(song => ({
+            ...song,
+            url: song.audio || song.url,
+            cover: song.cover || song.cover_url
+          }));
+          setFavorites(mapped);
+        } else {
+          setFavorites([]);
+        }
+      } catch (error) {
+        setFavorites([]);
+      }
+    };
+    fetchFavorites();
   }, []);
 
   const handlePlay = (song) => {
-    setPlaylist(favorites);
-    setCurrentSong(song);
+    // Chuẩn hóa object: luôn có trường url lấy từ audio
+    const mappedFavorites = favorites.map(s => ({ ...s, url: s.audio }));
+    setPlaylist(mappedFavorites);
+    setCurrentSong({ ...song, url: song.audio });
   };
 
   const handleRemove = (songUrl) => {
-    const updated = favorites.filter(song => song.url !== songUrl);
-    setFavorites(updated);
-    localStorage.setItem('favorites', JSON.stringify(updated));
+    // Gọi API Node.js để xóa bài hát yêu thích
+    const token = localStorage.getItem('token');
+    if (!token) return;
+    const song = favorites.find(s => s.url === songUrl);
+    if (!song) return;
+    fetch(`http://localhost:5000/api/favorite-songs/remove/${song.song_id}`, {
+      method: 'DELETE',
+      headers: { Authorization: `Bearer ${token}` }
+    }).then(() => {
+      setFavorites(prev => prev.filter(s => s.song_id !== song.song_id));
+    });
   };
 
   const handlePlayAll = () => {
     if (favorites.length > 0) {
-      setPlaylist(favorites);
-      setCurrentSong(favorites[0]);
+      const mappedFavorites = favorites.map(s => ({ ...s, url: s.audio }));
+      setPlaylist(mappedFavorites);
+      setCurrentSong(mappedFavorites[0]);
     }
   };
 
@@ -211,25 +238,5 @@ const FavoriteSongs = () => {
   );
 };
 
-const styles = `
-  .favorites-container {
-    padding: 40px 20px;
-  }
-
-  .favorites-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 40px;
-    gap: 20px;
-  }
-
-  @media (max-width: 768px) {
-    .favorites-header {
-      flex-direction: column;
-      align-items: flex-start;
-    }
-  }
-`;
 
 export default FavoriteSongs;
