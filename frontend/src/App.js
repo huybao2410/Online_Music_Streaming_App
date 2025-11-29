@@ -69,9 +69,10 @@ function UserRoute({ children }) {
 
 function App() {
   return (
+    
     <Router>
       <Routes>
-        {/* Redirect trang chủ dựa trên role */}
+      
         <Route index element={<RoleBasedRedirect />} />
 
         {/* Routes cho user thường - admin không được vào */}
