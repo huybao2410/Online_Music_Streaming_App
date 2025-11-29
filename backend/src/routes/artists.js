@@ -57,22 +57,28 @@ router.get('/admin/all', async (req, res) => {
   try {
     const query = `
       SELECT 
-        a.artist_id,
-        a.name,
-        a.bio,
-        a.avatar_url,
-        COUNT(DISTINCT s.song_id) as song_count
+          a.artist_id,
+          a.name,
+          a.bio,
+          a.avatar_url,
+          COUNT(DISTINCT s.song_id) AS song_count
       FROM artists a
       LEFT JOIN songs s ON a.artist_id = s.artist_id
-      GROUP BY a.artist_id, a.name, a.bio, a.avatar_url
-      ORDER BY a.name ASC
+      WHERE 
+          a.bio IS NOT NULL 
+          AND a.bio <> '' 
+          AND a.avatar_url IS NOT NULL 
+          AND a.avatar_url <> ''
+      GROUP BY 
+          a.artist_id, a.name, a.bio, a.avatar_url
+      ORDER BY 
+          a.name ASC;
     `;
 
     const [artists] = await pool.query(query);
 
-    console.log(`✅ Admin: Retrieved ${artists.length} artists (all, no filter)`);
+    console.log(`✅ Admin: Retrieved ${artists.length} artists (filtered)`);
 
-    // Avatar mặc định cho nghệ sĩ không có avatar
     const DEFAULT_AVATAR = 'https://ui-avatars.com/api/?name=';
 
     return res.json({
@@ -82,8 +88,8 @@ router.get('/admin/all', async (req, res) => {
       artists: artists.map(artist => ({
         artist_id: artist.artist_id,
         name: artist.name,
-        bio: artist.bio || '',
-        avatar_url: artist.avatar_url || `${DEFAULT_AVATAR}${encodeURIComponent(artist.name)}&background=4a9b9b&color=fff&size=200`,
+        bio: artist.bio,
+        avatar_url: artist.avatar_url,
         song_count: artist.song_count
       }))
     });
@@ -106,10 +112,11 @@ router.get('/', async (req, res) => {
     let query = `
       SELECT artist_id, name, bio, avatar_url
       FROM artists
-      WHERE bio IS NOT NULL 
-        AND bio <> '' 
-        AND avatar_url IS NOT NULL 
-        AND avatar_url <> ''
+      WHERE 
+          bio IS NOT NULL 
+          AND bio <> '' 
+          AND avatar_url IS NOT NULL 
+          AND avatar_url <> ''
     `;
     const params = [];
 
@@ -123,15 +130,9 @@ router.get('/', async (req, res) => {
 
     const [artists] = await pool.query(query, params);
 
-    // Process avatar URLs - không cần thêm prefix vì đã dùng PHP API
-    const processedArtists = artists.map(artist => ({
-      ...artist,
-      avatar_url: artist.avatar_url
-    }));
-
     return res.json({
       success: true,
-      artists: processedArtists
+      artists: artists
     });
   } catch (error) {
     console.error('Error fetching artists:', error);
@@ -141,6 +142,7 @@ router.get('/', async (req, res) => {
     });
   }
 });
+
 
 // Get artist by ID
 router.get('/:id', async (req, res) => {

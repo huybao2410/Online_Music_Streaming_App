@@ -7,6 +7,18 @@ import "./ArtistManagementContent.css";
 const PHP_API_URL = "http://localhost:8081/music_API/online_music";
 const NODE_API_URL = "http://localhost:5000/api";
 
+const buildAvatarUrl = (url) => {
+  if (!url) return null;
+
+  // Nếu là full URL → sửa localhost rồi return
+  if (url.startsWith("http://") || url.startsWith("https://")) {
+    return url.replace("10.0.2.2", "localhost");
+  }
+
+  // Nếu chỉ là path → prepend PHP_API_URL
+  return `${PHP_API_URL}/${url}`;
+};
+
 export default function ArtistManagementContent() {
   const [artists, setArtists] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -44,22 +56,22 @@ export default function ArtistManagementContent() {
     try {
       setLoading(true);
       setError("");
-      
+
       console.log("📥 Admin: Fetching ALL artists from Node.js API...");
-      
+
       // 🔴 QUAN TRỌNG: Admin cần hiển thị TẤT CẢ nghệ sĩ
       // Sử dụng API mới: /api/artists/admin/all (trả về tất cả không filter)
-      
+
       const response = await axios.get(`http://localhost:5000/api/artists/admin/all`);
       console.log("📥 Artists response:", response.data);
-      
+
       if ((response.data.status || response.data.success) && Array.isArray(response.data.artists)) {
         let uniqueArtists = response.data.artists;
 
         // Apply client-side search filter
         if (searchTerm) {
           const searchLower = searchTerm.toLowerCase();
-          uniqueArtists = uniqueArtists.filter(artist => 
+          uniqueArtists = uniqueArtists.filter(artist =>
             artist.name.toLowerCase().includes(searchLower)
           );
         }
@@ -69,7 +81,7 @@ export default function ArtistManagementContent() {
         // Apply pagination
         const startIndex = (currentPage - 1) * artistsPerPage;
         const paginatedArtists = uniqueArtists.slice(startIndex, startIndex + artistsPerPage);
-        
+
         setArtists(paginatedArtists);
         console.log(`✅ Admin: Showing ${paginatedArtists.length} artists on page ${currentPage}/${Math.ceil(uniqueArtists.length / artistsPerPage)} (Total: ${uniqueArtists.length})`);
         console.log(`✅ Loaded ${paginatedArtists.length} artists from songs fallback (total: ${uniqueArtists.length})`);
@@ -81,13 +93,13 @@ export default function ArtistManagementContent() {
     } catch (err) {
       console.error("❌ Error fetching artists:", err);
       console.error("Error details:", err.response?.data || err.message);
-      
+
       if (err.code === "ERR_NETWORK") {
         setError("⚠️ Không thể kết nối với PHP API server!\n\n" +
-                 "Vui lòng:\n" +
-                 "1. Bật XAMPP Apache server\n" +
-                 "2. Kiểm tra PHP API chạy ở: http://localhost:8081/music_API\n" +
-                 "3. Đảm bảo file get_songs.php tồn tại");
+          "Vui lòng:\n" +
+          "1. Bật XAMPP Apache server\n" +
+          "2. Kiểm tra PHP API chạy ở: http://localhost:8081/music_API\n" +
+          "3. Đảm bảo file get_songs.php tồn tại");
       } else {
         setError("Không thể tải danh sách nghệ sĩ. Vui lòng thử lại.");
       }
@@ -145,7 +157,7 @@ export default function ArtistManagementContent() {
     if (files && files[0]) {
       const file = files[0];
       setFormData({ ...formData, avatar: file });
-      
+
       // Create preview
       const reader = new FileReader();
       reader.onloadend = () => {
@@ -212,7 +224,7 @@ export default function ArtistManagementContent() {
       console.error("Error submitting form:", err);
       setError(
         err.response?.data?.message ||
-          "Có lỗi xảy ra khi lưu nghệ sĩ. Vui lòng thử lại."
+        "Có lỗi xảy ra khi lưu nghệ sĩ. Vui lòng thử lại."
       );
     }
   };
@@ -239,7 +251,7 @@ export default function ArtistManagementContent() {
       console.error("Error deleting artist:", err);
       setError(
         err.response?.data?.message ||
-          "Có lỗi xảy ra khi xóa nghệ sĩ. Vui lòng thử lại."
+        "Có lỗi xảy ra khi xóa nghệ sĩ. Vui lòng thử lại."
       );
     }
   };
@@ -337,16 +349,9 @@ export default function ArtistManagementContent() {
                     <td>{artist.artist_id}</td>
                     <td>
                       <img
-                        src={artist.avatar_url
-                          ? `${PHP_API_URL}/${artist.avatar_url}`
-                          : `https://ui-avatars.com/api/?name=${encodeURIComponent(artist.name)}&size=64&background=4a9b9b&color=fff`
-                        }
+                        src={buildAvatarUrl(artist.avatar_url)}
                         alt={artist.name}
                         className="avatar-thumb"
-                        onError={(e) => {
-                          e.target.onerror = null;
-                          e.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(artist.name)}&size=64&background=4a9b9b&color=fff`;
-                        }}
                       />
                     </td>
                     <td className="artist-name">{artist.name}</td>
