@@ -136,23 +136,40 @@ const HomePage = () => {
     }
   }, []);
 
-  useEffect(() => {
-    const handleGenreSelected = async (event) => {
-      const genre = event.detail;
-      setSelectedGenre(genre);
-      setActiveTab("genre");
-      setLoading(true);
-      try {
-        let data;
-        if (genre === "Tất cả bài hát") data = await getSongs();
-        else data = await getSongsByGenre(genre);
-        setGenreSongs(data || []);
-      } catch (err) { setGenreSongs([]); } 
-      finally { setLoading(false); }
-    };
-    window.addEventListener("genreSelected", handleGenreSelected);
-    return () => window.removeEventListener("genreSelected", handleGenreSelected);
-  }, []);
+ useEffect(() => {
+  const handleGenreSelected = async (event) => {
+    const genre = event.detail; // {id, name}
+
+    setSelectedGenre(genre.name);
+    setActiveTab("genre");
+    setLoading(true);
+
+    try {
+      let data;
+
+      if (genre.id === 0) {
+        data = await getSongs(); // tất cả bài hát
+      } else {
+        data = await getSongsByGenre(genre.id); // gọi API theo genre_id
+      }
+
+      setGenreSongs(data || []);
+    } catch (err) {
+      console.error("Genre load error:", err);
+      setGenreSongs([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // 🔥 MUST HAVE — EM BỎ QUÊN DÒNG NÀY
+  window.addEventListener("genreSelected", handleGenreSelected);
+
+  // cleanup
+  return () => window.removeEventListener("genreSelected", handleGenreSelected);
+}, []);
+
+
 
   useEffect(() => {
     const handleArtistSelected = async (event) => {

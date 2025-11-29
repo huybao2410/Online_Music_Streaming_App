@@ -1,14 +1,11 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import {
-  HiMagnifyingGlass,
   HiPlus,
   HiHeart,
-  HiChevronDown,
   HiMusicalNote,
 } from "react-icons/hi2";
-// Thêm icon đĩa nhạc cho Album
-import { FaCompactDisc } from "react-icons/fa"; 
+import { FaCompactDisc } from "react-icons/fa";
 import CreatePlaylistModal from "../components/CreatePlaylistModal";
 import { getFavoriteArtists } from "../services/favoriteArtistService";
 import { getGenres } from "../services/genreService";
@@ -21,11 +18,9 @@ export default function Sidebar({ isLoginOpen, setIsLoginOpen }) {
   const [playlists, setPlaylists] = useState([]);
   const [favoriteArtists, setFavoriteArtists] = useState([]);
   const [genres, setGenres] = useState([]);
-  const [loadingFavoriteArtists, setLoadingFavoriteArtists] = useState(false);
   const [loadingGenres, setLoadingGenres] = useState(false);
   const navigate = useNavigate();
 
-  // 🧠 Theo dõi đăng nhập
   useEffect(() => {
     const handleStorageChange = () => {
       setIsLoggedIn(!!localStorage.getItem("token"));
@@ -34,31 +29,18 @@ export default function Sidebar({ isLoginOpen, setIsLoginOpen }) {
     return () => window.removeEventListener("storage", handleStorageChange);
   }, []);
 
-  // 🟢 Nếu đăng nhập, lấy playlist
   useEffect(() => {
     if (isLoggedIn) fetchUserPlaylists();
   }, [isLoggedIn]);
 
-  // 🔄 Reload playlists when updated
-  useEffect(() => {
-    const handlePlaylistUpdate = () => {
-      if (isLoggedIn) fetchUserPlaylists();
-    };
-    window.addEventListener('playlistUpdated', handlePlaylistUpdate);
-    return () => window.removeEventListener('playlistUpdated', handlePlaylistUpdate);
-  }, [isLoggedIn]);
-
-  // 🎤 Load favorite artists khi đăng nhập
   useEffect(() => {
     if (isLoggedIn) fetchFavoriteArtists();
   }, [isLoggedIn]);
 
-  // 🎵 Nếu chọn tab Thể loại
   useEffect(() => {
     if (activeTab === "genre") fetchGenres();
   }, [activeTab]);
 
-  // ======================= API CALLS ==========================
   const fetchUserPlaylists = async () => {
     try {
       const token = localStorage.getItem("token");
@@ -75,37 +57,28 @@ export default function Sidebar({ isLoginOpen, setIsLoginOpen }) {
 
   const fetchFavoriteArtists = async () => {
     try {
-      setLoadingFavoriteArtists(true);
       const data = await getFavoriteArtists();
       setFavoriteArtists(data);
-    } catch (error) {
-      console.error("Lỗi khi tải nghệ sĩ yêu thích:", error);
-    } finally {
-      setLoadingFavoriteArtists(false);
-    }
+    } catch (error) {}
   };
 
   const fetchGenres = async () => {
     try {
       setLoadingGenres(true);
       const data = await getGenres();
-      // thêm "Tất cả bài hát" lên đầu
       setGenres([{ id: 0, name: "Tất cả bài hát" }, ...data]);
-    } catch (err) {
-      console.error("Lỗi khi tải thể loại:", err);
-    } finally {
-      setLoadingGenres(false);
-    }
+    } catch {}
+    finally { setLoadingGenres(false); }
   };
-
-  // ============================================================
 
   const handleCreatePlaylist = () => setShowCreatePlaylist(true);
 
   const handleGenreSelect = (genre) => {
-    // gửi sự kiện để Home nhận
+    // Gửi genre object {id, name} cho HomePage
     window.dispatchEvent(new CustomEvent("genreSelected", { detail: genre }));
-    navigate("/");
+
+    // ❌ KHÔNG navigate("/") nữa — đây là lỗi khiến nó bị nhảy trang!
+    // navigate("/");
   };
 
   return (
@@ -117,23 +90,25 @@ export default function Sidebar({ isLoginOpen, setIsLoginOpen }) {
           </div>
         </div>
 
-        {/* 🟢 Tabs */}
+        {/* Tabs */}
         <div className="filter-tabs">
           <button
             className={`filter-tab ${activeTab === "playlist" ? "active" : ""}`}
-            onClick={() => {
-              setActiveTab("playlist");
-              navigate("/library");
-            }}
+            onClick={() => setActiveTab("playlist")}
           >
             Playlist
           </button>
+
+          {/* ❌ TAB NGHỆ SĨ ĐÃ ẨN THEO ĐÚNG YÊU CẦU */}
+          {/* 
           <button
             className={`filter-tab ${activeTab === "artists" ? "active" : ""}`}
             onClick={() => setActiveTab("artists")}
           >
             Nghệ sĩ
           </button>
+          */}
+
           <button
             className={`filter-tab ${activeTab === "genre" ? "active" : ""}`}
             onClick={() => setActiveTab("genre")}
@@ -142,9 +117,8 @@ export default function Sidebar({ isLoginOpen, setIsLoginOpen }) {
           </button>
         </div>
 
-        {/* ================= NỘI DUNG ================= */}
         <div className="library-content">
-          {/* 🟢 Playlist */}
+          {/* PLAYLIST TAB */}
           {activeTab === "playlist" && (
             <>
               {isLoggedIn ? (
@@ -159,185 +133,110 @@ export default function Sidebar({ isLoginOpen, setIsLoginOpen }) {
                     </button>
                   </div>
 
-                  {/* Mục Bài hát đã thích */}
-                  <button
-                    onClick={() => navigate("/favorites")}
-                    className="library-item"
-                  >
+                  {/* Bài hát đã thích */}
+                  <button onClick={() => navigate("/favorites")} className="library-item">
                     <div className="item-cover liked-songs">
                       <HiHeart size={32} />
                     </div>
                     <div className="item-info">
                       <span className="item-title">Bài hát đã thích</span>
-                      <span className="item-subtitle">
-                        <span className="item-type">Playlist</span>
-                      </span>
+                      <span className="item-subtitle">Playlist</span>
                     </div>
                   </button>
 
-                  {/* --- MỤC MỚI: ALBUM ĐÃ THÍCH --- */}
-                  <button
-                    onClick={() => navigate("/favorite-albums")}
-                    className="library-item"
-                  >
-                    <div className="item-cover" style={{ background: "linear-gradient(135deg, #450af5, #8e44ad)", display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '4px' }}>
+                  {/* ALBUM YÊU THÍCH */}
+                  <button onClick={() => navigate("/favorite-albums")} className="library-item">
+                    <div className="item-cover" style={{
+                      background: "linear-gradient(135deg, #450af5, #8e44ad)",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                    }}>
                       <FaCompactDisc size={28} color="white" />
                     </div>
                     <div className="item-info">
                       <span className="item-title">Album đã thích</span>
-                      <span className="item-subtitle">
-                        <span className="item-type">Album</span>
-                      </span>
+                      <span className="item-subtitle">Album</span>
                     </div>
                   </button>
-                  {/* --------------------------------- */}
 
-                  {/* Nghệ sĩ yêu thích - Mục cố định */}
+                  {/* Nghệ sĩ yêu thích – GIỮ NGUYÊN */}
                   <button
-                    onClick={() => favoriteArtists.length > 0 ? navigate("/favorite-artists") : navigate("/artist-selection")}
+                    onClick={() =>
+                      favoriteArtists.length > 0
+                        ? navigate("/favorite-artists")
+                        : navigate("/artist-selection")
+                    }
                     className="library-item"
                   >
-                    <div className="item-cover" style={{ 
+                    <div className="item-cover" style={{
                       background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
                       display: "flex",
                       alignItems: "center",
                       justifyContent: "center",
-                      borderRadius: "4px"
                     }}>
                       <span style={{ fontSize: "32px" }}>🎤</span>
                     </div>
                     <div className="item-info">
                       <span className="item-title">Nghệ sĩ yêu thích</span>
                       <span className="item-subtitle">
-                        <span className="item-type">
-                          {favoriteArtists.length > 0 
-                            ? `${favoriteArtists.length} nghệ sĩ` 
-                            : "Chưa có nghệ sĩ nào"}
-                        </span>
+                        {favoriteArtists.length} nghệ sĩ
                       </span>
                     </div>
                   </button>
 
-                  {playlists.map((playlist) => {
-                    let coverUrl = null;
-                    if (playlist.cover_url) {
-                      coverUrl = playlist.cover_url.startsWith("http")
-                        ? playlist.cover_url
-                        : `http://localhost:5000${playlist.cover_url}`;
-                    } else if (playlist.cover_images?.length > 0) {
-                      const firstCover = playlist.cover_images[0];
-                      if (firstCover) {
-                        if (firstCover.startsWith('http')) {
-                          coverUrl = firstCover;
-                        } else if (firstCover.startsWith('/uploads')) {
-                          coverUrl = `http://localhost:5000${firstCover}`;
-                        } else {
-                          coverUrl = `http://localhost:8081/music_API/online_music/${firstCover}`;
-                        }
-                      }
-                    }
-
-                    return (
-                      <button
-                        key={playlist.playlist_id}
-                        className="library-item"
-                        onClick={() => navigate(`/playlist/${playlist.playlist_id}`)}
-                      >
-                        <div className="item-cover playlist">
-                          {coverUrl ? (
-                            <img src={coverUrl} alt={playlist.name} />
-                          ) : (
-                            <div className="playlist-placeholder">
-                              <HiMusicalNote size={24} />
-                            </div>
-                          )}
-                        </div>
-                        <div className="item-info">
-                          <span className="item-title">{playlist.name}</span>
-                          <span className="item-subtitle">
-                            <span className="item-type">Playlist</span> •{" "}
-                            {playlist.song_count || 0} bài hát
-                          </span>
-                        </div>
-                      </button>
-                    );
-                  })}
+                  {/* Danh sách playlist */}
+                  {playlists.map((p) => (
+                    <button
+                      key={p.playlist_id}
+                      className="library-item"
+                      onClick={() => navigate(`/playlist/${p.playlist_id}`)}
+                    >
+                      <div className="item-cover playlist">
+                        {p.cover_url ? (
+                          <img src={p.cover_url} alt={p.name} />
+                        ) : (
+                          <div className="playlist-placeholder">
+                            <HiMusicalNote size={24} />
+                          </div>
+                        )}
+                      </div>
+                      <div className="item-info">
+                        <span className="item-title">{p.name}</span>
+                        <span className="item-subtitle">{p.song_count} bài hát</span>
+                      </div>
+                    </button>
+                  ))}
                 </>
               ) : (
                 <div className="login-prompt">
                   <h3>Tạo playlist đầu tiên</h3>
-                  <p>Rất đơn giản, chúng tôi sẽ hướng dẫn bạn</p>
-                  <button
-                    onClick={() => setIsLoginOpen(true)}
-                    className="create-playlist-btn"
-                  >
+                  <button onClick={() => setIsLoginOpen(true)} className="create-playlist-btn">
                     Tạo playlist
-                  </button>
-
-                  <div className="prompt-separator"></div>
-
-                  <h3>Khám phá podcast yêu thích</h3>
-                  <p>Chúng tôi sẽ cập nhật các tập mới cho bạn</p>
-                  <button
-                    onClick={() => setIsLoginOpen(true)}
-                    className="browse-btn"
-                  >
-                    Duyệt podcast
                   </button>
                 </div>
               )}
             </>
           )}
 
-          {/* 🎤 Nghệ sĩ */}
-          {activeTab === "artists" && (
-            <div className="artists-section" style={{ padding: "10px 0" }}>
-              <button
-                onClick={() => navigate("/artists")}
-                className="library-item"
-                style={{ marginBottom: "10px" }}
-              >
-                <div className="item-cover" style={{ 
-                  background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  borderRadius: "50%"
-                }}>
-                  <span style={{ fontSize: "32px" }}>🎤</span>
-                </div>
-                <div className="item-info">
-                  <span className="item-title">Tất cả nghệ sĩ</span>
-                  <span className="item-subtitle">
-                    <span className="item-type">Xem danh sách</span>
-                  </span>
-                </div>
-              </button>
-            </div>
-          )}
-
-          {/* 🎵 Thể loại */}
+          {/* THỂ LOẠI */}
           {activeTab === "genre" && (
-            <div className="genre-section" style={{ padding: "10px 0" }}>
+            <div className="genre-section">
               {loadingGenres ? (
-                <p style={{ color: "#888" }}>Đang tải thể loại...</p>
-              ) : genres.length === 0 ? (
-                <p style={{ color: "#888" }}>Không có thể loại nào</p>
+                <p style={{ color: "#aaa" }}>Đang tải...</p>
               ) : (
                 genres.map((genre) => (
                   <div
                     key={genre.id}
                     className="library-item genre-item"
-                    onClick={() => handleGenreSelect(genre.name)}
+                    onClick={() => handleGenreSelect(genre)}
                   >
                     <div className="item-cover genre">
                       <HiMusicalNote size={26} />
                     </div>
                     <div className="item-info">
                       <span className="item-title">{genre.name}</span>
-                      <span className="item-subtitle">
-                        <span className="item-type">Thể loại</span>
-                      </span>
+                      <span className="item-subtitle">Thể loại</span>
                     </div>
                   </div>
                 ))
