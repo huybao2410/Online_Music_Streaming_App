@@ -24,7 +24,7 @@ router.get('/users', verifyToken, isAdmin, async (req, res) => {
     // Simple query without subqueries for now
     let query = `
       SELECT id, username, email, phone_number, avatar_url, 
-             role, status, is_premium, premium_expire,
+             role, status,
              password_hash, created_at
       FROM users
     `;
@@ -105,7 +105,7 @@ router.get('/users/:id', verifyToken, isAdmin, async (req, res) => {
   try {
     const [users] = await pool.query(
       `SELECT id, username, email, phone_number, avatar_url,
-              role, status, is_premium, premium_expire,
+              role, status,
               password_hash, created_at
        FROM users WHERE id = ?`,
       [req.params.id]
