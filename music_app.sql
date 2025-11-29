@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Nov 25, 2025 at 12:37 PM
+-- Generation Time: Nov 29, 2025 at 06:53 AM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -215,8 +215,7 @@ INSERT INTO `albums` (`album_id`, `name`, `artist_id`, `description`, `cover_url
 (5, 'Mỹ Tâm', 15, 'Album', 'http://10.0.2.2:8081/music_API/online_music/album/album_cover/album_1762761150.jpg', '2025-11-10', '2025-11-10 07:52:30', '2025-11-10 07:52:30'),
 (6, 'Jack - J97', 14, 'Album', 'http://10.0.2.2:8081/music_API/online_music/album/album_cover/album_1762896202.jpg', '2025-11-12', '2025-11-11 21:23:22', '2025-11-11 21:23:22'),
 (9, 'Ed Sheeran', 2, 'Album', 'http://10.0.2.2:8081/music_API/online_music/album/album_cover/album_1762907616.jpg', '2025-11-12', '2025-11-12 00:33:36', '2025-11-12 00:33:36'),
-(12, 'Đen', 12, 'Album', 'http://10.0.2.2:8081/music_API/online_music/album/album_cover/album_1763164837.jpeg', '2025-11-15', '2025-11-15 00:00:37', '2025-11-15 00:00:37'),
-(17, '213', 3, '12324', '', '2025-11-25', '2025-11-25 11:31:34', '2025-11-25 11:31:34');
+(12, 'Đen', 12, 'Album', 'http://10.0.2.2:8081/music_API/online_music/album/album_cover/album_1763164837.jpeg', '2025-11-15', '2025-11-15 00:00:37', '2025-11-15 00:00:37');
 
 -- --------------------------------------------------------
 
@@ -262,10 +261,7 @@ INSERT INTO `album_songs` (`album_id`, `song_id`, `track_number`, `added_at`) VA
 (12, 37, 3, '2025-11-15 00:00:37'),
 (12, 38, 2, '2025-11-15 00:00:37'),
 (12, 39, 4, '2025-11-15 00:00:37'),
-(12, 40, 1, '2025-11-15 00:00:37'),
-(17, 3, 3, '2025-11-25 11:31:34'),
-(17, 4, 2, '2025-11-25 11:31:34'),
-(17, 29, 1, '2025-11-25 11:31:34');
+(12, 40, 1, '2025-11-15 00:00:37');
 
 -- --------------------------------------------------------
 
@@ -347,7 +343,6 @@ INSERT INTO `artists` (`artist_id`, `name`, `bio`, `avatar_url`, `created_at`, `
 (105, 'Adele', 'Ca sĩ người Anh sở hữu giọng hát nội lực, được biết đến với các ca khúc ballad đầy cảm xúc như \"Hello\" và \"Someone Like You\".', 'http://10.0.2.2:8081/music_API/online_music/artist_avatar/adele.jpg', '2025-11-19 02:31:43', '2025-11-19 02:31:43'),
 (106, 'The Weeknd', 'Ca sĩ người Canada với phong cách R&B pha lẫn pop, nổi bật với album \"After Hours\" và ca khúc \"Blinding Lights\".', 'http://10.0.2.2:8081/music_API/online_music/artist_avatar/the_weeknd.jpg', '2025-11-19 02:31:43', '2025-11-19 02:31:43'),
 (107, 'Billie Eilish', 'Ca sĩ kiêm nhạc sĩ trẻ người Mỹ, nổi tiếng với phong cách âm nhạc độc đáo và chất giọng trầm đặc trưng.', 'http://10.0.2.2:8081/music_API/online_music/artist_avatar/billie_eilish.jpg', '2025-11-19 02:31:43', '2025-11-19 02:31:43'),
-(108, 'Bruno Mars', 'Ca sĩ, nhạc sĩ và nhà sản xuất người Mỹ, được biết đến với các bản hit như \"Uptown Funk\" và \"24K Magic\".', 'http://10.0.2.2:8081/music_API/online_music/artist_avatar/bruno_mars.jpg', '2025-11-19 02:31:43', '2025-11-19 02:31:43'),
 (109, 'Ariana Grande', 'Nữ ca sĩ người Mỹ nổi tiếng với giọng hát 4 quãng tám và phong cách pop-R&B hiện đại.', 'http://10.0.2.2:8081/music_API/online_music/artist_avatar/ariana_grande.jpg', '2025-11-19 02:31:43', '2025-11-19 02:31:43'),
 (110, 'Justin Bieber', 'Nam ca sĩ người Canada nổi lên từ YouTube, sở hữu nhiều bản hit quốc tế như \"Sorry\" và \"Peaches\".', 'http://10.0.2.2:8081/music_API/online_music/artist_avatar/justin_bieber.jpg', '2025-11-19 02:31:43', '2025-11-19 02:31:43'),
 (111, 'Olivia Rodrigo', 'Ca sĩ, nhạc sĩ trẻ người Mỹ nổi tiếng với các ca khúc pop-rock đầy cảm xúc như \"drivers license\" và \"vampire\".', 'http://10.0.2.2:8081/music_API/online_music/artist_avatar/olivia_rodrigo.jpg', '2025-11-19 02:31:43', '2025-11-19 02:31:43'),
@@ -433,6 +428,19 @@ INSERT INTO `favorite_albums` (`id`, `user_id`, `album_id`, `created_at`) VALUES
 (24, '32', '3', '2025-11-19 23:59:36'),
 (25, '45', '6', '2025-11-20 00:00:50'),
 (26, '45', '12', '2025-11-20 00:01:08');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `favorite_songs`
+--
+
+CREATE TABLE `favorite_songs` (
+  `id` int(11) NOT NULL,
+  `user_id` int(11) NOT NULL,
+  `song_id` int(11) NOT NULL,
+  `added_at` datetime DEFAULT current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
 
@@ -655,7 +663,9 @@ INSERT INTO `playlists` (`playlist_id`, `user_id`, `name`, `is_public`, `created
 (36, 32, 'abc', 0, '2025-11-20 17:00:58', '2025-11-20 17:00:58'),
 (37, 32, 'kkk', 0, '2025-11-20 17:30:05', '2025-11-20 17:30:05'),
 (46, 45, 'concat', 0, '2025-11-21 13:48:49', '2025-11-21 13:48:49'),
-(47, 46, '123', 0, '2025-11-23 04:06:06', '2025-11-23 04:06:06');
+(48, 46, '123', 0, '2025-11-25 21:36:13', '2025-11-25 21:36:13'),
+(53, 46, '3213', 1, '2025-11-28 00:33:24', '2025-11-28 00:33:24'),
+(54, 46, '123', 0, '2025-11-29 03:17:28', '2025-11-29 03:17:28');
 
 -- --------------------------------------------------------
 
@@ -707,7 +717,15 @@ INSERT INTO `playlist_songs` (`playlist_id`, `song_id`, `added_at`) VALUES
 (46, 73, '2025-11-21 13:48:55'),
 (46, 74, '2025-11-21 13:49:05'),
 (46, 75, '2025-11-21 13:49:08'),
-(46, 76, '2025-11-21 13:49:12');
+(46, 76, '2025-11-21 13:49:12'),
+(48, 73, '2025-11-27 21:08:54'),
+(48, 74, '2025-11-27 21:08:51'),
+(48, 75, '2025-11-27 21:08:43'),
+(48, 76, '2025-11-27 21:08:48'),
+(48, 78, '2025-11-28 00:16:05'),
+(53, 78, '2025-11-29 02:13:32'),
+(54, 75, '2025-11-29 03:56:06'),
+(54, 78, '2025-11-29 03:53:13');
 
 -- --------------------------------------------------------
 
@@ -803,7 +821,9 @@ INSERT INTO `songs` (`song_id`, `title`, `artist_id`, `genre_id`, `duration`, `a
 (73, 'Shinunoga E-Wa', 93, 31, 0, 'http://localhost:8081/music_API/online_music/audio/shinunoga_e_wa.mp3', 'http://localhost:8081/music_API/online_music/cover/_shinunoga_e_wa.jpeg', NULL, 0, '2025-11-21 13:48:55', '2025-11-21 13:48:55', 0),
 (74, 'Sorry', 8, 31, 0, 'http://localhost:8081/music_API/online_music/audio/sorry.mp3', 'http://localhost:8081/music_API/online_music/cover/_sorry.jpeg', NULL, 0, '2025-11-21 13:49:05', '2025-11-21 13:49:05', 0),
 (75, 'Waka Waka', 80, 31, 0, 'http://localhost:8081/music_API/online_music/audio/waka_waka.mp3', 'http://localhost:8081/music_API/online_music/cover/_waka_waka.jpeg', NULL, 0, '2025-11-21 13:49:08', '2025-11-21 13:49:08', 0),
-(76, 'Gieo Quẻ', 32, 31, 0, 'http://localhost:8081/music_API/online_music/audio/gieo_que.mp3', 'http://localhost:8081/music_API/online_music/cover/hoang_thuy_linh_en_gieo_que.jpeg', NULL, 0, '2025-11-21 13:49:12', '2025-11-21 13:49:12', 0);
+(76, 'Gieo Quẻ', 32, 31, 0, 'http://localhost:8081/music_API/online_music/audio/gieo_que.mp3', 'http://localhost:8081/music_API/online_music/cover/hoang_thuy_linh_en_gieo_que.jpeg', NULL, 0, '2025-11-21 13:49:12', '2025-11-21 13:49:12', 0),
+(77, 'Anh Sai Rồi', 11, 10, 205, 'http://10.0.2.2:8081/music_API/online_music/audio/son_tung_m_tp_anh_sai_roi_1764245079.mp3', 'http://10.0.2.2:8081/music_API/online_music/cover/son_tung_m_tp_anh_sai_roi_cover_1764245079.jpg', NULL, 0, '2025-11-27 12:04:39', '2025-11-27 12:04:39', 0),
+(78, 'Anh Sai Rồi', 11, 31, 0, 'http://localhost:8081/music_API/online_music/audio/son_tung_m_tp_anh_sai_roi_1764245079.mp3', 'http://localhost:8081/music_API/online_music/cover/son_tung_m_tp_anh_sai_roi_cover_1764245079.jpg', NULL, 0, '2025-11-28 00:16:05', '2025-11-28 00:16:05', 0);
 
 -- --------------------------------------------------------
 
@@ -881,23 +901,23 @@ CREATE TABLE `users` (
   `avatar_url` varchar(255) DEFAULT NULL,
   `date_of_birth` date DEFAULT NULL,
   `role` enum('user','admin') DEFAULT 'user',
-  `status` enum('active','inactive','banned') DEFAULT 'active',
+  `status` enum('active','banned') DEFAULT 'active',
   `created_at` timestamp NULL DEFAULT current_timestamp(),
-  `updated_at` timestamp NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
-  `is_premium` tinyint(1) DEFAULT 0,
-  `premium_expire` datetime DEFAULT NULL
+  `updated_at` timestamp NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 --
 -- Dumping data for table `users`
 --
 
-INSERT INTO `users` (`id`, `username`, `email`, `phone_number`, `password_hash`, `avatar_url`, `date_of_birth`, `role`, `status`, `created_at`, `updated_at`, `is_premium`, `premium_expire`) VALUES
-(32, 'Thanh Đình', 'thanhdinh1806.tphcm@gmail.com', NULL, '#', 'https://lh3.googleusercontent.com/a/ACg8ocLB1hb9PlcCAsBXVLL5121WlKlpe8hulQkAyto4nEYhPJjpcQ=s96-c', NULL, 'user', 'active', '2025-11-16 16:47:58', '2025-11-16 16:47:58', 0, NULL),
-(36, 'Đình Thanh', 'dangthanhdinh.1806@gmail.com', NULL, '#', 'https://lh3.googleusercontent.com/a/ACg8ocI-qcPPlV369oRzT9J0EGoqU8jrfHxLFfTdue7czOSzHRWLtA=s96-c', NULL, 'user', 'active', '2025-11-19 21:41:00', '2025-11-19 21:41:00', 0, NULL),
-(45, 'Thanh Đình Nguyễn Ngô', 'nguyenngothanhdinh.hvt@gmail.com', NULL, '#', 'https://lh3.googleusercontent.com/a/ACg8ocKYNfyZ4lXvrH2w4nQ1Xwu7AVk-pHcwzF5R3AmxuazRfliC_GM=s96-c', NULL, 'user', 'active', '2025-11-19 23:07:04', '2025-11-19 23:07:04', 0, NULL),
-(46, 'Nguyễn Hồng Huy Bảo', 'huybaonguyenhong@gmail.com', NULL, '$2a$10$GOOGLE_OAUTH_USER_NO_PASSWORD_HASH_PLACEHOLDER', 'https://lh3.googleusercontent.com/a/ACg8ocJV4KAFwgJWm_3xNMcT3zT9w7CwEWizjzsKwwkTkgXwcjuxQoFh=s96-c', NULL, 'user', 'active', '2025-11-21 14:41:09', '2025-11-21 14:41:09', 0, NULL),
-(47, 'admin1', 'admin1@example.com', '0329944649', '$2b$10$bqTFQg8QYxoqhh7LaeRpfuiobv7QlyseH3ARrB/Fi4rfYkvuF0wYK', '/uploads/avatars/avatar-1764070203040-179363556.jpg', '1989-12-31', 'admin', 'active', '2025-11-23 05:12:24', '2025-11-25 11:30:03', 0, NULL);
+INSERT INTO `users` (`id`, `username`, `email`, `phone_number`, `password_hash`, `avatar_url`, `date_of_birth`, `role`, `status`, `created_at`, `updated_at`) VALUES
+(32, 'Thanh Đình', 'thanhdinh1806.tphcm@gmail.com', NULL, '#', 'https://lh3.googleusercontent.com/a/ACg8ocLB1hb9PlcCAsBXVLL5121WlKlpe8hulQkAyto4nEYhPJjpcQ=s96-c', NULL, 'user', 'active', '2025-11-16 16:47:58', '2025-11-28 00:09:18'),
+(36, 'Đình Thanh', 'dangthanhdinh.1806@gmail.com', NULL, '#', 'https://lh3.googleusercontent.com/a/ACg8ocI-qcPPlV369oRzT9J0EGoqU8jrfHxLFfTdue7czOSzHRWLtA=s96-c', NULL, 'user', 'active', '2025-11-19 21:41:00', '2025-11-19 21:41:00'),
+(45, 'Thanh Đình Nguyễn Ngô', 'nguyenngothanhdinh.hvt@gmail.com', NULL, '#', 'https://lh3.googleusercontent.com/a/ACg8ocKYNfyZ4lXvrH2w4nQ1Xwu7AVk-pHcwzF5R3AmxuazRfliC_GM=s96-c', NULL, 'user', 'active', '2025-11-19 23:07:04', '2025-11-19 23:07:04'),
+(46, 'Nguyễn Hồng Huy Bảo', 'huybaonguyenhong@gmail.com', NULL, '$2a$10$GOOGLE_OAUTH_USER_NO_PASSWORD_HASH_PLACEHOLDER', 'https://lh3.googleusercontent.com/a/ACg8ocJV4KAFwgJWm_3xNMcT3zT9w7CwEWizjzsKwwkTkgXwcjuxQoFh=s96-c', NULL, 'user', 'active', '2025-11-21 14:41:09', '2025-11-27 22:43:38'),
+(47, 'admin1', 'admin1@example.com', '0329944649', '$2b$10$bqTFQg8QYxoqhh7LaeRpfuiobv7QlyseH3ARrB/Fi4rfYkvuF0wYK', '/uploads/avatars/avatar-1764070203040-179363556.jpg', '1989-12-31', 'admin', 'active', '2025-11-23 05:12:24', '2025-11-25 11:30:03'),
+(48, 'Nguyen Huy Bao', 'huybaonguyen2004@gmail.com', NULL, '$2a$10$GOOGLE_OAUTH_USER_NO_PASSWORD_HASH_PLACEHOLDER', 'https://lh3.googleusercontent.com/a/ACg8ocLLZvAeSvdwNdFrUEqw7lrMfTWItaavMQGUg3w9SbTmYqQr8w=s96-c', NULL, 'user', 'banned', '2025-11-27 21:42:25', '2025-11-28 00:09:14'),
+(49, NULL, '123asd@gmail.com', NULL, '$2b$10$FRXXEwJTPfMGQaIZp5uOMOysSke1/GAn7jCdRJchvZVpa//Fc6t5u', NULL, NULL, 'user', 'active', '2025-11-28 00:13:19', '2025-11-28 00:13:19');
 
 -- --------------------------------------------------------
 
@@ -1029,6 +1049,12 @@ ALTER TABLE `favorite_albums`
   ADD UNIQUE KEY `unique_favorite` (`user_id`,`album_id`);
 
 --
+-- Indexes for table `favorite_songs`
+--
+ALTER TABLE `favorite_songs`
+  ADD PRIMARY KEY (`id`);
+
+--
 -- Indexes for table `genres`
 --
 ALTER TABLE `genres`
@@ -1124,7 +1150,7 @@ ALTER TABLE `ads_songs`
 -- AUTO_INCREMENT for table `albums`
 --
 ALTER TABLE `albums`
-  MODIFY `album_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=18;
+  MODIFY `album_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=23;
 
 --
 -- AUTO_INCREMENT for table `artists`
@@ -1145,6 +1171,12 @@ ALTER TABLE `favorite_albums`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=27;
 
 --
+-- AUTO_INCREMENT for table `favorite_songs`
+--
+ALTER TABLE `favorite_songs`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+
+--
 -- AUTO_INCREMENT for table `genres`
 --
 ALTER TABLE `genres`
@@ -1160,13 +1192,13 @@ ALTER TABLE `listening_history`
 -- AUTO_INCREMENT for table `playlists`
 --
 ALTER TABLE `playlists`
-  MODIFY `playlist_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=48;
+  MODIFY `playlist_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=55;
 
 --
 -- AUTO_INCREMENT for table `songs`
 --
 ALTER TABLE `songs`
-  MODIFY `song_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=77;
+  MODIFY `song_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=79;
 
 --
 -- AUTO_INCREMENT for table `subscription_plans`
@@ -1178,7 +1210,7 @@ ALTER TABLE `subscription_plans`
 -- AUTO_INCREMENT for table `users`
 --
 ALTER TABLE `users`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=48;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=50;
 
 --
 -- AUTO_INCREMENT for table `user_artists_follow`
@@ -1190,7 +1222,7 @@ ALTER TABLE `user_artists_follow`
 -- AUTO_INCREMENT for table `user_favorite_artists`
 --
 ALTER TABLE `user_favorite_artists`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=107;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=114;
 
 --
 -- AUTO_INCREMENT for table `user_subscriptions`

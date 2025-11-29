@@ -1,4 +1,3 @@
-// backend/src/server.js
 const express = require('express');
 const cors = require('cors');
 const path = require('path');
@@ -19,8 +18,19 @@ const paymentsRoutes = require('./routes/payments');
 const searchRoutes = require('./routes/search');
 const listeningHistoryRoutes = require('./routes/listening-history');
 const favoriteSongsRoutes = require('./routes/favorite-songs');
-
 const app = express();
+
+
+
+
+
+
+
+
+
+
+
+
 app.use(cors({ origin: process.env.CORS_ORIGIN || 'http://localhost:3000', credentials: true }));
 app.use(express.json());
 
@@ -84,7 +94,7 @@ const pool = require('./config/db');
   try {
     const conn = await pool.getConnection();
     console.log("MySQL connected!");
-    
+
     // Auto-create songs table if not exists
     await conn.query(`
       CREATE TABLE IF NOT EXISTS songs (
@@ -135,10 +145,9 @@ const pool = require('./config/db');
       `);
       console.log("Sample songs inserted");
     }
-    
+
     conn.release();
   } catch (err) {
     console.error("MySQL connection error:", err.message);
   }
 })();
-
