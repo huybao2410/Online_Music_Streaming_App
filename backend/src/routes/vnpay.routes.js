@@ -1,14 +1,16 @@
-const express = require("express");
+// backend/src/routes/vnpay.routes.js
+const express = require('express');
 const router = express.Router();
-const controller = require("../controllers/vnpay.controller");
+const controller = require('../controllers/vnpay.controller');
+const { authenticate } = require('../middlewares/auth');
 
-// POST create payment
-router.post("/create-payment", controller.createPayment);
+// create-payment: require auth
+router.post('/create-payment', authenticate, controller.createPayment);
 
-// VNPay redirect (GET)
-router.get("/return", controller.vnpReturn);
+// VNPay redirect (GET) - VNPay will call this (no auth)
+router.get('/return', controller.vnpReturn);
 
-// VNPay IPN (POST)
-router.post("/ipn", controller.vnpIpn);
+// IPN (optional)
+router.post('/ipn', controller.vnpIpn);
 
 module.exports = router;

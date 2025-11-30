@@ -20,17 +20,6 @@ const listeningHistoryRoutes = require('./routes/listening-history');
 const favoriteSongsRoutes = require('./routes/favorite-songs');
 const app = express();
 
-
-
-
-
-
-
-
-
-
-
-
 app.use(cors({ origin: process.env.CORS_ORIGIN || 'http://localhost:3000', credentials: true }));
 app.use(express.json());
 
@@ -57,6 +46,9 @@ const vnpayRoutes = require("./routes/vnpay.routes");
 app.use("/api/vnpay", vnpayRoutes);
 
 app.get('/api/health', (req, res) => res.json({ message: 'Backend is running' }));
+
+
+
 
 // Test endpoint to check songs
 app.get('/api/test/songs', async (req, res) => {
