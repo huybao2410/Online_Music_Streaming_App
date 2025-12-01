@@ -8,6 +8,7 @@ import AdminProfileContent from "../components/AdminProfileContent";
 import GenreManagementContent from "../components/GenreManagementContent";
 import axios from "axios";
 import AdminAlbums from "./AdminAlbums";
+import AdminStatistics from "../components/AdminStatistics";
 import { 
   FaTachometerAlt, 
   FaMusic, 
@@ -439,8 +440,8 @@ const AdminDashboard = () => {
         {/* Tab Thống Kê */}
         {activeTab === "stats" && (
           <div className="tab-content">
-             <h2>📊 Thống kê chi tiết</h2>
-             {/* Nội dung thống kê chi tiết */}
+            <h2>📊 Thống kê chi tiết</h2>
+            <AdminStatistics />
           </div>
         )}
 

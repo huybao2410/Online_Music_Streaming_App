@@ -12,6 +12,7 @@ import EditPlaylistSongsModal from "../components/EditPlaylistSongsModal";
 import "./PlaylistDetail.css";
 
 export default function PlaylistDetail() {
+  const [bannerColor, setBannerColor] = useState(null);
   const { id } = useParams();
   const navigate = useNavigate();
   const { currentSong, setCurrentSong, setPlaylist: setPlayerPlaylist, isPlaying } = useContext(PlayerContext);
@@ -65,6 +66,18 @@ export default function PlaylistDetail() {
         }
         
         setPlaylist(playlistData);
+        // Tạo màu nền động dựa trên tên playlist
+        function stringToColor(str) {
+          let hash = 0;
+          for (let i = 0; i < str.length; i++) {
+            hash = str.charCodeAt(i) + ((hash << 5) - hash);
+          }
+          const c = (hash & 0x00FFFFFF)
+            .toString(16)
+            .toUpperCase();
+          return `#${"00000".substring(0, 6 - c.length) + c}`;
+        }
+        setBannerColor(stringToColor(playlistData.name || "playlist"));
 
         if (token) {
           const userId = JSON.parse(atob(token.split('.')[1])).id;
@@ -236,7 +249,7 @@ export default function PlaylistDetail() {
 
   return (
     <div className="playlist-detail-page">
-      <div className="playlist-banner">
+      <div className="playlist-banner" style={bannerColor ? {background: `linear-gradient(180deg, ${bannerColor} 0%, #0f0f1e 100%)`} : {}}>
         <div className="playlist-banner-content">
           <div className="playlist-cover-large">
             {renderPlaylistCover()}

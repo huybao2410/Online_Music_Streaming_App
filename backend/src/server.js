@@ -2,6 +2,7 @@ const express = require('express');
 const cors = require('cors');
 const path = require('path');
 require('dotenv').config();
+console.log('VNPAY_HASHSECRET:', process.env.VNPAY_HASHSECRET);
 
 const authRoutes = require('./routes/auth');
 const adminRoutes = require('./routes/adminUsers');
@@ -18,18 +19,8 @@ const paymentsRoutes = require('./routes/payments');
 const searchRoutes = require('./routes/search');
 const listeningHistoryRoutes = require('./routes/listening-history');
 const favoriteSongsRoutes = require('./routes/favorite-songs');
+const favoriteAlbumsRoutes = require('./routes/favorite-albums');
 const app = express();
-
-
-
-
-
-
-
-
-
-
-
 
 app.use(cors({ origin: process.env.CORS_ORIGIN || 'http://localhost:3000', credentials: true }));
 app.use(express.json());
@@ -55,7 +46,7 @@ const uploadAlbumCoverRouter = require('./routes/album/uploadCover');
 app.use('/api/upload-album-cover', uploadAlbumCoverRouter);
 const vnpayRoutes = require("./routes/vnpay.routes");
 app.use("/api/vnpay", vnpayRoutes);
-
+app.use('/api/favorite-albums', favoriteAlbumsRoutes);
 app.get('/api/health', (req, res) => res.json({ message: 'Backend is running' }));
 
 // Test endpoint to check songs

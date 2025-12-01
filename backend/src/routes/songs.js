@@ -378,7 +378,7 @@ router.put('/:id', verifyToken, isAdmin, async (req, res) => {
 router.delete('/:id', verifyToken, isAdmin, async (req, res) => {
   try {
     // Check if song exists
-    const [songs] = await pool.query('SELECT * FROM songs WHERE id = ?', [req.params.id]);
+    const [songs] = await pool.query('SELECT * FROM songs WHERE song_id = ?', [req.params.id]);
     if (!songs.length) {
       return res.status(404).json({
         success: false,
@@ -405,7 +405,7 @@ router.delete('/:id', verifyToken, isAdmin, async (req, res) => {
     }
 
     // Delete from database
-    await pool.query('DELETE FROM songs WHERE id = ?', [req.params.id]);
+    await pool.query('DELETE FROM songs WHERE song_id = ?', [req.params.id]);
 
     return res.json({
       success: true,

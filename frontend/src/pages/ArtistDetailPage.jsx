@@ -1,258 +1,147 @@
-import React, { useState, useEffect, useContext } from 'react';
-import { useParams, useLocation, useNavigate } from 'react-router-dom';
-import axios from 'axios';
-import { FaPlay, FaPause, FaHeart, FaRegHeart, FaClock } from 'react-icons/fa';
-import { PlayerContext } from '../context/PLayerContext';
-import './ArtistDetailPage.css';
+import React, { useState, useEffect, useContext } from "react";
+import { useParams, useNavigate } from "react-router-dom";
+import { HiArrowLeft } from "react-icons/hi2";
+import { PlayerContext } from "../context/PLayerContext";
+import "./ArtistDetailPage.css";
 
-const PHP_API_URL = 'http://localhost:8081/music_API/online_music';
+const PHP_API_URL = "http://localhost:8081/music_API/online_music";
+const fixUrl = (url) => (url ? url.replace("10.0.2.2", "localhost") : "");
 
-export default function ArtistDetailPage() {
+const ArtistDetailPage = () => {
   const { artistId } = useParams();
-  const location = useLocation();
   const navigate = useNavigate();
-  const { currentSong, isPlaying, playSong, togglePlay } = useContext(PlayerContext);
-  
-  const [artistName, setArtistName] = useState(location.state?.artistName || '');
+  const { setPlaylist, setCurrentSong } = useContext(PlayerContext);
+
+  const [artist, setArtist] = useState(null);
   const [songs, setSongs] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
-  const [favorites, setFavorites] = useState([]);
 
   useEffect(() => {
-    fetchArtistSongs();
-    loadFavorites();
+    loadArtistData();
   }, [artistId]);
 
-  const loadFavorites = () => {
-    try {
-      const favs = JSON.parse(localStorage.getItem('favorites') || '[]');
-      setFavorites(favs);
-    } catch (err) {
-      setFavorites([]);
-    }
-  };
-
-  const fetchArtistSongs = async () => {
+  const loadArtistData = async () => {
     try {
       setLoading(true);
-      const response = await axios.get(`${PHP_API_URL}/song/get_songs.php`);
-      
-      if (response.data.status === 'success' && Array.isArray(response.data.songs)) {
-        const artistSongs = response.data.songs.filter(
-          song => song.artist_id && song.artist_id.toString() === artistId.toString()
-        );
-        
-        if (artistSongs.length > 0 && !artistName) {
-          setArtistName(artistSongs[0].artist);
-        }
-        
-        setSongs(artistSongs);
+
+      // === 1) Artist Info ===
+      const resArtist = await fetch(
+        `${PHP_API_URL}/artist/get_artist_by_id.php?id=${artistId}`
+      );
+      const dataArtist = await resArtist.json();
+
+      console.log("ARTIST:", dataArtist);
+
+      if (!dataArtist.status) {
+        setArtist(null);
+      } else {
+        setArtist({
+          id: dataArtist.artist.artist_id,
+          name: dataArtist.artist.name,
+          bio: dataArtist.artist.bio,
+          avatar: fixUrl(dataArtist.artist.avatar_url),
+        });
+      }
+
+      // === 2) Songs ===
+      const resSongs = await fetch(
+        `${PHP_API_URL}/song/get_songs_by_artist.php?id=${artistId}`
+      );
+      const dataSongs = await resSongs.json();
+
+      console.log("SONGS RAW:", dataSongs);
+
+      if (dataSongs.status && Array.isArray(dataSongs.songs)) {
+        const normalized = dataSongs.songs.map((s) => ({
+          id: s.song_id,
+          title: s.title,
+          artist: artist?.name || "Unknown", // FIX artist id -> name
+          cover: fixUrl(s.cover_url),
+
+          // ❗ PLAYERCONTEXT YÊU CẦU AUDIO, KHÔNG PHẢI audio_url
+          audio: fixUrl(s.audio_url),
+        }));
+
+        console.log("SONGS NORMALIZED:", normalized);
+
+        setSongs(normalized);
+      } else {
+        setSongs([]);
       }
     } catch (err) {
-      console.error('Error fetching artist songs:', err);
-      setError('Không thể tải bài hát của nghệ sĩ');
+      console.error("Lỗi load nghệ sĩ:", err);
     } finally {
       setLoading(false);
     }
   };
 
-  const handlePlaySong = (song, index) => {
-    const songData = {
-      id: song.song_id,
-      song_id: song.song_id,
-      title: song.title,
-      artist: song.artist,
-      artist_name: song.artist,
-      cover_url: fixLocalUrl(song.cover),
-      audio_url: fixLocalUrl(song.audio || song.url),
-      duration: song.duration || 0
-    };
+  // === PLAY SONG ===
+  const playSongHandler = (song) => {
+    console.log("PLAY SONG:", song);
 
-    playSong(songData, songs.map(s => ({
-      id: s.song_id,
-      song_id: s.song_id,
-      title: s.title,
-      artist: s.artist,
-      artist_name: s.artist,
-      cover_url: fixLocalUrl(s.cover),
-      audio_url: fixLocalUrl(s.audio || s.url),
-      duration: s.duration || 0
-    })));
+    setPlaylist(songs);  // full list
+    setCurrentSong(song); // pass đúng object bài hát
   };
 
-  const handlePlayAll = () => {
-    if (songs.length > 0) {
-      handlePlaySong(songs[0], 0);
-    }
-  };
+  if (loading)
+    return <div className="artist-detail-page"><p>Đang tải...</p></div>;
 
-  const toggleLike = (songId, e) => {
-    e.stopPropagation();
-    
-    try {
-      const favs = JSON.parse(localStorage.getItem('favorites') || '[]');
-      const isLiked = favs.includes(songId);
-      
-      let newFavorites;
-      if (isLiked) {
-        newFavorites = favs.filter(id => id !== songId);
-      } else {
-        newFavorites = [...favs, songId];
-      }
-      
-      localStorage.setItem('favorites', JSON.stringify(newFavorites));
-      setFavorites(newFavorites);
-    } catch (err) {
-      console.error('Error toggling favorite:', err);
-    }
-  };
-
-  const isLiked = (songId) => {
-    return favorites.includes(songId);
-  };
-
-  const formatDuration = (seconds) => {
-    if (!seconds) return '0:00';
-    const mins = Math.floor(seconds / 60);
-    const secs = Math.floor(seconds % 60);
-    return `${mins}:${secs.toString().padStart(2, '0')}`;
-  };
-
-  const fixLocalUrl = (url) => {
-    if (!url) return '';
-    return url.replace('10.0.2.2', 'localhost');
-  };
-
-  const artistCover = songs.length > 0 ? fixLocalUrl(songs[0].cover) : null;
-
-  if (loading) {
-    return (
-      <div className="artist-detail-page">
-        <div className="loading">Đang tải...</div>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="artist-detail-page">
-        <div className="error">{error}</div>
-      </div>
-    );
-  }
+  if (!artist)
+    return <div className="artist-detail-page"><p>Không tìm thấy nghệ sĩ</p></div>;
 
   return (
-    <div className="artist-detail-page">
-      {/* Artist Header */}
-      <div className="artist-header">
-        <div className="artist-header-bg">
-          {artistCover && (
-            <img src={artistCover} alt={artistName} className="bg-image" />
-          )}
-          <div className="bg-overlay"></div>
+    <div className="artist-detail-page fade-in">
+
+      <button className="back-button" onClick={() => navigate(-1)}>
+        <HiArrowLeft size={24} />
+      </button>
+
+      {/* ARTIST HEADER */}
+      <div className="artist-header" style={{display: 'flex', alignItems: 'center', gap: 32, position: 'relative'}}>
+        <img
+          src={artist.avatar || "https://placehold.co/220x220"}
+          alt={artist.name}
+          style={{width: 220, height: 220, borderRadius: 20, objectFit: 'cover', boxShadow: '0 4px 24px #0004'}}
+        />
+        <div style={{flex: 1}}>
+          <div style={{fontSize: 18, color: '#b3b3b3', fontWeight: 500, marginBottom: 4}}>Nghệ sĩ · {songs.length} Bài hát</div>
+          <h1 style={{fontSize: 44, fontWeight: 800, color: '#fff', margin: 0}}>{artist.name}</h1>
+          {artist.bio && <p style={{color: '#b3b3b3', fontSize: 16, margin: '12px 0 0 0'}}>{artist.bio}</p>}
         </div>
-        
-        <div className="artist-header-content">
-          <div className="artist-avatar">
-            {artistCover ? (
-              <img src={artistCover} alt={artistName} />
-            ) : (
-              <div className="avatar-placeholder">🎤</div>
-            )}
+      </div>
+
+      {/* SONG LIST */}
+      <div className="song-list" style={{marginTop: 32}}>
+        {/* Header */}
+        <div className="song-list-header" style={{display: 'flex', alignItems: 'center', padding: '8px 16px', fontWeight: 700, color: '#b3b3b3', borderBottom: '1px solid #222'}}>
+          <div style={{width: 40, textAlign: 'center'}}>#</div>
+          <div style={{flex: 2, display: 'flex', alignItems: 'center', gap: 12}}>Tiêu đề</div>
+          <div style={{flex: 1, textAlign: 'left'}}>Nghệ sĩ</div>
+        </div>
+        {/* Song rows */}
+        {songs.map((song, idx) => (
+          <div
+            key={song.id}
+            className="song-row hover-highlight"
+            onClick={() => playSongHandler(song)}
+            style={{display: 'flex', alignItems: 'center', padding: '8px 16px', borderBottom: '1px solid #222', cursor: 'pointer'}}
+          >
+            <div style={{width: 40, textAlign: 'center', fontWeight: 600, color: '#b3b3b3'}}>{idx + 1}</div>
+            <div style={{flex: 2, display: 'flex', alignItems: 'center', gap: 12}}>
+              <img
+                src={song.cover || "https://placehold.co/80"}
+                alt={song.title}
+                style={{width: 48, height: 48, objectFit: 'cover', borderRadius: 6, boxShadow: '0 2px 8px #0002'}}
+              />
+              <span style={{fontWeight: 600, color: '#fff'}}>{song.title}</span>
+            </div>
+            <div style={{flex: 1, color: '#fff', fontWeight: 400}}>{song.artist}</div>
           </div>
-          
-          <div className="artist-info">
-            <p className="artist-label">Nghệ sĩ</p>
-            <h1 className="artist-name">{artistName}</h1>
-            <p className="artist-stats">{songs.length} bài hát</p>
-          </div>
-        </div>
+        ))}
       </div>
 
-      {/* Controls */}
-      <div className="artist-controls">
-        <button className="play-all-btn" onClick={handlePlayAll}>
-          {isPlaying && currentSong?.artist === artistName ? (
-            <>
-              <FaPause size={24} />
-              <span>Tạm dừng</span>
-            </>
-          ) : (
-            <>
-              <FaPlay size={24} />
-              <span>Phát tất cả</span>
-            </>
-          )}
-        </button>
-      </div>
-
-      {/* Songs List */}
-      <div className="songs-section">
-        <div className="songs-header">
-          <div className="col-number">#</div>
-          <div className="col-title">Tiêu đề</div>
-          <div className="col-duration"><FaClock /></div>
-        </div>
-
-        <div className="songs-list">
-          {songs.map((song, index) => {
-            const isCurrentSong = currentSong?.song_id === song.song_id;
-            const isPlayingNow = isCurrentSong && isPlaying;
-
-            return (
-              <div
-                key={song.song_id}
-                className={`song-row ${isCurrentSong ? 'active' : ''}`}
-                onClick={() => handlePlaySong(song, index)}
-              >
-                <div className="col-number">
-                  {isPlayingNow ? (
-                    <div className="playing-indicator">
-                      <span></span>
-                      <span></span>
-                      <span></span>
-                    </div>
-                  ) : (
-                    <span className="number">{index + 1}</span>
-                  )}
-                </div>
-
-                <div className="col-title">
-                  <img 
-                    src={fixLocalUrl(song.cover)} 
-                    alt={song.title}
-                    className="song-cover"
-                  />
-                  <div className="song-info">
-                    <div className={`song-title ${isCurrentSong ? 'playing' : ''}`}>
-                      {song.title}
-                    </div>
-                    <div className="song-artist">{song.artist}</div>
-                  </div>
-                </div>
-
-                <div className="col-actions">
-                  <button
-                    className={`like-btn ${isLiked(song.song_id) ? 'liked' : ''}`}
-                    onClick={(e) => toggleLike(song.song_id, e)}
-                  >
-                    {isLiked(song.song_id) ? (
-                      <FaHeart size={16} />
-                    ) : (
-                      <FaRegHeart size={16} />
-                    )}
-                  </button>
-                </div>
-
-                <div className="col-duration">
-                  {formatDuration(song.duration)}
-                </div>
-              </div>
-            );
-          })}
-        </div>
-      </div>
     </div>
   );
-}
+};
+
+export default ArtistDetailPage;

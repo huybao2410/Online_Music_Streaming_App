@@ -276,10 +276,8 @@ function SongManagement() {
     <AdminLayout>
     <div className="song-management">
       <div className="song-management-header">
-        <h1>
-          <FaMusic /> Quản lý bài hát
-        </h1>
-        <button className="btn-add" onClick={() => openModal("create")}>
+        <h1>Quản lý bài hát</h1>
+        <button className="btn-add" onClick={() => openModal("create")}> 
           <FaPlus /> Thêm bài hát mới
         </button>
       </div>
@@ -304,7 +302,7 @@ function SongManagement() {
       )}
 
       {/* Filters */}
-      <div className="filters">
+      <div className="filters filters-left">
         <div className="search-box">
           <FaSearch />
           <input

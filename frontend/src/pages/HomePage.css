@@ -1,3 +1,13 @@
+/* Căn trái cho danh sách bài hát */
+.songs-section-left {
+  align-items: flex-start;
+  text-align: left;
+}
+
+.section-header-left {
+  justify-content: flex-start;
+  text-align: left;
+}
 /* =============================
    BASE LAYOUT
 ============================= */

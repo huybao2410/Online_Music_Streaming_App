@@ -159,7 +159,6 @@ const UserManagementContent = () => {
   const getStatusBadge = (status) => {
     const statusMap = {
       active: { icon: <FaCheckCircle />, className: "status-badge active", text: "Hoạt động" },
-      inactive: { icon: <FaBan />, className: "status-badge inactive", text: "Không hoạt động" },
       banned: { icon: <FaBan />, className: "status-badge banned", text: "Bị cấm" },
     };
     const s = statusMap[status] || statusMap.active;
@@ -326,7 +325,6 @@ const UserManagementContent = () => {
           <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}>
             <option value="all">Tất cả trạng thái</option>
             <option value="active">Hoạt động</option>
-            <option value="inactive">Không hoạt động</option>
             <option value="banned">Bị cấm</option>
           </select>
         </div>
@@ -383,7 +381,7 @@ const UserManagementContent = () => {
                     <td>{getRoleBadge(user.role)}</td>
                     <td>{getStatusBadge(user.status)}</td>
                     <td>
-                      {user.is_premium ? (
+                      {user.premium ? (
                         <span className="premium-badge">⭐ Premium</span>
                       ) : (
                         <span className="text-muted">Free</span>
@@ -489,7 +487,7 @@ const UserManagementContent = () => {
                     onChange={(e) => setFormData({ ...formData, status: e.target.value })}
                   >
                     <option value="active">Hoạt động</option>
-                    <option value="inactive">Không hoạt động</option>
+                  
                     <option value="banned">Bị cấm</option>
                   </select>
                 </div>

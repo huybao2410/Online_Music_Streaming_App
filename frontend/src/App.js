@@ -94,7 +94,7 @@ function App() {
           <Route path="/premium-upgrade" element={<PremiumPage />} />
           <Route path="/artists" element={<ArtistsPage />} />
           <Route path="/artist/:artistId" element={<ArtistDetailPage />} />
-          <Route path="/album/:album_id" element={<AlbumDetailPage />} />
+          
 
         </Route>
 
@@ -118,5 +118,4 @@ function App() {
     </Router>
   );
 }
-
 export default App;

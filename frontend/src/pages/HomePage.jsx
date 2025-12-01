@@ -2,7 +2,7 @@ import React, { useState, useEffect, useContext } from "react";
 import { useNavigate } from "react-router-dom";
 import { getSongs, getSongsByGenre } from "../services/songService";
 import { getArtists } from "../services/artistService";
-import { getAllAlbums, toggleAlbumFavorite, getFavoriteAlbumIds, addFavoriteAlbum, removeFavoriteAlbum } from "../services/albumService";
+import { getAllAlbums, toggleAlbumFavorite, getFavoriteAlbumIds } from "../services/albumService";
 import { PlayerContext } from "../context/PLayerContext";
 import "../layout/Layout.css";
 import "./HomePage.css";
@@ -10,6 +10,7 @@ import SongList from "../components/SongList";
 import { AiFillHeart, AiOutlineHeart } from "react-icons/ai";
 import { FaPlay } from "react-icons/fa";
 
+// --- HÀM TIỆN ÍCH (Định nghĩa bên ngoài component) ---
 const fixLocalUrl = (url) => {
   if (!url) return "";
   if (url.startsWith("http")) {
@@ -24,12 +25,14 @@ const fixAlbumUrl = (url) => {
 };
 
 const HomePage = () => {
+  // --- KHAI BÁO STATE (Đầy đủ) ---
   const [activeTab, setActiveTab] = useState("all");
   const [allSongs, setAllSongs] = useState([]);
   const [dailyMixes, setDailyMixes] = useState([]);
   const [recommendations, setRecommendations] = useState([]);
   const [loading, setLoading] = useState(true);
-
+  
+  // Các state bị thiếu gây lỗi undefined
   const [genreSongs, setGenreSongs] = useState([]); 
   const [selectedGenre, setSelectedGenre] = useState(null); 
   const [artists, setArtists] = useState([]); 
@@ -75,8 +78,8 @@ const HomePage = () => {
     }
   };
 
+  // --- LOGIC BẤM TIM ---
   const handleToggleFavorite = async (e, album) => {
-      console.log('Toggle favorite album:', album.album_id, 'Trạng thái:', album.is_favorite);
     e.stopPropagation();
     const token = localStorage.getItem("token");
     if (!token) {
@@ -94,18 +97,7 @@ const HomePage = () => {
     );
 
     try {
-      if (newStatus) {
-        await addFavoriteAlbum(album.album_id);
-      } else {
-        await removeFavoriteAlbum(album.album_id);
-      }
-      // Sau khi thao tác, load lại danh sách ID album yêu thích
-      const favIds = await getFavoriteAlbumIds();
-      const favSet = new Set(favIds.map(id => String(id)));
-      setAlbums(prevAlbums => prevAlbums.map(a => ({
-        ...a,
-        is_favorite: favSet.has(String(a.album_id))
-      })));
+      await toggleAlbumFavorite(album.album_id);
       window.dispatchEvent(new Event("playlistUpdated"));
     } catch (err) {
       console.error("Lỗi toggle favorite:", err);
@@ -119,7 +111,7 @@ const HomePage = () => {
     }
   };
 
-  // --- INITIAL LOAD & EVENTS ---
+  // --- EFFECTS (LISTENERS) ---
   useEffect(() => {
     const savedGenre = localStorage.getItem('selectedGenre');
     if (savedGenre) {
@@ -180,6 +172,7 @@ const HomePage = () => {
     return () => window.removeEventListener("artistSelected", handleArtistSelected);
   }, []);
 
+  // --- INITIAL LOAD ---
   useEffect(() => {
     const initLoad = async () => {
       setLoadingArtists(true);
@@ -194,7 +187,7 @@ const HomePage = () => {
     initLoad();
   }, []);
 
-  // --- FIX LỖI REFERENCE ERROR Ở ĐÂY ---
+  // --- LOAD TAB ALL ---
   useEffect(() => {
     if (activeTab === "all") {
       const loadSongs = async () => {
@@ -202,25 +195,19 @@ const HomePage = () => {
           setLoading(true);
           const songs = await getSongs();
           setAllSongs(songs);
-          
           if (songs.length > 0) {
-             // 1. Khai báo biến trước
              const shuffled = [...songs].sort(() => Math.random() - 0.5);
              const mixSize = Math.ceil(songs.length / 4);
-
-             // 2. Sử dụng biến để set state Daily Mixes
              setDailyMixes([
                 { id: 1, name: "Daily Mix 1", description: "Yêu thích", songs: shuffled.slice(0, mixSize), cover: shuffled[0]?.cover },
                 { id: 2, name: "Daily Mix 2", description: "Khám phá", songs: shuffled.slice(mixSize, mixSize * 2), cover: shuffled[mixSize]?.cover },
                 { id: 3, name: "Daily Mix 3", description: "Thư giãn", songs: shuffled.slice(mixSize * 2, mixSize * 3), cover: shuffled[mixSize * 2]?.cover },
                 { id: 4, name: "Daily Mix 4", description: "Năng động", songs: shuffled.slice(mixSize * 3), cover: shuffled[mixSize * 3]?.cover },
              ]);
-
-             // 3. Khai báo biến cho Recommendations
+             
+             // Tạo danh sách gợi ý
              const recShuffled = [...songs].sort(() => Math.random() - 0.5);
              const recSize = Math.ceil(songs.length / 4);
-
-             // 4. Sử dụng biến để set state Recommendations (ĐÃ FIX)
              setRecommendations([
                 { id: 1, name: "Top Hits", description: "Hot nhất", songs: recShuffled.slice(0, recSize), cover: recShuffled[0]?.cover },
                 { id: 2, name: "Nhạc Việt", description: "V-Pop", songs: recShuffled.slice(recSize, recSize * 2), cover: recShuffled[recSize]?.cover },
@@ -244,6 +231,7 @@ const HomePage = () => {
 
   return (
     <div className="home-container">
+      {/* Category Filters */}
       <div className="category-filters">
         <button className={`filter-btn ${activeTab === "all" ? "active" : ""}`} onClick={() => { setActiveTab("all"); setSelectedGenre(null); }}>All</button>
         <button className={`filter-btn ${activeTab === "music" ? "active" : ""}`} onClick={() => { setActiveTab("music"); setSelectedGenre(null); }}>Music</button>
@@ -254,6 +242,7 @@ const HomePage = () => {
 
       {activeTab === "music" && <SongList />}
 
+      {/* 💿 Tab Albums */}
       {activeTab === "albums" && (
         <section className="albums-section">
           <div className="section-header">
@@ -272,18 +261,38 @@ const HomePage = () => {
                   onClick={() => navigate(`/album/${album.album_id}`)}
                 >
                   <div className="card-image-wrapper">
-                    <img src={fixAlbumUrl(album.cover_url)} alt={album.name} onError={(e) => (e.target.src = "https://placehold.co/300x300")} />
+                    <img
+                      src={fixAlbumUrl(album.cover_url)}
+                      alt={album.name}
+                      onError={(e) => (e.target.src = "https://placehold.co/300x300")}
+                    />
                     <div className="card-badge">Album</div>
                   </div>
+
                   <div className="card-info">
                     <h3 className="card-title" title={album.name}>{album.name}</h3>
-                    <p className="card-artist">{album.artist_name || "Nghệ sĩ"} • {album.song_count || 0} bài</p>
+                    <p className="card-artist">
+                      {album.artist_name || "Nghệ sĩ"} • {album.song_count || 0} bài
+                    </p>
                   </div>
+
                   <div className="card-actions">
-                    <button className={`action-btn-circle heart ${album.is_favorite ? 'active' : ''}`} onClick={(e) => handleToggleFavorite(e, album)} title={album.is_favorite ? "Bỏ thích" : "Thích"}>
+                    <button 
+                      className={`action-btn-circle heart ${album.is_favorite ? 'active' : ''}`}
+                      onClick={(e) => handleToggleFavorite(e, album)}
+                      title={album.is_favorite ? "Bỏ thích" : "Thích"}
+                    >
                       {album.is_favorite ? <AiFillHeart /> : <AiOutlineHeart />}
                     </button>
-                    <button className="action-btn-circle play" onClick={(e) => { e.stopPropagation(); navigate(`/album/${album.album_id}`); }} title="Xem chi tiết">
+
+                    <button 
+                      className="action-btn-circle play"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        navigate(`/album/${album.album_id}`);
+                      }}
+                      title="Xem chi tiết"
+                    >
                       <FaPlay size={12} style={{ marginLeft: "2px" }} />
                     </button>
                   </div>
@@ -294,6 +303,7 @@ const HomePage = () => {
         </section>
       )}
 
+      {/* 🎤 Tab Nghệ sĩ */}
       {activeTab === "artists" && (
         <section className="artists-section">
           <div className="section-header"><h2>Tất cả nghệ sĩ</h2></div>
@@ -312,6 +322,7 @@ const HomePage = () => {
         </section>
       )}
 
+      {/* Tab All */}
       {activeTab === "all" && (
         <>
           {albums.length > 0 && (
@@ -330,7 +341,6 @@ const HomePage = () => {
               </div>
             </section>
           )}
-
           {allSongs.length > 0 && (
             <section className="recommended-section">
               <div className="section-header"><h2>🎵 Gợi ý cho bạn</h2></div>

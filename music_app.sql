@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Nov 29, 2025 at 06:53 AM
+-- Generation Time: Nov 30, 2025 at 08:14 PM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -350,7 +350,6 @@ INSERT INTO `artists` (`artist_id`, `name`, `bio`, `avatar_url`, `created_at`, `
 (113, 'Sơn Tùng M-TP', 'Ca sĩ, nhạc sĩ và nhà sản xuất người Việt Nam, nổi bật với các ca khúc \"Lạc Trôi\", \"Hãy Trao Cho Anh\" và \"Chúng Ta Của Hiện Tại\".', 'http://10.0.2.2:8081/music_API/online_music/artist_avatar/son_tung_m_tp.jpg', '2025-11-19 02:31:43', '2025-11-20 17:35:41'),
 (114, 'Đen Vâu', 'Rapper và nhạc sĩ người Việt Nam, nổi tiếng với phong cách rap sâu lắng, truyền cảm.', 'http://10.0.2.2:8081/music_API/online_music/artist_avatar/den_vau.jpg', '2025-11-19 02:31:43', '2025-11-19 02:31:43'),
 (115, 'Hoàng Thùy Linh', 'Ca sĩ, diễn viên người Việt Nam, nổi bật với phong cách âm nhạc dân gian đương đại.', 'http://10.0.2.2:8081/music_API/online_music/artist_avatar/hoang_thuy_linh.jpg', '2025-11-19 02:31:43', '2025-11-19 02:31:43'),
-(116, 'Jack - J97', 'Ca sĩ, rapper và nhạc sĩ người Việt Nam, được biết đến qua các bài hát như \"Hồng Nhan\", \"Sóng Gió\" và \"Đom Đóm\".', 'http://10.0.2.2:8081/music_API/online_music/artist_avatar/jack_j97.jpg', '2025-11-19 02:31:43', '2025-11-19 02:31:43'),
 (117, 'Mỹ Tâm', 'Nữ ca sĩ hàng đầu Việt Nam, được mệnh danh là \"Họa mi tóc nâu\", sở hữu lượng người hâm mộ đông đảo.', 'http://10.0.2.2:8081/music_API/online_music/artist_avatar/my_tam.jpg', '2025-11-19 02:31:43', '2025-11-19 02:31:43');
 
 -- --------------------------------------------------------
@@ -427,7 +426,10 @@ INSERT INTO `favorite_albums` (`id`, `user_id`, `album_id`, `created_at`) VALUES
 (22, '32', '4', '2025-11-17 11:30:30'),
 (24, '32', '3', '2025-11-19 23:59:36'),
 (25, '45', '6', '2025-11-20 00:00:50'),
-(26, '45', '12', '2025-11-20 00:01:08');
+(26, '45', '12', '2025-11-20 00:01:08'),
+(27, '46', '12', '2025-11-30 18:06:25'),
+(28, '46', '6', '2025-11-30 18:06:30'),
+(29, '46', '5', '2025-11-30 18:06:30');
 
 -- --------------------------------------------------------
 
@@ -441,6 +443,21 @@ CREATE TABLE `favorite_songs` (
   `song_id` int(11) NOT NULL,
   `added_at` datetime DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `favorite_songs`
+--
+
+INSERT INTO `favorite_songs` (`id`, `user_id`, `song_id`, `added_at`) VALUES
+(4, 46, 77, '2025-11-29 13:33:45'),
+(5, 46, 71, '2025-11-29 13:33:47'),
+(8, 46, 75, '2025-11-29 13:59:28'),
+(9, 46, 76, '2025-12-01 01:06:14'),
+(10, 46, 78, '2025-12-01 01:06:15'),
+(11, 46, 67, '2025-12-01 01:06:18'),
+(12, 46, 66, '2025-12-01 01:06:18'),
+(13, 46, 65, '2025-12-01 01:06:19'),
+(14, 46, 64, '2025-12-01 01:06:20');
 
 -- --------------------------------------------------------
 
@@ -723,6 +740,7 @@ INSERT INTO `playlist_songs` (`playlist_id`, `song_id`, `added_at`) VALUES
 (48, 75, '2025-11-27 21:08:43'),
 (48, 76, '2025-11-27 21:08:48'),
 (48, 78, '2025-11-28 00:16:05'),
+(53, 74, '2025-11-29 06:22:44'),
 (53, 78, '2025-11-29 02:13:32'),
 (54, 75, '2025-11-29 03:56:06'),
 (54, 78, '2025-11-29 03:53:13');
@@ -884,7 +902,9 @@ INSERT INTO `transactions` (`id`, `user_id`, `plan_id`, `plan_name`, `amount`, `
 ('1763586510962', 32, 1, '1 tháng', 49000, 'pending', 'VNPay', '2025-11-20 04:08:30', '2025-11-20 04:08:30'),
 ('1763588495778', 36, 1, '1 tháng', 49000, 'completed', 'VNPay', '2025-11-20 04:42:15', '2025-11-20 04:41:35'),
 ('1763588923204', 36, 1, '1 tháng', 49000, 'completed', 'VNPay', '2025-11-20 04:49:31', '2025-11-20 04:48:43'),
-('1763872513391', 46, 1, '1 tháng', 49000, 'pending', 'VNPay', '2025-11-23 04:35:13', '2025-11-23 11:35:13');
+('1763872513391', 46, 1, '1 tháng', 49000, 'pending', 'VNPay', '2025-11-23 04:35:13', '2025-11-23 11:35:13'),
+('POnlineMusicWeb_1764527420079_57', 46, 1, '1 tháng', 49000, 'pending', 'VNPay', NULL, '2025-12-01 01:30:20'),
+('POnlineMusicWeb_1764527601155_337', 46, 3, '1 năm', 499000, 'completed', 'VNPay', '2025-12-01 01:34:43', '2025-12-01 01:33:21');
 
 -- --------------------------------------------------------
 
@@ -1002,7 +1022,8 @@ CREATE TABLE `user_subscriptions` (
 
 INSERT INTO `user_subscriptions` (`id`, `user_id`, `subscription_plan_id`, `start_date`, `duration_days`, `adjusted_duration_days`, `status`, `renewal_count`, `auto_renew`, `last_renewal_date`, `payment_status`, `payment_method_token`, `payment_gateway`, `prorated_amount`, `created_at`, `updated_at`) VALUES
 (1, 32, 1, '2025-11-18 11:06:44', 30, NULL, 'active', 0, 0, NULL, 'completed', NULL, NULL, 0.00, '2025-11-18 11:06:44', '2025-11-18 11:06:44'),
-(5, 36, 1, '2025-11-19 21:42:15', 30, NULL, 'active', 0, 0, NULL, 'completed', NULL, 'vnpay', 0.00, '2025-11-19 21:42:15', '2025-11-19 21:49:31');
+(5, 36, 1, '2025-11-19 21:42:15', 30, NULL, 'active', 0, 0, NULL, 'completed', NULL, 'vnpay', 0.00, '2025-11-19 21:42:15', '2025-11-19 21:49:31'),
+(12, 46, 3, '2025-11-30 18:35:10', 365, NULL, 'active', 0, 0, NULL, 'completed', NULL, 'vnpay', 0.00, '2025-11-30 18:35:10', '2025-11-30 18:35:10');
 
 --
 -- Indexes for dumped tables
@@ -1168,13 +1189,13 @@ ALTER TABLE `downloaded_songs`
 -- AUTO_INCREMENT for table `favorite_albums`
 --
 ALTER TABLE `favorite_albums`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=27;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=30;
 
 --
 -- AUTO_INCREMENT for table `favorite_songs`
 --
 ALTER TABLE `favorite_songs`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=15;
 
 --
 -- AUTO_INCREMENT for table `genres`
@@ -1228,7 +1249,7 @@ ALTER TABLE `user_favorite_artists`
 -- AUTO_INCREMENT for table `user_subscriptions`
 --
 ALTER TABLE `user_subscriptions`
-  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=12;
+  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=13;
 
 --
 -- Constraints for dumped tables

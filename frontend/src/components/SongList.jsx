@@ -113,9 +113,9 @@ export default function SongList() {
   if (loading) return <div style={{ padding: "30px", textAlign: "center", color: "#888" }}>Đang tải bài hát...</div>;
 
   return (
-    <section className="songs-section">
-      <div className="section-header">
-        <h2>🎵 Danh sách bài hát</h2>
+    <section className="songs-section songs-section-left">
+      <div className="section-header section-header-left">
+        <h2>Danh sách bài hát</h2>
       </div>
 
       <div className="playlist-grid">

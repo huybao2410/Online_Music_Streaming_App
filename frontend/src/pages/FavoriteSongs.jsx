@@ -1,7 +1,8 @@
+
 import React, { useState, useEffect, useContext } from "react";
 import { PlayerContext } from "../context/PLayerContext";
 import { AiFillHeart, AiOutlineDelete } from "react-icons/ai";
-import "./UserProfile.css"; // Reuse styles
+import "./UserProfile.css";
 
 const FavoriteSongs = () => {
   const [favorites, setFavorites] = useState([]);
@@ -17,7 +18,6 @@ const FavoriteSongs = () => {
         });
         const data = await res.json();
         if (data.success) {
-          // Map lại để trường url lấy từ audio, cover lấy từ cover nếu có
           const mapped = data.favorites.map(song => ({
             ...song,
             url: song.audio || song.url,
@@ -35,14 +35,12 @@ const FavoriteSongs = () => {
   }, []);
 
   const handlePlay = (song) => {
-    // Chuẩn hóa object: luôn có trường url lấy từ audio
     const mappedFavorites = favorites.map(s => ({ ...s, url: s.audio }));
     setPlaylist(mappedFavorites);
     setCurrentSong({ ...song, url: song.audio });
   };
 
   const handleRemove = (songUrl) => {
-    // Gọi API Node.js để xóa bài hát yêu thích
     const token = localStorage.getItem('token');
     if (!token) return;
     const song = favorites.find(s => s.url === songUrl);
@@ -63,36 +61,48 @@ const FavoriteSongs = () => {
     }
   };
 
+  // Lấy bài hát đầu tiên làm cover và info
+  const mainSong = favorites[0];
+
   return (
     <div className="favorites-container">
-      <div className="favorites-header">
-        <div>
-          <h1 style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-            <AiFillHeart size={32} style={{ color: '#ff6b6b' }} />
-            Bài Hát Yêu Thích
-          </h1>
-          <p style={{ color: '#8a8f98', marginTop: '8px' }}>
-            {favorites.length} bài hát đã lưu
-          </p>
+      {/* Phần trên: Cover lớn, info, nút, icon */}
+      {mainSong && (
+        <div className="favorite-song-banner" style={{ display: 'flex', gap: 40, alignItems: 'center', marginBottom: 40 }}>
+          {/* Cover lớn */}
+          <div style={{ minWidth: 220, width: 220, height: 220, borderRadius: 24, overflow: 'hidden', boxShadow: '0 8px 32px rgba(0,0,0,0.18)' }}>
+            <img src={mainSong.cover} alt={mainSong.title} style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: 24 }} />
+          </div>
+          {/* Info bên phải */}
+          <div style={{ flex: 1 }}>
+            <div style={{ marginBottom: 10, fontSize: 16, color: '#b3b3b3', fontWeight: 500 }}>
+              Playlist &nbsp;·&nbsp; {favorites.length} Bài hát
+            </div>
+            <h1 style={{ fontSize: 42, fontWeight: 900, margin: 0, color: '#fff', lineHeight: 1.1 }}>Bài hát yêu thích</h1>
+            {/* Không hiển thị tên nghệ sĩ dưới tiêu đề */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: 18, marginTop: 18 }}>
+              <AiFillHeart size={28} style={{ color: '#ff6b6b' }} />
+              <button
+                style={{
+                  padding: '12px 38px',
+                  background: 'linear-gradient(135deg, #1ed6d6, #4a9b9b)',
+                  color: '#fff',
+                  border: 'none',
+                  borderRadius: '24px',
+                  fontSize: '18px',
+                  fontWeight: '700',
+                  cursor: 'pointer',
+                  boxShadow: '0 2px 12px rgba(30,214,214,0.12)'
+                }}
+                onClick={handlePlayAll}
+                disabled={favorites.length === 0}
+              >
+                ▶ Phát tất cả
+              </button>
+            </div>
+          </div>
         </div>
-        <button 
-          className="play-all-btn"
-          onClick={handlePlayAll}
-          disabled={favorites.length === 0}
-          style={{
-            padding: '12px 30px',
-            background: favorites.length === 0 ? '#666' : 'linear-gradient(135deg, #4a9b9b, #3a8b8b)',
-            color: '#fff',
-            border: 'none',
-            borderRadius: '24px',
-            fontSize: '14px',
-            fontWeight: '600',
-            cursor: favorites.length === 0 ? 'not-allowed' : 'pointer'
-          }}
-        >
-          ▶ Phát tất cả
-        </button>
-      </div>
+      )}
 
       {favorites.length === 0 ? (
         <div style={{
@@ -107,136 +117,68 @@ const FavoriteSongs = () => {
           </p>
         </div>
       ) : (
-        <div className="favorites-grid" style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))',
-          gap: '20px',
-          marginTop: '30px'
-        }}>
-          {favorites.map((song) => (
-            <div
-              key={song.url}
-              style={{
-                background: '#1a1e24',
-                borderRadius: '8px',
-                overflow: 'hidden',
-                transition: 'all 0.3s',
-                cursor: 'pointer'
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.background = '#252b33';
-                e.currentTarget.style.transform = 'translateY(-4px)';
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.background = '#1a1e24';
-                e.currentTarget.style.transform = 'translateY(0)';
-              }}
-            >
-              {/* Cover Image */}
-              <div
-                style={{
-                  width: '100%',
-                  height: '200px',
-                  background: song.cover
-                    ? `url('${song.cover}') center/cover`
-                    : 'linear-gradient(135deg, #4a9b9b, #2a6b6b)',
-                  position: 'relative',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  cursor: 'pointer'
-                }}
-                onClick={() => handlePlay(song)}
-              >
-                <button
-                  style={{
-                    width: '50px',
-                    height: '50px',
-                    borderRadius: '50%',
-                    background: 'rgba(74, 155, 155, 0.9)',
-                    border: 'none',
-                    color: '#fff',
-                    fontSize: '20px',
-                    cursor: 'pointer',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    transition: 'all 0.3s'
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.background = 'rgba(74, 155, 155, 1)';
-                    e.currentTarget.style.transform = 'scale(1.1)';
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.background = 'rgba(74, 155, 155, 0.9)';
-                    e.currentTarget.style.transform = 'scale(1)';
-                  }}
-                  onClick={() => handlePlay(song)}
-                >
-                  ▶
-                </button>
-              </div>
-
-              {/* Song Info */}
-              <div style={{ padding: '15px' }}>
-                <h3 style={{
-                  fontSize: '14px',
-                  fontWeight: '600',
-                  color: '#fff',
-                  margin: '0 0 5px 0',
-                  overflow: 'hidden',
-                  textOverflow: 'ellipsis',
-                  whiteSpace: 'nowrap'
-                }}>
-                  {song.title}
-                </h3>
-                <p style={{
-                  fontSize: '12px',
-                  color: '#8a8f98',
-                  margin: '0 0 10px 0',
-                  overflow: 'hidden',
-                  textOverflow: 'ellipsis',
-                  whiteSpace: 'nowrap'
-                }}>
-                  {song.artist}
-                </p>
-
-                {/* Remove Button */}
-                <button
-                  onClick={() => handleRemove(song.url)}
-                  style={{
-                    width: '100%',
-                    padding: '8px',
-                    background: '#ff6b6b',
-                    color: '#fff',
-                    border: 'none',
-                    borderRadius: '6px',
-                    fontSize: '12px',
-                    fontWeight: '600',
-                    cursor: 'pointer',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    gap: '6px',
-                    transition: 'all 0.3s'
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.background = '#ff5252';
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.background = '#ff6b6b';
-                  }}
-                >
-                  <AiOutlineDelete size={16} /> Xóa
-                </button>
-              </div>
+        <div className="favorite-songs-table-wrapper">
+          <div className="favorite-songs-table">
+            <div className="table-header">
+              <div className="col-number">#</div>
+              <div className="col-title">Tiêu Đề</div>
+              <div className="col-artist">Nghệ Sĩ</div>
+              <div className="col-album">Album</div>
+              <div className="col-remove"></div>
             </div>
-          ))}
+            {favorites.map((song, index) => (
+              <div 
+                key={song.song_id || song.id || song.url} 
+                className="track-row"
+                onClick={() => handlePlay(song)}
+                style={{ cursor: 'pointer', transition: 'background 0.2s' }}
+                onMouseEnter={e => {
+                  e.currentTarget.style.background = '#18191c';
+                  const btn = e.currentTarget.querySelector('.action-icon');
+                  if (btn) btn.style.color = '#ff2d55';
+                }}
+                onMouseLeave={e => {
+                  e.currentTarget.style.background = '';
+                  const btn = e.currentTarget.querySelector('.action-icon');
+                  if (btn) btn.style.color = '#ff6b6b';
+                }}
+              >
+                <div className="col-number">{index + 1}</div>
+                <div className="col-title">
+                  <div className="track-info">
+                    {song.cover ? (
+                      <img src={song.cover} alt={song.title} className="track-image" />
+                    ) : (
+                      <div className="track-image-placeholder">♪</div>
+                    )}
+                    <div className="track-details">
+                      <div className="track-name">{song.title}</div>
+                      <div className="track-artist">{song.artist}</div>
+                    </div>
+                  </div>
+                </div>
+                <div className="col-artist">{song.artist}</div>
+                <div className="col-album">{song.album || '-'}</div>
+                <div className="col-remove">
+                  <button
+                    className="action-icon"
+                    onClick={e => {
+                      e.stopPropagation();
+                      handleRemove(song.url);
+                    }}
+                    title="Xóa khỏi yêu thích"
+                    style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#ff6b6b', transition: 'color 0.2s' }}
+                  >
+                    <AiOutlineDelete size={20} />
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
       )}
     </div>
   );
 };
-
 
 export default FavoriteSongs;

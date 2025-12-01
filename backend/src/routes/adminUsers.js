@@ -15,6 +15,74 @@ const isAdmin = (req, res, next) => {
   next();
 };
 
+// Thống kê admin: số lượng user premium theo ngày, số lượng user free/premium, tổng thu nhập
+// API Thống kê chi tiết (Dashboard v2)
+router.get('/statistics', verifyToken, isAdmin, async (req, res) => {
+  try {
+    // 1. Thống kê tổng quan (KPIs)
+    const [[{ total_users }]] = await pool.query("SELECT COUNT(*) as total_users FROM users");
+    const [[{ premium_users }]] = await pool.query("SELECT COUNT(DISTINCT user_id) as premium_users FROM user_subscriptions WHERE status = 'active'");
+    const free_users = total_users - premium_users;
+    
+    const [[{ total_revenue }]] = await pool.query("SELECT SUM(amount) as total_revenue FROM transactions WHERE status = 'completed'");
+
+    // 2. Thống kê người dùng đăng ký mới trong 7 ngày qua (để vẽ biểu đồ)
+    const [new_users_chart] = await pool.query(`
+      SELECT DATE(created_at) as date, COUNT(*) as count 
+      FROM users 
+      WHERE created_at >= DATE_SUB(CURDATE(), INTERVAL 7 DAY) 
+      GROUP BY DATE(created_at) 
+      ORDER BY date ASC
+    `);
+
+    // 3. Thống kê đăng ký Premium trong 7 ngày qua
+    const [new_premium_chart] = await pool.query(`
+      SELECT DATE(start_date) as date, COUNT(*) as count 
+      FROM user_subscriptions 
+      WHERE start_date >= DATE_SUB(CURDATE(), INTERVAL 7 DAY) 
+      GROUP BY DATE(start_date) 
+      ORDER BY date ASC
+    `);
+
+    // 4. Doanh thu theo ngày (7 ngày qua)
+    const [revenue_chart] = await pool.query(`
+      SELECT DATE(transaction_date) as date, SUM(amount) as total 
+      FROM transactions 
+      WHERE status = 'completed' AND transaction_date >= DATE_SUB(CURDATE(), INTERVAL 7 DAY)
+      GROUP BY DATE(transaction_date) 
+      ORDER BY date ASC
+    `);
+
+    // 5. Phân bổ doanh thu theo gói (Pie Chart)
+    const [revenue_by_plan] = await pool.query(`
+      SELECT plan_name, SUM(amount) as total 
+      FROM transactions 
+      WHERE status = 'completed' 
+      GROUP BY plan_name
+    `);
+
+    return res.json({
+      success: true,
+      kpi: {
+        total_users,
+        premium_users,
+        free_users,
+        total_revenue: total_revenue || 0
+      },
+      charts: {
+        new_users: new_users_chart,
+        new_premium: new_premium_chart,
+        revenue: revenue_chart,
+        revenue_by_plan: revenue_by_plan
+      }
+    });
+
+  } catch (err) {
+    console.error('Error in statistics:', err);
+    return res.status(500).json({ success: false, message: 'Lỗi thống kê', error: err.message });
+  }
+});
+
 // Get all users with pagination and search
 router.get('/users', verifyToken, isAdmin, async (req, res) => {
   try {
@@ -43,7 +111,7 @@ router.get('/users', verifyToken, isAdmin, async (req, res) => {
 
     const [users] = await pool.query(query, params);
 
-    // Add counts and provider manually
+    // Add counts, provider, and premium status manually
     for (let user of users) {
       // Xác định provider
       if (user.password_hash && user.password_hash.includes('GOOGLE_OAUTH_USER_NO_PASSWORD_HASH_PLACEHOLDER')) {
@@ -71,6 +139,17 @@ router.get('/users', verifyToken, isAdmin, async (req, res) => {
       } catch (err) {
         user.favorite_count = 0;
       }
+      try {
+        // Kiểm tra trạng thái premium từ bảng user_subscriptions
+        const [subs] = await pool.query(
+          'SELECT status FROM user_subscriptions WHERE user_id = ? ORDER BY start_date DESC LIMIT 1',
+          [user.id]
+        );
+        user.premium = subs.length > 0 && subs[0].status === 'active';
+      } catch (err) {
+        user.premium = false;
+      }
+      // Không xử lý status user nữa
     }
 
     console.log('Found users:', users.length);
@@ -206,7 +285,7 @@ router.patch('/users/:id/status', verifyToken, isAdmin, async (req, res) => {
   try {
     const { status } = req.body;
 
-    if (!['active', 'inactive', 'banned'].includes(status)) {
+    if (!['active', 'banned'].includes(status)) {
       return res.status(400).json({ 
         success: false,
         message: 'Trạng thái không hợp lệ' 

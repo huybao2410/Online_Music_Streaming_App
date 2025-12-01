@@ -1,0 +1,252 @@
+/* AdminStatistics.css */
+
+.admin-stats-container {
+  padding: 10px;
+  font-family: 'Poppins', sans-serif;
+  animation: fadeIn 0.5s ease-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* --- KPI CARDS --- */
+.kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 24px;
+  margin-bottom: 32px;
+}
+
+.kpi-card {
+  background: white;
+  border-radius: 16px;
+  padding: 24px;
+  display: flex;
+  align-items: center;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+  transition: transform 0.3s, box-shadow 0.3s;
+}
+
+.kpi-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+}
+
+.kpi-icon {
+  width: 60px;
+  height: 60px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 28px;
+  margin-right: 20px;
+}
+
+.kpi-info h3 {
+  margin: 0;
+  font-size: 14px;
+  color: #6b7280;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.kpi-info p {
+  margin: 5px 0 0;
+  font-size: 28px;
+  font-weight: 700;
+  color: #111827;
+}
+
+/* Specific Card Styles */
+.kpi-card.total-users .kpi-icon { background: rgba(59, 130, 246, 0.1); color: #3b82f6; }
+.kpi-card.premium-users .kpi-icon { background: rgba(16, 185, 129, 0.1); color: #10b981; }
+.kpi-card.revenue .kpi-icon { background: rgba(245, 158, 11, 0.1); color: #f59e0b; }
+
+.kpi-sub {
+  position: absolute;
+  top: 15px;
+  right: 15px;
+  background: #ecfdf5;
+  color: #059669;
+  padding: 4px 8px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+/* --- CHARTS LAYOUT --- */
+.charts-row-large {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 24px;
+  margin-bottom: 24px;
+}
+
+.charts-row-equal {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+  margin-bottom: 32px;
+}
+
+.chart-box {
+  background: white;
+  border-radius: 16px;
+  padding: 24px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+  border: 1px solid #f3f4f6;
+}
+
+.chart-header h4 {
+  margin: 0 0 20px 0;
+  font-size: 16px;
+  color: #374151;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.chart-canvas-wrapper {
+  height: 300px;
+  width: 100%;
+}
+
+.chart-canvas-wrapper-circle {
+  height: 300px;
+  display: flex;
+  justify-content: center;
+}
+
+/* --- SUGGESTIONS --- */
+.suggestions-section {
+  background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+  border-radius: 16px;
+  padding: 24px;
+  border: 1px dashed #bae6fd;
+}
+
+.suggestions-section h4 {
+  margin-top: 0;
+  color: #0369a1;
+  margin-bottom: 15px;
+}
+
+.suggestions-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 15px;
+}
+
+.suggestion-item {
+  background: white;
+  padding: 12px;
+  border-radius: 8px;
+  font-size: 14px;
+  color: #475569;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+
+/* Responsive */
+@media (max-width: 1024px) {
+  .charts-row-large, .charts-row-equal {
+    grid-template-columns: 1fr;
+  }
+  .kpi-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Loading Spinner */
+.stats-loading {
+  display: flex;
+  justify-content: center;
+  padding: 50px;
+}
+.spinner {
+  width: 40px; height: 40px;
+  border: 4px solid #e5e7eb;
+  border-top-color: #3b82f6;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+/* ... (Giữ nguyên phần CSS cũ) ... */
+
+/* TOP SONGS LIST */
+.top-songs-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 10px;
+}
+
+.top-song-item {
+  display: flex;
+  align-items: center;
+  padding: 10px;
+  background: #f9fafb;
+  border-radius: 8px;
+  transition: transform 0.2s;
+}
+
+.top-song-item:hover {
+  transform: translateX(5px);
+  background: #f3f4f6;
+}
+
+.song-rank {
+  font-size: 18px;
+  font-weight: 800;
+  color: #cbd5e1; /* Màu xám nhạt */
+  width: 30px;
+  text-align: center;
+  margin-right: 10px;
+}
+
+/* Top 3 màu sắc khác nhau */
+.top-song-item:nth-child(1) .song-rank { color: #eab308; } /* Vàng */
+.top-song-item:nth-child(2) .song-rank { color: #94a3b8; } /* Bạc */
+.top-song-item:nth-child(3) .song-rank { color: #b45309; } /* Đồng */
+
+.song-thumb {
+  width: 40px;
+  height: 40px;
+  border-radius: 6px;
+  object-fit: cover;
+  margin-right: 12px;
+}
+
+.song-info {
+  flex: 1;
+  overflow: hidden;
+}
+
+.song-name {
+  font-size: 14px;
+  font-weight: 600;
+  color: #334155;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.song-artist {
+  font-size: 12px;
+  color: #64748b;
+}
+
+.song-plays {
+  font-size: 13px;
+  font-weight: 600;
+  color: #3b82f6;
+  background: rgba(59, 130, 246, 0.1);
+  padding: 4px 8px;
+  border-radius: 12px;
+}

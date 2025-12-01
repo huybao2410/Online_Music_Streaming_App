@@ -31,7 +31,7 @@ export default function PremiumStatusPage() {
   };
 
   const handleCancelPremium = async () => {
-    if (!window.confirm("Bạn có chắc muốn hủy gói Premium?")) return;
+    if (!window.confirm("Bạn có chắc muốn hủy gói Premium ?")) return;
 
     setCancelling(true);
     try {
@@ -89,7 +89,7 @@ export default function PremiumStatusPage() {
             <h1>Chưa có gói Premium</h1>
             <p>Bạn chưa đăng ký gói Premium nào.</p>
             <button className="upgrade-btn" onClick={() => navigate('/premium-upgrade')}>
-              Nâng cấp Premium
+              Nâng cấp Premium  
             </button>
           </div>
         </div>

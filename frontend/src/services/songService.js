@@ -109,17 +109,19 @@ export const searchAll = async (query) => {
   }
   
 };
-export const getSongsByGenre = async (genreName) => {
+export const getSongsByGenre = async (genre_id) => {
   try {
-    const res = await API.get(`/song/get_songs_by_genre.php?genre=${encodeURIComponent(genreName)}`);
-    if (res.data.status && Array.isArray(res.data.songs)) {
-      return res.data.songs.map((s) => ({
-        id: s.id,
+    const res = await API.get(`/song/get_songs_by_genre.php?genre_id=${genre_id}`);
+
+    if (res.data.status === "success" && Array.isArray(res.data.songs)) {
+      return res.data.songs.map(s => ({
+        id: s.song_id,
         title: s.title,
-        artist: s.artist,
-        genre: s.genre,
-        url: s.url, // ✅ backend đã chuẩn key này
-        cover: s.cover,
+        artist: s.artist_name,
+        genre: s.genre_name,
+        cover: s.cover_url?.replace("10.0.2.2", "localhost"),
+        url: s.audio_url?.replace("10.0.2.2", "localhost"),
+        duration: s.duration || 0
       }));
     }
     return [];

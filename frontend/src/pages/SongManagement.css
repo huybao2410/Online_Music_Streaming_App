@@ -113,6 +113,11 @@
   flex-wrap: wrap;
 }
 
+.filters-left {
+  justify-content: flex-start;
+  gap: 1rem;
+}
+
 .search-box {
   flex: 1;
   min-width: 300px;

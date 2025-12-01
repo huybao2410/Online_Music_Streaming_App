@@ -1,3 +1,18 @@
+/* Căn sát trái cho Music tab */
+.song-list-container {
+  padding-left: 0 !important;
+}
+
+.song-list-container h2 {
+  text-align: left !important;
+  margin-left: 0 !important;
+}
+
+.section-header {
+  justify-content: flex-start !important;
+  text-align: left !important;
+  margin-left: 0 !important;
+}
 /* ===== SONG LIST CONTAINER ===== */
 .song-list-container {
   padding: 32px 28px;
