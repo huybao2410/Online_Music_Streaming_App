@@ -29,6 +29,7 @@ const UserManagementContent = () => {
   const [roleFilter, setRoleFilter] = useState("all");
   const [statusFilter, setStatusFilter] = useState("all");
   const [authFilter, setAuthFilter] = useState("all");
+  const [premiumFilter, setPremiumFilter] = useState("all");
 
   // Pagination
   const [currentPage, setCurrentPage] = useState(1);
@@ -92,6 +93,15 @@ const UserManagementContent = () => {
       result = result.filter((user) => user.status === statusFilter);
     }
 
+    // Filter by premium/free
+    if (premiumFilter !== "all") {
+      if (premiumFilter === "premium") {
+        result = result.filter((user) => user.premium === true);
+      } else if (premiumFilter === "free") {
+        result = result.filter((user) => !user.premium);
+      }
+    }
+
     // --- SỬA LỖI LOGIC LỌC TÀI KHOẢN ---
     if (authFilter !== "all") {
       if (authFilter === "local") {
@@ -110,7 +120,7 @@ const UserManagementContent = () => {
 
     setFilteredUsers(result);
     setCurrentPage(1);
-  }, [searchTerm, roleFilter, statusFilter, authFilter, users]);
+  }, [searchTerm, roleFilter, statusFilter, authFilter, premiumFilter, users]);
 
   // Pagination
   const indexOfLastUser = currentPage * usersPerPage;
@@ -327,6 +337,12 @@ const UserManagementContent = () => {
             <option value="active">Hoạt động</option>
             <option value="banned">Bị cấm</option>
           </select>
+
+          <select value={premiumFilter} onChange={(e) => setPremiumFilter(e.target.value)}>
+            <option value="all">Tất cả gói</option>
+            <option value="premium">Premium</option>
+            <option value="free">Free</option>
+          </select>
         </div>
       </div>
       {/* ----------------------------- */}
@@ -451,7 +467,7 @@ const UserManagementContent = () => {
 
       {showEditModal && editingUser && (
         <div className="modal-overlay" onClick={() => setShowEditModal(false)}>
-          <div className="modal-box" onClick={(e) => e.stopPropagation()}>
+          <div className="modal-box user-modal-specific" onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
               <h3>Chỉnh sửa người dùng</h3>
               <button onClick={() => setShowEditModal(false)} className="modal-close-btn">

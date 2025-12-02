@@ -97,11 +97,12 @@
 }
 
 .users-table thead {
-  background-color: #f8fafc;
+  background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%);
+  color: white;
 }
 .users-table th {
   font-weight: 600;
-  color: #64748b;
+  color: white;
   text-transform: uppercase;
   font-size: 0.8rem;
 }
@@ -115,13 +116,14 @@
 .users-table td:last-child {
   position: sticky;
   right: 0;
-  background: white;
+  background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%);
+  color: white;
   z-index: 5;
   border-left: 1px solid #e2e8f0;
   box-shadow: -2px 0 5px rgba(0,0,0,0.05);
 }
-.users-table thead th:last-child { background: #f8fafc; }
-.users-table tbody tr:hover td:last-child { background: #f8fafc; }
+.users-table thead th:last-child { background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%); color: white; }
+.users-table tbody tr:hover td:last-child { background: linear-gradient(135deg, #2563eb 0%, #1e3a8a 100%); color: white; }
 .users-table tbody tr:hover { background-color: #f8fafc; }
 
 /* Các thành phần nhỏ khác (Avatar, Badge...) */

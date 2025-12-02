@@ -4,6 +4,11 @@ import { FaPlus, FaEdit, FaTrash, FaMusic, FaTimes } from "react-icons/fa";
 import "../components/SongManagementContent.css";
 
 function AdminAlbums() {
+    // Helper: fix local url for preview
+    const fixLocalUrl = (url) => {
+      if (!url) return "";
+      return url.replace("10.0.2.2", "localhost");
+    };
   const [coverPreview, setCoverPreview] = useState("");
   const [albums, setAlbums] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -226,6 +231,41 @@ function AdminAlbums() {
         </button>
       </div>
 
+      {/* --- Thanh tìm kiếm & lọc nghệ sĩ --- */}
+      <div className="filters-bar" style={{ display: 'flex', gap: '1rem', marginBottom: '1.5rem', flexWrap: 'wrap' }}>
+        <div className="search-box" style={{ flex: 1, minWidth: 250, position: 'relative', display: 'flex', alignItems: 'center', background: 'white', border: '1px solid #e5e7eb', borderRadius: 8, padding: '0.75rem 1rem' }}>
+          <input
+            type="text"
+            placeholder="Tìm kiếm album, nghệ sĩ..."
+            value={artistSearch}
+            onChange={e => setArtistSearch(e.target.value)}
+            style={{ flex: 1, border: 'none', outline: 'none', fontSize: '1rem', background: 'transparent', color: '#1f2937', paddingRight: '2rem' }}
+          />
+          <FaMusic style={{ position: 'absolute', left: 15, color: '#9ca3af', fontSize: '1rem', pointerEvents: 'none' }} />
+        </div>
+        <select
+          style={{ padding: '0.75rem 1rem', border: '1px solid #e5e7eb', borderRadius: 8, background: 'white', color: '#1f2937', fontSize: '1rem', minWidth: 180 }}
+          value={formData.artist_id}
+          onChange={e => setFormData({ ...formData, artist_id: e.target.value })}
+        >
+          <option value="">Tất cả nghệ sĩ</option>
+          {artistList
+            .filter((a) => a.name?.toLowerCase().includes(artistSearch.toLowerCase()))
+            .map((a) => (
+              <option key={a.artist_id} value={a.artist_id}>{a.name}</option>
+            ))}
+        </select>
+        <button
+          style={{ padding: '0.75rem 1.5rem', background: '#64748b', color: 'white', border: 'none', borderRadius: 8, fontWeight: 600, cursor: 'pointer' }}
+          onClick={() => {
+            setArtistSearch("");
+            setFormData({ ...formData, artist_id: "" });
+          }}
+        >
+          Đặt lại
+        </button>
+      </div>
+
       {/* Errors */}
       {error && (
         <div className="alert alert-error">
@@ -269,7 +309,7 @@ function AdminAlbums() {
                 <th>Nghệ sĩ</th>
                 <th>Số bài hát</th>
                 <th>Ngày phát hành</th>
-                <th>Thao tác</th>
+                <th>Hành động</th>
               </tr>
             </thead>
             <tbody>
@@ -492,57 +532,40 @@ function AdminAlbums() {
               </div>
 
               {/* Cover */}
+              {/* Cover */}
               <div style={{ marginBottom: 18 }}>
-                <label style={{ fontWeight: 500, color: "#000" }}>Ảnh Cover</label>
-
+                <label style={{ fontWeight: 500, color: "#000" }}>Ảnh Cover (URL)</label>
                 <input
                   type="url"
                   name="cover_url"
                   value={formData.cover_url}
                   onChange={handleInputChange}
-                  placeholder="URL ảnh (tự động nếu upload)"
+                  placeholder="URL ảnh album"
                   style={{
                     background: "#f8fafc",
                     border: "1px solid #e0e7ef",
                     borderRadius: 10,
                     height: 44,
                     width: "100%",
-                    padding: "0 16px 0 36px",
+                    padding: "0 16px",
                     marginBottom: 8
                   }}
                 />
-
-                <input
-                  type="file"
-                  accept="image/*"
-                  onChange={async (e) => {
-                    const file = e.target.files[0];
-                    if (!file) return;
-
-                    // Preview
-                    const reader = new FileReader();
-                    reader.onload = (ev) => setCoverPreview(ev.target.result);
-                    reader.readAsDataURL(file);
-
-                    const url = await uploadCoverToPHP(file);
-                    if (url) {
-                      setFormData((f) => ({ ...f, cover_url: url }));
-                    }
-                  }}
-                />
-
-                <div style={{ textAlign: "center", marginTop: 8 }}>
-                  {coverPreview ? (
-                    <img
-                      src={coverPreview}
-                      alt="Preview"
-                      style={{ width: 80, borderRadius: 8 }}
-                    />
-                  ) : (
-                    <span style={{ color: "#888" }}>&lt;Preview&gt;</span>
-                  )}
-                </div>
-
+                {/* Hiển thị preview khi chỉnh sửa album */}
+                {modalMode === "edit" && (
+                  <div style={{ textAlign: "center", marginTop: 8 }}>
+                    {formData.cover_url ? (
+                      <img
+                        src={fixLocalUrl(formData.cover_url)}
+                        alt="Preview"
+                        style={{ width: 80, borderRadius: 8 }}
+                        onError={e => {e.target.onerror=null; e.target.src='https://via.placeholder.com/80x80?text=No+Image';}}
+                      />
+                    ) : (
+                      <span style={{ color: "#888" }}>&lt;Preview&gt;</span>
+                    )}
+                  </div>
+                )}
               </div>
 
 

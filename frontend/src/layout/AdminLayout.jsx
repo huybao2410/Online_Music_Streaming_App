@@ -68,6 +68,13 @@ export default function AdminLayout({ children }) {
               <span>Bài hát</span>
             </button>
             <button
+              className={`nav-item ${isActive("/admin/albums") ? "active" : ""}`}
+              onClick={() => navigate("/admin/albums")}
+            >
+              <FaMusic />
+              <span>Album</span>
+            </button>
+            <button
               className={`nav-item ${isActive("/admin/artists") ? "active" : ""}`}
               onClick={() => navigate("/admin/artists")}
             >

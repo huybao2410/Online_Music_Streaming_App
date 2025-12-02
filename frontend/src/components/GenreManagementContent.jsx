@@ -234,7 +234,7 @@ export default function GenreManagementContent() {
               <th>Tên thể loại</th>
               <th>Mô tả</th>
               <th>Số bài hát</th>
-              <th>Thao tác</th>
+              <th>Hành động</th>
             </tr>
           </thead>
           <tbody>
@@ -302,7 +302,7 @@ export default function GenreManagementContent() {
       {/* Modal */}
       {showModal && (
         <div className="modal-overlay" onClick={closeModal}>
-          <div className="modal-box" onClick={(e) => e.stopPropagation()}>
+          <div className="modal-box genre-modal-specific" onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
               <h3>
                 {modalMode === "create" ? "Thêm thể loại mới" : "Chỉnh sửa thể loại"}

@@ -24,6 +24,11 @@ import { FaSave, FaSearch, FaLink } from "react-icons/fa";
     const [loading, setLoading] = useState(false);
     const [coverFile, setCoverFile] = useState(null);
     const [coverPreview, setCoverPreview] = useState(formData.cover_url || "");
+      // Helper: fix local url for preview
+      const fixLocalUrl = (url) => {
+        if (!url) return "";
+        return url.replace("10.0.2.2", "localhost");
+      };
     const [uploading, setUploading] = useState(false);
 
     // Artist search/select
@@ -38,6 +43,18 @@ import { FaSave, FaSearch, FaLink } from "react-icons/fa";
       fetchArtists();
       fetchSongs();
     }, []);
+
+    // Khi album thay đổi (mở modal edit), cập nhật song_ids và cover preview vào formData
+    useEffect(() => {
+      if (isEdit && album) {
+        setFormData(f => ({
+          ...f,
+          song_ids: album.song_ids || [],
+          cover_url: album.cover_url || ""
+        }));
+        setCoverPreview(album.cover_url || "");
+      }
+    }, [album, isEdit]);
 
     const fetchArtists = async () => {
       try {
@@ -116,126 +133,94 @@ import { FaSave, FaSearch, FaLink } from "react-icons/fa";
 
     // Popup/modal style
     return (
-      <div style={{
-        position: 'fixed',
-        top: 0,
-        left: 0,
-        width: '100vw',
-        height: '100vh',
-        background: 'rgba(0,0,0,0.25)',
-        zIndex: 9999,
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center'
-      }}>
-        <div style={{
-          background: '#fff',
-          borderRadius: 20,
-          boxShadow: '0 2px 24px #0002',
-          minWidth: 420,
-          maxWidth: 540,
-          width: '100%',
-          maxHeight: '90vh',
-          overflowY: 'auto',
-          position: 'relative'
-        }}>
-          <div style={{
-            background: 'linear-gradient(90deg,#2bc0e4 0%,#eaecc6 100%)',
-            borderTopLeftRadius: 20,
-            borderTopRightRadius: 20,
-            padding: '22px 32px 16px 32px',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between'
-          }}>
+      <div className="modal-overlay" style={{position:'fixed',top:0,left:0,width:'100vw',height:'100vh',background:'rgba(0,0,0,0.25)',zIndex:9999,display:'flex',alignItems:'center',justifyContent:'center'}}>
+        <div className="modal-box album-modal-specific" style={{background:'#fff',borderRadius:20,boxShadow:'0 2px 24px #0002',minWidth:420,maxWidth:540,width:'100%',maxHeight:'90vh',overflowY:'auto',position:'relative'}}>
+          <div className="modal-header" style={{background:'linear-gradient(90deg,#2bc0e4 0%,#eaecc6 100%)',borderTopLeftRadius:20,borderTopRightRadius:20,padding:'22px 32px 16px 32px',display:'flex',alignItems:'center',justifyContent:'space-between'}}>
             <span style={{ fontWeight: 700, fontSize: 22, color: '#222' }}>{isEdit ? "Sửa album" : "Thêm album mới"}</span>
-            <button onClick={onClose} style={{ background: 'none', border: 'none', fontSize: 28, color: '#222', cursor: 'pointer', fontWeight: 700 }}>&times;</button>
+            <button className="close-btn" onClick={onClose} style={{ background: 'none', border: 'none', fontSize: 28, color: '#222', cursor: 'pointer', fontWeight: 700 }}>&times;</button>
           </div>
-          <form className="admin-album-form" onSubmit={handleSubmit} style={{ padding: '24px 32px 16px 32px' }}>
-            <div style={{ marginBottom: 18 }}>
-              <label style={{ fontWeight: 500, marginBottom: 6, display: 'block' }}>Tên album *</label>
+          <form className="modal-form" onSubmit={handleSubmit} style={{ padding: '24px 32px 16px 32px' }}>
+            <div className="form-group">
+              <label>Tên album <span className="required">*</span></label>
               <input
                 type="text"
+                name="album_name"
                 placeholder="Nhập tên album..."
                 value={formData.album_name}
                 onChange={e => setFormData({ ...formData, album_name: e.target.value })}
                 required
-                style={{ borderRadius: 8, border: '1px solid #e0e7ef', background: '#f8fafc', height: 40, fontSize: 15, color: '#333', width: '100%', padding: '0 12px' }}
               />
             </div>
-            <div style={{ marginBottom: 18 }}>
-              <label style={{ fontWeight: 500, marginBottom: 6, display: 'block' }}>ID nghệ sĩ *</label>
+            <div className="form-group">
+              <label>Nghệ sĩ <span className="required">*</span></label>
               <input
                 type="text"
-                placeholder="Nhập ID nghệ sĩ..."
-                value={formData.artist_id}
-                onChange={e => setFormData({ ...formData, artist_id: e.target.value })}
+                placeholder="Nhập tên nghệ sĩ..."
+                value={artistSearch}
+                onChange={e => setArtistSearch(e.target.value)}
                 required
-                style={{ borderRadius: 8, border: '1px solid #e0e7ef', background: '#f8fafc', height: 40, fontSize: 15, color: '#333', width: '100%', padding: '0 12px' }}
               />
+              <div className="search-dropdown">
+                {filteredArtists.map(a => (
+                  <div key={a.artist_id} className="dropdown-item" onClick={() => { setFormData({ ...formData, artist_id: a.artist_id }); setArtistSearch(a.artist_name); }}>
+                    {a.artist_name}
+                  </div>
+                ))}
+              </div>
             </div>
-            <div style={{ marginBottom: 18 }}>
-              <label style={{ fontWeight: 500, marginBottom: 6, display: 'block' }}>Mô tả</label>
+            <div className="form-group">
+              <label>Mô tả</label>
               <input
                 type="text"
+                name="description"
                 placeholder="Mô tả về album..."
                 value={formData.description}
                 onChange={e => setFormData({ ...formData, description: e.target.value })}
-                style={{ borderRadius: 8, border: '1px solid #e0e7ef', background: '#f8fafc', height: 40, fontSize: 15, color: '#333', width: '100%', padding: '0 12px' }}
               />
             </div>
-            <div style={{ marginBottom: 18 }}>
-              <label style={{ fontWeight: 500, marginBottom: 6, display: 'block' }}>Ngày phát hành</label>
+            <div className="form-group">
+              <label>Ngày phát hành</label>
               <input
                 type="date"
+                name="release_date"
                 placeholder="dd/mm/yyyy"
                 value={formData.release_date}
                 onChange={e => setFormData({ ...formData, release_date: e.target.value })}
-                style={{ borderRadius: 8, border: '1px solid #e0e7ef', background: '#f8fafc', height: 40, fontSize: 15, color: '#333', width: '100%', padding: '0 12px' }}
               />
             </div>
-            <div style={{ marginBottom: 18 }}>
-              <label style={{ fontWeight: 500, marginBottom: 6, display: 'block' }}>Ảnh Cover</label>
+            <div className="form-group">
+              <label>URL ảnh bìa</label>
               <input
-                type="text"
-                placeholder="URL ảnh (tùy chọn)"
+                type="url"
+                name="cover_url"
                 value={formData.cover_url}
                 onChange={e => { setFormData({ ...formData, cover_url: e.target.value }); setCoverPreview(e.target.value); }}
-                style={{ borderRadius: 8, border: '1px solid #e0e7ef', background: '#f8fafc', height: 40, fontSize: 15, color: '#333', width: '100%', padding: '0 12px' }}
+                placeholder="https://example.com/image.jpg"
               />
+              <small className="form-hint">Nhập URL ảnh hoặc tải file bên dưới</small>
+            </div>
+            <div className="form-group">
+              <label>Hoặc tải file ảnh bìa</label>
+              {coverPreview && (
+                <div className="image-preview">
+                  <img
+                    src={fixLocalUrl(coverPreview)}
+                    alt="Cover preview"
+                    style={{width:120,margin:'0 auto',marginTop:8,borderRadius:8,boxShadow:'0 2px 8px #e0e7ef',display:'block'}}
+                    onError={e => {e.target.onerror=null; e.target.src='https://via.placeholder.com/120x120?text=No+Image';}}
+                  />
+                </div>
+              )}
               <input
                 type="file"
                 accept="image/*"
                 onChange={handleCoverFileChange}
-                style={{ borderRadius: 8, border: '1px solid #e0e7ef', background: '#f8fafc', height: 40, fontSize: 15, color: '#333', width: '100%', marginTop: 8, padding: '8px 12px' }}
               />
-              {coverPreview && (
-                <img src={coverPreview} alt="Preview" style={{ width: 120, margin: '0 auto', marginTop: 8, borderRadius: 8, boxShadow: '0 2px 8px #e0e7ef', display: 'block' }} />
-              )}
+              <small className="form-hint">JPG, PNG, GIF, WEBP - Tối đa 5MB</small>
             </div>
             <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 16, marginTop: 32 }}>
-              <button type="button" onClick={onClose} style={{
-                background: '#f8fafc',
-                color: '#222',
-                border: 'none',
-                borderRadius: 8,
-                fontWeight: 700,
-                fontSize: 17,
-                padding: '12px 32px',
-                boxShadow: '0 2px 8px #e0e7ef',
-                cursor: 'pointer'
-              }}>HỦY</button>
-              <button type="submit" disabled={loading || uploading} style={{
-                background: 'linear-gradient(90deg,#2bc0e4 0%,#eaecc6 100%)',
-                color: '#222',
-                border: 'none',
-                borderRadius: 8,
-                fontWeight: 700,
-                fontSize: 17,
-                padding: '12px 32px',
-                boxShadow: '0 2px 8px #e0e7ef',
-                cursor: 'pointer'
-              }}>{isEdit ? "Lưu" : "Thêm"}</button>
+              <button type="button" className="btn-cancel" onClick={onClose} disabled={loading || uploading}>HỦY</button>
+              <button type="submit" className="btn-submit" disabled={loading || uploading}>{isEdit ? "Lưu" : "Thêm"}</button>
             </div>
             {error && <p className="error">{error}</p>}
             {success && <p className="success">{success}</p>}

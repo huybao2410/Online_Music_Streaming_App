@@ -3,6 +3,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate, useNavigate } from "r
 import MainLayout from "./layout/MainLayout";
 import HomePage from "./pages/HomePage";
 import AdminDashboard from "./pages/AdminDashboard";
+import AdminLayout from "./layout/AdminLayout";
 import LoginDialog from "./pages/LoginDialog";
 import SignupDialog from "./pages/SignupDialog";
 import UploadSong from "./pages/UploadSong";

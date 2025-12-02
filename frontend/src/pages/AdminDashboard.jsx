@@ -9,18 +9,18 @@ import GenreManagementContent from "../components/GenreManagementContent";
 import axios from "axios";
 import AdminAlbums from "./AdminAlbums";
 import AdminStatistics from "../components/AdminStatistics";
-import { 
-  FaTachometerAlt, 
-  FaMusic, 
-  FaUsers, 
-  FaHistory, 
+import {
+  FaTachometerAlt,
+  FaMusic,
+  FaUsers,
+  FaHistory,
   FaUserCircle,
   FaCompactDisc, // Import icon Album
 } from "react-icons/fa";
-import { 
-  MdDashboard, 
-  MdQueueMusic, 
-  MdPeopleAlt, 
+import {
+  MdDashboard,
+  MdQueueMusic,
+  MdPeopleAlt,
 } from "react-icons/md";
 import { IoMdNotifications } from "react-icons/io";
 import "./AdminDashboard.css";
@@ -31,7 +31,7 @@ const AdminDashboard = () => {
   const [showArtistModal, setShowArtistModal] = useState(false);
   const [selectedArtist, setSelectedArtist] = useState(null);
   const [showProfileDropdown, setShowProfileDropdown] = useState(false);
-  
+
   // Thêm totalAlbums vào state
   const [stats, setStats] = useState({
     totalSongs: 0,
@@ -39,10 +39,10 @@ const AdminDashboard = () => {
     totalUsers: 0,
     totalPlaylists: 0,
     totalGenres: 0,
-    totalAlbums: 0 
+    totalAlbums: 0
   });
   const [adminAvatar, setAdminAvatar] = useState(null);
-  
+
   const username = localStorage.getItem("username");
   const token = localStorage.getItem("token");
 
@@ -98,7 +98,7 @@ const AdminDashboard = () => {
     const fetchStats = async () => {
       try {
         console.log("Fetching dashboard stats...");
-        
+
         // Gọi thêm API lấy Albums
         const [songsRes, artistsRes, usersRes, genresRes, albumsRes] = await Promise.all([
           axios.get("http://localhost:8081/music_API/online_music/song/get_songs.php"),
@@ -109,24 +109,24 @@ const AdminDashboard = () => {
           axios.get("http://localhost:5000/api/genres").catch(() => ({ data: { genres: [] } })),
           // API lấy album để đếm số lượng (giả sử API trả về total hoặc mảng albums)
           axios.get("/api/admin/albums", {
-             headers: { Authorization: `Bearer ${token}` } 
+            headers: { Authorization: `Bearer ${token}` }
           }).catch(() => ({ data: { total: 0 } }))
         ]);
-        
-        const totalSongs = songsRes.data?.status && songsRes.data?.songs 
-          ? songsRes.data.songs.length 
+
+        const totalSongs = songsRes.data?.status && songsRes.data?.songs
+          ? songsRes.data.songs.length
           : 0;
-          
+
         const totalArtists = artistsRes.data?.status === "success" && artistsRes.data?.artists
           ? artistsRes.data.artists.length
           : 0;
-          
+
         const totalUsers = usersRes.data?.users?.length || 0;
         const totalGenres = genresRes.data?.genres?.length || 0;
-        
+
         // Lấy số lượng album
         const totalAlbums = albumsRes.data?.total || albumsRes.data?.albums?.length || 0;
-        
+
         setStats({
           totalSongs,
           totalArtists,
@@ -163,9 +163,9 @@ const AdminDashboard = () => {
       {/* Sidebar */}
       <aside className="admin-sidebar">
         <div className="sidebar-header">
-          <div className="logo" style={{display: 'flex', alignItems: 'center', gap: '12px'}}>
+          <div className="logo" style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
             <div>
-              <h3 style={{fontSize: '1.6rem', fontWeight: 'bold', letterSpacing: '2px'}}>VIVORA</h3>
+              <h3 style={{ fontSize: '1.6rem', fontWeight: 'bold', letterSpacing: '2px' }}>VIVORA</h3>
               <p>Bảng Quản Trị</p>
             </div>
           </div>
@@ -246,15 +246,15 @@ const AdminDashboard = () => {
               <IoMdNotifications size={20} />
               <div className="notification-badge"></div>
             </button>
-            <div 
+            <div
               className="user-profile-section"
               onClick={() => setShowProfileDropdown(!showProfileDropdown)}
             >
               <div className="user-avatar-header">
                 {adminAvatar ? (
-                  <img 
-                    src={adminAvatar} 
-                    alt="Avatar" 
+                  <img
+                    src={adminAvatar}
+                    alt="Avatar"
                     className="avatar-img"
                   />
                 ) : (
@@ -269,7 +269,7 @@ const AdminDashboard = () => {
               </div>
               {showProfileDropdown && (
                 <div className="profile-dropdown">
-                  <button 
+                  <button
                     className="dropdown-item"
                     onClick={() => {
                       setActiveTab("profile");
@@ -289,169 +289,184 @@ const AdminDashboard = () => {
 
         {/* Content Area */}
         <div className="admin-content">
-        {/* === THỐNG KÊ (OVERVIEW) === */}
-        {activeTab === "overview" && (
-          <div className="dashboard-overview">
-            <div className="page-title-section">
-              <div className="title-content">
-                <div className="icon-title">
-                  <MdDashboard size={32} />
-                  <h1>Bảng Điều Khiển Quản Trị</h1>
+          {/* === THỐNG KÊ (OVERVIEW) === */}
+          {activeTab === "overview" && (
+            <div className="dashboard-overview">
+              <div className="page-title-section">
+                <div className="title-content">
+                  <div className="icon-title">
+                    <MdDashboard size={32} />
+                    <h1>Bảng Điều Khiển Quản Trị</h1>
+                  </div>
+                  <p className="page-date">{getCurrentDate()}</p>
                 </div>
-                <p className="page-date">{getCurrentDate()}</p>
+                <button className="refresh-btn" onClick={() => window.location.reload()}>
+                  Làm mới
+                </button>
               </div>
-              <button className="refresh-btn" onClick={() => window.location.reload()}>
-                Làm mới
-              </button>
+
+              {/* Stats Cards */}
+              <div className="stats-cards-grid">
+                {/* Thẻ Album Mới Thêm (Cyan) */}
+                <div className="stat-card-modern cyan">
+                  <div className="card-icon">
+                    <FaCompactDisc size={32} />
+                  </div>
+                  <div className="card-content">
+                    <p className="card-label">TỔNG ALBUM</p>
+                    <h2 className="card-value">{stats.totalAlbums}</h2>
+                  </div>
+                </div>
+
+                <div className="stat-card-modern blue">
+                  <div className="card-icon">
+                    <FaMusic size={32} />
+                  </div>
+                  <div className="card-content">
+                    <p className="card-label">TỔNG BÀI HÁT</p>
+                    <h2 className="card-value">{stats.totalSongs}</h2>
+                  </div>
+                </div>
+
+                <div className="stat-card-modern green">
+                  <div className="card-icon">
+                    <MdPeopleAlt size={32} />
+                  </div>
+                  <div className="card-content">
+                    <p className="card-label">NGHỆ SĨ</p>
+                    <h2 className="card-value">{stats.totalArtists}</h2>
+                  </div>
+                </div>
+
+                <div className="stat-card-modern pink">
+                  <div className="card-icon">
+                    <MdQueueMusic size={32} />
+                  </div>
+                  <div className="card-content">
+                    <p className="card-label">THỂ LOẠI</p>
+                    <h2 className="card-value">{stats.totalGenres}</h2>
+                  </div>
+                </div>
+
+                <div className="stat-card-modern purple">
+                  <div className="card-icon">
+                    <FaUsers size={32} />
+                  </div>
+                  <div className="card-content">
+                    <p className="card-label">NGƯỜI DÙNG</p>
+                    <h2 className="card-value">{stats.totalUsers}</h2>
+                  </div>
+                </div>
+
+                <div className="stat-card-modern orange">
+                  <div className="card-icon">
+                    <MdQueueMusic size={32} />
+                  </div>
+                  <div className="card-content">
+                    <p className="card-label">PLAYLIST</p>
+                    <h2 className="card-value">{stats.totalPlaylists}</h2>
+                  </div>
+                </div>
+              </div>
+
+              {/* Quick Actions */}
+              {/* Quick Actions */}
+              <div className="quick-actions-section">
+                <h3>⚡ Hành Động Nhanh</h3>
+                <div className="quick-actions-grid">
+                  {/* Quản lý Album */}
+                  <div 
+                    className="quick-action-card"
+                    onClick={() => setActiveTab("albums")}
+                  >
+                    <div className="action-icon cyan">
+                      <FaCompactDisc size={28} />
+                    </div>
+                    <p>Quản Lý Album</p>
+                  </div>
+
+                  {/* Quản lý Bài Hát */}
+                  <div 
+                    className="quick-action-card"
+                    onClick={() => setActiveTab("songs")}
+                  >
+                    <div className="action-icon blue">
+                      <FaMusic size={28} />
+                    </div>
+                    <p>Quản Lý Bài Hát</p>
+                  </div>
+
+                  {/* Quản lý Nghệ Sĩ */}
+                  <div 
+                    className="quick-action-card"
+                    onClick={() => setActiveTab("artists")}
+                  >
+                    <div className="action-icon green">
+                      <MdPeopleAlt size={28} />
+                    </div>
+                    <p>Quản Lý Nghệ Sĩ</p>
+                  </div>
+
+                  {/* Quản lý Thể Loại */}
+                  <div 
+                    className="quick-action-card"
+                    onClick={() => setActiveTab("genres")}
+                  >
+                    <div className="action-icon pink">
+                      <MdQueueMusic size={28} />
+                    </div>
+                    <p>Quản Lý Thể Loại</p>
+                  </div>
+
+                  {/* Quản lý Người Dùng */}
+                  <div 
+                    className="quick-action-card"
+                    onClick={() => setActiveTab("users")}
+                  >
+                    <div className="action-icon purple">
+                      <FaUsers size={28} />
+                    </div>
+                    <p>Quản Lý Người Dùng</p>
+                  </div>
+
+                  {/* Quản lý Playlist */}
+                  <div 
+                    className="quick-action-card"
+                    onClick={() => setActiveTab("playlists")}
+                  >
+                    <div className="action-icon orange">
+                      <MdQueueMusic size={28} />
+                    </div>
+                    <p>Quản Lý Playlist</p>
+                  </div>
+
+                  {/* Icon test đơn giản */}
+                  <div className="quick-action-card">
+                    <div className="action-icon cyan">
+                      <FaMusic size={32} />
+                    </div>
+                    <p>Test Icon</p>
+                  </div>
+                </div>
+              </div>
             </div>
+          )}
 
-            {/* Stats Cards */}
-            <div className="stats-cards-grid">
-              {/* Thẻ Album Mới Thêm (Cyan) */}
-              <div className="stat-card-modern cyan">
-                <div className="card-icon">
-                  <FaCompactDisc size={32} />
-                </div>
-                <div className="card-content">
-                  <p className="card-label">TỔNG ALBUM</p>
-                  <h2 className="card-value">{stats.totalAlbums}</h2>
-                </div>
-              </div>
-
-              <div className="stat-card-modern blue">
-                <div className="card-icon">
-                  <FaMusic size={32} />
-                </div>
-                <div className="card-content">
-                  <p className="card-label">TỔNG BÀI HÁT</p>
-                  <h2 className="card-value">{stats.totalSongs}</h2>
-                </div>
-              </div>
-
-              <div className="stat-card-modern green">
-                <div className="card-icon">
-                  <MdPeopleAlt size={32} />
-                </div>
-                <div className="card-content">
-                  <p className="card-label">NGHỆ SĨ</p>
-                  <h2 className="card-value">{stats.totalArtists}</h2>
-                </div>
-              </div>
-
-              <div className="stat-card-modern pink">
-                <div className="card-icon">
-                  <MdQueueMusic size={32} />
-                </div>
-                <div className="card-content">
-                  <p className="card-label">THỂ LOẠI</p>
-                  <h2 className="card-value">{stats.totalGenres}</h2>
-                </div>
-              </div>
-
-              <div className="stat-card-modern purple">
-                <div className="card-icon">
-                  <FaUsers size={32} />
-                </div>
-                <div className="card-content">
-                  <p className="card-label">NGƯỜI DÙNG</p>
-                  <h2 className="card-value">{stats.totalUsers}</h2>
-                </div>
-              </div>
-
-              <div className="stat-card-modern orange">
-                <div className="card-icon">
-                  <MdQueueMusic size={32} />
-                </div>
-                <div className="card-content">
-                  <p className="card-label">PLAYLIST</p>
-                  <h2 className="card-value">{stats.totalPlaylists}</h2>
-                </div>
-              </div>
+          {/* Tab Thống Kê */}
+          {activeTab === "stats" && (
+            <div className="tab-content">
+              <h2>📊 Thống kê chi tiết</h2>
+              <AdminStatistics />
             </div>
+          )}
 
-            {/* Quick Actions */}
-            <div className="quick-actions-section">
-              <h3>⚡ Hành Động Nhanh</h3>
-              <div className="quick-actions-grid">
-                <button 
-                  className="quick-action-card"
-                  onClick={() => setActiveTab("albums")}
-                >
-                  <div className="action-icon cyan">
-                    <FaCompactDisc size={28} />
-                  </div>
-                  <p>Quản Lý Album</p>
-                </button>
-
-                <button 
-                  className="quick-action-card"
-                  onClick={() => setActiveTab("songs")}
-                >
-                  <div className="action-icon blue">
-                    <FaMusic size={28} />
-                  </div>
-                  <p>Quản Lý Bài Hát</p>
-                </button>
-
-                <button 
-                  className="quick-action-card"
-                  onClick={() => setActiveTab("artists")}
-                >
-                  <div className="action-icon green">
-                    <MdPeopleAlt size={28} />
-                  </div>
-                  <p>Quản Lý Nghệ Sĩ</p>
-                </button>
-
-                <button 
-                  className="quick-action-card"
-                  onClick={() => setActiveTab("genres")}
-                >
-                  <div className="action-icon pink">
-                    <MdQueueMusic size={28} />
-                  </div>
-                  <p>Quản Lý Thể Loại</p>
-                </button>
-
-                <button 
-                  className="quick-action-card"
-                  onClick={() => setActiveTab("users")}
-                >
-                  <div className="action-icon purple">
-                    <FaUsers size={28} />
-                  </div>
-                  <p>Quản Lý Người Dùng</p>
-                </button>
-
-                <button 
-                  className="quick-action-card"
-                  onClick={() => setActiveTab("playlists")}
-                >
-                  <div className="action-icon orange">
-                    <MdQueueMusic size={28} />
-                  </div>
-                  <p>Quản Lý Playlist</p>
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Tab Thống Kê */}
-        {activeTab === "stats" && (
-          <div className="tab-content">
-            <h2>📊 Thống kê chi tiết</h2>
-            <AdminStatistics />
-          </div>
-        )}
-
-        {/* Các Tab Quản lý */}
-        {activeTab === "profile" && <div className="tab-content"><AdminProfileContent /></div>}
-        {activeTab === "users" && <div className="tab-content"><UserManagementContent /></div>}
-        {activeTab === "genres" && <div className="tab-content"><GenreManagementContent /></div>}
-        {activeTab === "songs" && <div className="tab-content"><SongManagementContent /></div>}
-        {activeTab === "albums" && <div className="tab-content"><AdminAlbums /></div>}
-        {activeTab === "artists" && <div className="tab-content"><ArtistManagementContent /></div>}
+          {/* Các Tab Quản lý */}
+          {activeTab === "profile" && <div className="tab-content"><AdminProfileContent /></div>}
+          {activeTab === "users" && <div className="tab-content"><UserManagementContent /></div>}
+          {activeTab === "genres" && <div className="tab-content"><GenreManagementContent /></div>}
+          {activeTab === "songs" && <div className="tab-content"><SongManagementContent setActiveTab={setActiveTab} openArtistAddModal={() => { setActiveTab('artists'); setShowArtistModal(true); }} /></div>}
+          {activeTab === "albums" && <div className="tab-content"><AdminAlbums /></div>}
+          {activeTab === "artists" && <div className="tab-content"><ArtistManagementContent showModal={showArtistModal} setShowModal={setShowArtistModal} /></div>}
         </div>
       </div>
 

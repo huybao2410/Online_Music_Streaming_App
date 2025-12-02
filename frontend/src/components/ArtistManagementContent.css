@@ -1,3 +1,225 @@
+/* --- STYLE CHO FORM CHỈNH SỬA USER --- */
+.user-modal-specific {
+  background: linear-gradient(135deg, #f0f7ff 0%, #f8fafc 100%) !important;
+  border: 1px solid #bfdbfe !important;
+  overflow: hidden;
+}
+
+.user-modal-specific .modal-header {
+  background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%) !important;
+  padding: 20px 24px !important;
+  border-bottom: none !important;
+}
+
+.user-modal-specific .modal-header h3 {
+  color: #ffffff !important;
+  font-size: 1.25rem !important;
+  font-weight: 700 !important;
+}
+
+.user-modal-specific .close-btn {
+  color: rgba(255,255,255,0.8) !important;
+  background: transparent !important;
+}
+.user-modal-specific .close-btn:hover {
+  color: #fff !important;
+  background: rgba(255,255,255,0.2) !important;
+}
+
+.user-modal-specific .modal-body {
+  padding: 24px !important;
+  background: transparent !important;
+}
+
+.user-modal-specific label {
+  color: #1e40af !important;
+  font-weight: 600 !important;
+  margin-bottom: 8px !important;
+  display: block;
+}
+
+.user-modal-specific input[type="text"],
+.user-modal-specific textarea {
+  background-color: #ffffff !important;
+  color: #1e3a8a !important;
+  border: 1px solid #93c5fd !important;
+  border-radius: 8px !important;
+  padding: 12px !important;
+  font-size: 0.95rem !important;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.02) !important;
+}
+
+.user-modal-specific input:focus,
+.user-modal-specific textarea:focus {
+  border-color: #2563eb !important;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15) !important;
+  outline: none !important;
+}
+
+.user-modal-specific input::placeholder,
+.user-modal-specific textarea::placeholder {
+  color: #94a3b8 !important;
+}
+
+.user-modal-specific .modal-actions {
+  background: #f8fafc !important;
+  border-top: 1px solid #e2e8f0 !important;
+  padding: 16px 24px !important;
+}
+
+.user-modal-specific .btn-cancel {
+  background: #ffffff !important;
+  color: #475569 !important;
+  border: 1px solid #cbd5e1 !important;
+  font-weight: 600 !important;
+  padding: 10px 20px !important;
+}
+.user-modal-specific .btn-cancel:hover {
+  background: #f1f5f9 !important;
+  color: #1e293b !important;
+}
+
+.user-modal-specific .btn-submit {
+  background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%) !important;
+  color: #ffffff !important;
+  border: none !important;
+  font-weight: 600 !important;
+  padding: 10px 24px !important;
+  box-shadow: 0 4px 6px rgba(37, 99, 235, 0.2) !important;
+}
+.user-modal-specific .btn-submit:hover {
+  background: linear-gradient(135deg, #1d4ed8 0%, #1e3a8a 100%) !important;
+  transform: translateY(-1px);
+}
+/* --- STYLE CHO TẤT CẢ FORM MODAL (Album, Thể loại, Bài hát, Nghệ sĩ) --- */
+.modal-box.album-modal-specific,
+.modal-box.genre-modal-specific,
+.modal-box.song-modal-specific {
+  background: linear-gradient(135deg, #f0f7ff 0%, #f8fafc 100%) !important;
+  border: 1px solid #bfdbfe !important;
+  overflow: hidden;
+}
+
+.album-modal-specific .modal-header,
+.genre-modal-specific .modal-header,
+.song-modal-specific .modal-header {
+  background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%) !important;
+  padding: 20px 24px !important;
+  border-bottom: none !important;
+}
+
+.album-modal-specific .modal-header h3,
+.genre-modal-specific .modal-header h3,
+.song-modal-specific .modal-header h3 {
+  color: #ffffff !important;
+  font-size: 1.25rem !important;
+  font-weight: 700 !important;
+}
+
+.album-modal-specific .close-btn,
+.genre-modal-specific .close-btn,
+.song-modal-specific .close-btn {
+  color: rgba(255,255,255,0.8) !important;
+  background: transparent !important;
+}
+.album-modal-specific .close-btn:hover,
+.genre-modal-specific .close-btn:hover,
+.song-modal-specific .close-btn:hover {
+  color: #fff !important;
+  background: rgba(255,255,255,0.2) !important;
+}
+
+.album-modal-specific .modal-body,
+.genre-modal-specific .modal-body,
+.song-modal-specific .modal-body {
+  padding: 24px !important;
+  background: transparent !important;
+}
+
+.album-modal-specific label,
+.genre-modal-specific label,
+.song-modal-specific label {
+  color: #1e40af !important;
+  font-weight: 600 !important;
+  margin-bottom: 8px !important;
+  display: block;
+}
+
+.album-modal-specific input[type="text"],
+.album-modal-specific textarea,
+.genre-modal-specific input[type="text"],
+.genre-modal-specific textarea,
+.song-modal-specific input[type="text"],
+.song-modal-specific textarea {
+  background-color: #ffffff !important;
+  color: #1e3a8a !important;
+  border: 1px solid #93c5fd !important;
+  border-radius: 8px !important;
+  padding: 12px !important;
+  font-size: 0.95rem !important;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.02) !important;
+}
+
+.album-modal-specific input:focus,
+.album-modal-specific textarea:focus,
+.genre-modal-specific input:focus,
+.genre-modal-specific textarea:focus,
+.song-modal-specific input:focus,
+.song-modal-specific textarea:focus {
+  border-color: #2563eb !important;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15) !important;
+  outline: none !important;
+}
+
+.album-modal-specific input::placeholder,
+.album-modal-specific textarea::placeholder,
+.genre-modal-specific input::placeholder,
+.genre-modal-specific textarea::placeholder,
+.song-modal-specific input::placeholder,
+.song-modal-specific textarea::placeholder {
+  color: #94a3b8 !important;
+}
+
+.album-modal-specific .modal-actions,
+.genre-modal-specific .modal-actions,
+.song-modal-specific .modal-actions {
+  background: #f8fafc !important;
+  border-top: 1px solid #e2e8f0 !important;
+  padding: 16px 24px !important;
+}
+
+.album-modal-specific .btn-cancel,
+.genre-modal-specific .btn-cancel,
+.song-modal-specific .btn-cancel {
+  background: #ffffff !important;
+  color: #475569 !important;
+  border: 1px solid #cbd5e1 !important;
+  font-weight: 600 !important;
+  padding: 10px 20px !important;
+}
+.album-modal-specific .btn-cancel:hover,
+.genre-modal-specific .btn-cancel:hover,
+.song-modal-specific .btn-cancel:hover {
+  background: #f1f5f9 !important;
+  color: #1e293b !important;
+}
+
+.album-modal-specific .btn-submit,
+.genre-modal-specific .btn-submit,
+.song-modal-specific .btn-submit {
+  background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%) !important;
+  color: #ffffff !important;
+  border: none !important;
+  font-weight: 600 !important;
+  padding: 10px 24px !important;
+  box-shadow: 0 4px 6px rgba(37, 99, 235, 0.2) !important;
+}
+.album-modal-specific .btn-submit:hover,
+.genre-modal-specific .btn-submit:hover,
+.song-modal-specific .btn-submit:hover {
+  background: linear-gradient(135deg, #1d4ed8 0%, #1e3a8a 100%) !important;
+  transform: translateY(-1px);
+}
 /* ArtistManagementContent.css */
 
 .artist-management-content {
@@ -49,7 +271,7 @@
 }
 
 .btn-add:hover {
-  background: linear-gradient(135deg, #2563eb 0%, #1e3a8a 100%);
+  background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%);
   transform: translateY(-2px);
   box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
 }
@@ -146,7 +368,6 @@
   pointer-events: none;
 }
 
-/* ... (giữ nguyên phần dưới) ... */
 .loading-state {
   display: flex;
   flex-direction: column;
@@ -239,6 +460,13 @@
   letter-spacing: 0.5px;
 }
 
+.data-table th {
+  font-weight: 600;
+  color: white;
+  text-transform: uppercase;
+  font-size: 0.8rem;
+}
+
 .data-table tbody tr {
   border-bottom: 1px solid #e5e7eb;
   transition: background 0.2s ease;
@@ -252,6 +480,20 @@
   padding: 1rem;
   color: #374151;
 }
+
+.data-table th:last-child,
+.data-table td:last-child {
+  position: sticky;
+  right: 0;
+  background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%);
+  color: white;
+  z-index: 5;
+  border-left: 1px solid #e2e8f0;
+  box-shadow: -2px 0 5px rgba(0,0,0,0.05);
+}
+
+.data-table thead th:last-child { background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%); color: white; }
+.data-table tbody tr:hover td:last-child { background: linear-gradient(135deg, #2563eb 0%, #1e3a8a 100%); color: white; }
 
 .avatar-thumb {
   width: 50px;
@@ -276,6 +518,14 @@
 .artist-name {
   font-weight: 600;
   color: #1e3a8a;
+  font-size: 1rem;
+  font-family: 'Roboto', 'Arial', sans-serif;
+  letter-spacing: 0.2px;
+  text-shadow: none !important;
+  margin: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 /* Action Buttons */
@@ -415,6 +665,14 @@
   z-index: 1;
 }
 
+.modal-header h3 {
+  margin: 0;
+  color: #fff !important;
+  font-size: 1.25rem;
+  font-weight: 700;
+  text-shadow: none;
+}
+
 .modal-body {
   flex: 1 1 auto !important;
   min-height: 0 !important;
@@ -450,14 +708,6 @@
   scrollbar-color: #3b82f6 #f1f5f9;
 }
 
-.modal-header h3 {
-  margin: 0;
-  color: #1e40af !important;
-  font-size: 1.25rem;
-  font-weight: 700;
-  text-shadow: none;
-}
-
 .close-btn {
   background: transparent;
   border: none;
@@ -482,6 +732,18 @@
   min-height: 0;
 }
 
+.modal-form .form-input {
+  background: #f1f5f9 !important;
+  color: #1e3a8a !important;
+  font-weight: 500 !important;
+  border: 1px solid #3b82f6 !important;
+}
+
+.modal-form .form-input::placeholder {
+  color: #94a3b8 !important;
+  opacity: 1;
+}
+
 .form-group {
   margin-bottom: 1.25rem;
 }
@@ -495,20 +757,29 @@
 }
 
 .required {
-  color: #ef4444;
+  color: #ef4444 !important;
 }
 
 .form-group input,
 .form-group textarea {
   width: 100%;
   padding: 0.75rem;
-  border: 1px solid #d1d5db;
+  border: 1px solid #3b82f6;
   border-radius: 8px;
   font-size: 1rem;
   outline: none;
   transition: all 0.3s ease;
   font-family: inherit;
   box-sizing: border-box;
+  background: #f1f5f9;
+  color: #1e3a8a !important;
+  font-weight: 500;
+}
+
+.form-group input::placeholder,
+.form-group textarea::placeholder {
+  color: #94a3b8 !important;
+  opacity: 1;
 }
 
 .form-group input:focus,
@@ -559,7 +830,7 @@
 .btn-submit {
   padding: 0.75rem 1.5rem;
   background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-  color: white;
+  color: #fff !important;
   border: none;
   border-radius: 8px;
   font-weight: 600;
@@ -572,6 +843,138 @@
   background: linear-gradient(135deg, #059669 0%, #047857 100%);
   transform: translateY(-2px);
   box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4);
+}
+
+/* --- BLUE GRADIENT ADMIN MODAL THEME --- */
+.modal-box,
+.modal-body,
+.modal-form {
+  background: linear-gradient(135deg, #e0e7ff 0%, #f3f4f6 100%);
+}
+
+.modal-header {
+  background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%);
+  color: white;
+}
+
+.modal-header h3 {
+  color: #fff !important;
+  text-shadow: 0 2px 8px rgba(30, 64, 175, 0.12);
+}
+
+.form-group label {
+  color: #1e3a8a !important;
+}
+
+.form-group input,
+.form-group textarea {
+  color: #1e3a8a;
+}
+
+.btn-secondary,
+.btn-primary {
+  color: #fff;
+}
+
+/* Modern Artist Form */
+.artist-form-modern {
+  padding: 0;
+  margin: 0;
+  background: none;
+}
+.artist-form-modern .form-group {
+  margin-bottom: 1.5rem;
+}
+.artist-form-modern label {
+  color: #2563eb;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+  display: block;
+}
+.artist-form-modern .form-input {
+  width: 100%;
+  padding: 0.75rem;
+  border: 1px solid #3b82f6;
+  border-radius: 8px;
+  font-size: 1rem;
+  background: #f1f5f9;
+  color: #1e3a8a;
+  font-weight: 500;
+  transition: all 0.3s;
+  box-sizing: border-box;
+}
+.artist-form-modern .form-input:focus {
+  border-color: #1e40af;
+  box-shadow: 0 0 0 3px rgba(30, 64, 175, 0.12);
+}
+.artist-form-modern .form-input::placeholder {
+  color: #94a3b8;
+  opacity: 1;
+}
+.artist-form-modern .required {
+  color: #ef4444;
+}
+.avatar-upload-modern {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+.avatar-preview-modern {
+  max-width: 120px;
+  max-height: 120px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid #3b82f6;
+  box-shadow: 0 2px 8px rgba(59, 130, 246, 0.15);
+}
+.avatar-placeholder-modern {
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #e0e7ff 0%, #f3f4f6 100%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: #3b82f6;
+  font-size: 1.5rem;
+  font-weight: 500;
+  gap: 8px;
+  box-shadow: 0 2px 8px rgba(59, 130, 246, 0.08);
+}
+.form-hint {
+  color: #6b7280;
+  font-size: 0.85rem;
+  margin-top: 4px;
+}
+.modal-actions .btn-cancel,
+.modal-actions .btn-submit {
+  padding: 0.75rem 1.5rem;
+  border-radius: 8px;
+  font-weight: 600;
+  border: none;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+.modal-actions .btn-cancel {
+  background: #f3f4f6;
+  color: #374151;
+}
+.modal-actions .btn-cancel:hover {
+  background: #e5e7eb;
+}
+.modal-actions .btn-submit {
+  background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%);
+  color: #fff !important;
+  font-weight: 600;
+  box-shadow: 0 2px 4px rgba(59, 130, 246, 0.2);
+}
+.modal-actions .btn-submit:hover {
+  background: linear-gradient(135deg, #1e40af 0%, #2563eb 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
 }
 
 /* Responsive */
@@ -621,4 +1024,145 @@
   object-fit: cover;
   border: 2px solid #e5e7eb;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* --- STYLE RIÊNG CHO FORM NGHỆ SĨ (Ghi đè style chung) --- */
+
+/* 1. Khung Modal: Màu xanh nhạt */
+.artist-modal-specific {
+  background: linear-gradient(135deg, #f0f7ff 0%, #f8fafc 100%) !important;
+  border: 1px solid #bfdbfe !important;
+  overflow: hidden;
+}
+
+/* 2. Header Modal: Xanh dương đậm */
+.artist-modal-specific .modal-header {
+  background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%) !important;
+  padding: 20px 24px !important;
+  border-bottom: none !important;
+}
+
+.artist-modal-specific .modal-header h3 {
+  color: #ffffff !important; /* Chữ trắng */
+  font-size: 1.25rem !important;
+  font-weight: 700 !important;
+}
+
+.artist-modal-specific .close-btn {
+  color: rgba(255,255,255,0.8) !important;
+  background: transparent !important;
+}
+.artist-modal-specific .close-btn:hover {
+  color: #fff !important;
+  background: rgba(255,255,255,0.2) !important;
+}
+
+/* 3. Body & Form */
+.artist-modal-specific .modal-body {
+  padding: 24px !important;
+  background: transparent !important;
+}
+
+.artist-modal-specific label {
+  color: #1e40af !important; /* Màu chữ label xanh đậm */
+  font-weight: 600 !important;
+  margin-bottom: 8px !important;
+  display: block;
+}
+
+/* Input & Textarea */
+.artist-modal-specific input[type="text"],
+.artist-modal-specific textarea {
+  background-color: #ffffff !important;
+  color: #1e3a8a !important;
+  border: 1px solid #93c5fd !important; /* Viền xanh nhạt */
+  border-radius: 8px !important;
+  padding: 12px !important;
+  font-size: 0.95rem !important;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.02) !important;
+}
+
+.artist-modal-specific input:focus,
+.artist-modal-specific textarea:focus {
+  border-color: #2563eb !important;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15) !important;
+  outline: none !important;
+}
+
+.artist-modal-specific input::placeholder,
+.artist-modal-specific textarea::placeholder {
+  color: #94a3b8 !important;
+}
+
+/* 4. Upload Area (Khu vực tải ảnh) */
+.artist-modal-specific .avatar-upload-area {
+  background: #ffffff !important;
+  border: 2px dashed #cbd5e1 !important;
+  border-radius: 12px;
+  padding: 24px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.2s;
+  color: #64748b;
+}
+
+.artist-modal-specific .avatar-upload-area:hover {
+  border-color: #3b82f6 !important;
+  background: #eff6ff !important;
+  color: #3b82f6;
+}
+
+/* Ảnh Preview tròn */
+.artist-modal-specific .avatar-preview {
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 3px solid #3b82f6;
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.2);
+  margin: 0 auto 10px;
+  display: block;
+}
+
+/* Placeholder icon upload */
+.upload-placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  color: inherit;
+}
+
+/* 5. Footer & Buttons */
+.artist-modal-specific .modal-actions {
+  background: #f8fafc !important;
+  border-top: 1px solid #e2e8f0 !important;
+  padding: 16px 24px !important;
+}
+
+/* Nút Hủy */
+.artist-modal-specific .btn-cancel {
+  background: #ffffff !important;
+  color: #475569 !important;
+  border: 1px solid #cbd5e1 !important;
+  font-weight: 600 !important;
+  padding: 10px 20px !important;
+}
+.artist-modal-specific .btn-cancel:hover {
+  background: #f1f5f9 !important;
+  color: #1e293b !important;
+}
+
+/* Nút Lưu/Thêm */
+.artist-modal-specific .btn-submit {
+  background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%) !important;
+  color: #ffffff !important;
+  border: none !important;
+  font-weight: 600 !important;
+  padding: 10px 24px !important;
+  box-shadow: 0 4px 6px rgba(37, 99, 235, 0.2) !important;
+}
+.artist-modal-specific .btn-submit:hover {
+  background: linear-gradient(135deg, #1d4ed8 0%, #1e3a8a 100%) !important;
+  transform: translateY(-1px);
 }

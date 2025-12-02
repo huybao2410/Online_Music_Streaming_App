@@ -20,6 +20,14 @@ const ArtistDetailPage = () => {
     loadArtistData();
   }, [artistId]);
 
+  // Chuyển giây sang phút:giây
+  const formatDuration = (seconds) => {
+    if (!seconds || isNaN(seconds)) return "--:--";
+    const min = Math.floor(seconds / 60);
+    const sec = Math.floor(seconds % 60);
+    return `${min}:${sec.toString().padStart(2, "0")}`;
+  };
+
   const loadArtistData = async () => {
     try {
       setLoading(true);
@@ -55,15 +63,11 @@ const ArtistDetailPage = () => {
         const normalized = dataSongs.songs.map((s) => ({
           id: s.song_id,
           title: s.title,
-          artist: artist?.name || "Unknown", // FIX artist id -> name
           cover: fixUrl(s.cover_url),
-
-          // ❗ PLAYERCONTEXT YÊU CẦU AUDIO, KHÔNG PHẢI audio_url
           audio: fixUrl(s.audio_url),
+          genre: s.genre || "Unknown",
+          duration: formatDuration(s.duration),
         }));
-
-        console.log("SONGS NORMALIZED:", normalized);
-
         setSongs(normalized);
       } else {
         setSongs([]);
@@ -116,7 +120,8 @@ const ArtistDetailPage = () => {
         <div className="song-list-header" style={{display: 'flex', alignItems: 'center', padding: '8px 16px', fontWeight: 700, color: '#b3b3b3', borderBottom: '1px solid #222'}}>
           <div style={{width: 40, textAlign: 'center'}}>#</div>
           <div style={{flex: 2, display: 'flex', alignItems: 'center', gap: 12}}>Tiêu đề</div>
-          <div style={{flex: 1, textAlign: 'left'}}>Nghệ sĩ</div>
+          <div style={{flex: 1, textAlign: 'left'}}>Thể loại</div>
+          <div style={{width: 80, textAlign: 'right'}}>Thời lượng</div>
         </div>
         {/* Song rows */}
         {songs.map((song, idx) => (
@@ -135,7 +140,8 @@ const ArtistDetailPage = () => {
               />
               <span style={{fontWeight: 600, color: '#fff'}}>{song.title}</span>
             </div>
-            <div style={{flex: 1, color: '#fff', fontWeight: 400}}>{song.artist}</div>
+            <div style={{flex: 1, color: '#fff', fontWeight: 400}}>{song.genre}</div>
+            <div style={{width: 80, textAlign: 'right', color: '#b3b3b3', fontWeight: 400}}>{song.duration}</div>
           </div>
         ))}
       </div>

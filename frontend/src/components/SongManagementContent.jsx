@@ -1,13 +1,12 @@
 import React, { useState, useEffect } from "react";
-import { FaPlus, FaEdit, FaTrash, FaSearch, FaMusic, FaTimes } from "react-icons/fa";
+import { FaPlus, FaEdit, FaTrash, FaSearch, FaMusic, FaTimes, FaPlay } from "react-icons/fa";
 import axios from "axios";
 import "./SongManagementContent.css";
 
-// Sử dụng PHP API giống như user side để load bài hát
 const PHP_API_URL = "http://localhost:8081/music_API/online_music";
 const NODE_API_URL = "http://localhost:5000/api";
 
-export default function SongManagementContent() {
+export default function SongManagementContent({ setActiveTab, openArtistAddModal }) {
   const [songs, setSongs] = useState([]);
   const [artists, setArtists] = useState([]);
   const [genres, setGenres] = useState([]);
@@ -30,7 +29,6 @@ export default function SongManagementContent() {
     title: "",
     artist_id: "",
     genre_id: "",
-    album: "",
     cover_url: "",
     cover: null,
     audio: null,
@@ -45,6 +43,12 @@ export default function SongManagementContent() {
   const [currentPage, setCurrentPage] = useState(1);
   const [totalSongs, setTotalSongs] = useState(0);
   const songsPerPage = 10;
+
+  // Artist and genre search for modal
+  const [artistSearchTerm, setArtistSearchTerm] = useState("");
+  const [filteredArtists, setFilteredArtists] = useState([]);
+  const [genreSearchTerm, setGenreSearchTerm] = useState("");
+  const [filteredGenres, setFilteredGenres] = useState([]);
 
   useEffect(() => {
     console.log("Component mounted, fetching data...");
@@ -187,25 +191,54 @@ export default function SongManagementContent() {
     setCurrentSong(song);
 
     if (mode === "edit" && song) {
+      // Tìm genre_id từ genres nếu có
+      let genreId = "";
+      if (song.genre && genres.length > 0) {
+        const foundGenre = genres.find(g => g.name === song.genre);
+        if (foundGenre) genreId = foundGenre.genre_id;
+      }
+
       setFormData({
         title: song.title || "",
         artist_id: song.artist_id || "",
-        genre_id: "",
-        album: song.album || "",
+        genre_id: genreId,
+        cover_url: song.cover_url || "",
         cover: null,
         audio: null,
       });
+
+      // Preview cover
+      setCoverPreview(song.cover_url || null);
+
+      // Hiển thị tên file audio nếu có
+      if (song.audio_url) {
+        const audioName = song.audio_url.split("/").pop();
+        setAudioFileName(audioName);
+      } else {
+        setAudioFileName("");
+      }
+
+      // Hiển thị tên nghệ sĩ trong ô tìm kiếm
+      if (song.artist_name) {
+        setArtistSearchTerm(song.artist_name);
+      } else {
+        const foundArtist = artists.find(a => a.artist_id === song.artist_id);
+        setArtistSearchTerm(foundArtist ? foundArtist.name : "");
+      }
+      setGenreSearchTerm(song.genre || "");
     } else {
       setFormData({
         title: "",
         artist_id: "",
         genre_id: "",
-        album: "",
+        cover_url: "",
         cover: null,
         audio: null,
       });
       setCoverPreview(null);
       setAudioFileName("");
+      setArtistSearchTerm("");
+      setGenreSearchTerm("");
     }
 
     setShowModal(true);
@@ -218,7 +251,6 @@ export default function SongManagementContent() {
       title: "",
       artist_id: "",
       genre_id: "",
-      album: "",
       cover_url: "",
       cover: null,
       audio: null,
@@ -356,6 +388,12 @@ export default function SongManagementContent() {
     }
   };
 
+  const handlePlaySong = (song) => {
+    // Tùy vào logic, có thể mở player, hoặc phát trực tiếp
+    // Ví dụ đơn giản:
+    window.open(song.audio_url, "_blank");
+  };
+
   const totalPages = Math.ceil(totalSongs / songsPerPage);
 
   const goToPage = (page) => {
@@ -371,6 +409,44 @@ export default function SongManagementContent() {
     return `${mins.toString().padStart(2, "0")}:${secs
       .toString()
       .padStart(2, "0")}`;
+  };
+
+  // Filter artists based on search term
+  useEffect(() => {
+    if (artistSearchTerm) {
+      const lowerCaseTerm = artistSearchTerm.toLowerCase();
+      const filtered = artists.filter(artist =>
+        artist.name.toLowerCase().includes(lowerCaseTerm)
+      );
+      setFilteredArtists(filtered);
+    } else {
+      setFilteredArtists(artists);
+    }
+  }, [artistSearchTerm, artists]);
+
+  // Filter genres based on search term
+  useEffect(() => {
+    if (genreSearchTerm) {
+      const lowerCaseTerm = genreSearchTerm.toLowerCase();
+      const filtered = genres.filter(genre =>
+        genre.name.toLowerCase().includes(lowerCaseTerm)
+      );
+      setFilteredGenres(filtered);
+    } else {
+      setFilteredGenres(genres);
+    }
+  }, [genreSearchTerm, genres]);
+
+  const handleSelectArtist = (artist) => {
+    setFormData({ ...formData, artist_id: artist.artist_id });
+    setArtistSearchTerm(artist.name); // Hiển thị tên đã chọn
+    setFilteredArtists([]); // Ẩn dropdown
+  };
+
+  const handleSelectGenre = (genre) => {
+    setFormData({ ...formData, genre_id: genre.genre_id });
+    setGenreSearchTerm(genre.name); // Hiển thị tên đã chọn
+    setFilteredGenres([]); // Ẩn dropdown
   };
 
   return (
@@ -478,9 +554,8 @@ export default function SongManagementContent() {
                   <th>Tên bài hát</th>
                   <th>Nghệ sĩ</th>
                   <th>Thể loại</th>
-                  <th>Album</th>
                   <th>Thời lượng</th>
-                  <th>Thao tác</th>
+                  <th>Hành động</th>
                 </tr>
               </thead>
               <tbody>
@@ -501,10 +576,16 @@ export default function SongManagementContent() {
                     <td className="song-title">{song.title}</td>
                     <td>{song.artist_name || "Chưa có"}</td>
                     <td>{song.genre || "-"}</td>
-                    <td>{song.album || "-"}</td>
                     <td>{formatDuration(song.duration)}</td>
                     <td>
                       <div className="action-btns">
+                        <button
+                          className="btn-icon play"
+                          onClick={() => handlePlaySong(song)}
+                          title="Phát bài hát"
+                        >
+                          <FaPlay />
+                        </button>
                         <button
                           className="btn-icon edit"
                           onClick={() => openModal("edit", song)}
@@ -569,7 +650,7 @@ export default function SongManagementContent() {
 
       {showModal && (
         <div className="modal-overlay" onClick={closeModal}>
-          <div className="modal-box" onClick={(e) => e.stopPropagation()}>
+          <div className="modal-box song-modal-specific" onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
               <h3>{modalMode === "create" ? "Thêm bài hát mới" : "Chỉnh sửa bài hát"}</h3>
               <button className="close-btn" onClick={closeModal}><FaTimes /></button>
@@ -591,98 +672,87 @@ export default function SongManagementContent() {
               <div className="form-row">
                 <div className="form-group">
                   <label>Nghệ sĩ <span className="required">*</span></label>
-                  <select
-                    name="artist_id"
-                    value={formData.artist_id}
-                    onChange={handleInputChange}
-                    required
-                  >
-                    <option value="">-- Chọn nghệ sĩ --</option>
-                    {artists.map((artist) => (
-                      <option key={artist.artist_id} value={artist.artist_id}>
+                  <input
+                    type="text"
+                    id="artist-search"
+                    placeholder="Nhập tên nghệ sĩ..."
+                    value={artistSearchTerm}
+                    onChange={e => setArtistSearchTerm(e.target.value)}
+                  />
+                  {/* Hiển thị danh sách nghệ sĩ lọc theo artistSearchTerm */}
+                  <div className="search-dropdown">
+                    {filteredArtists.map(artist => (
+                      <div key={artist.artist_id} onClick={() => handleSelectArtist(artist)} className="dropdown-item">
                         {artist.name}
-                      </option>
+                      </div>
                     ))}
-                  </select>
+                  </div>
                 </div>
 
                 <div className="form-group">
                   <label>Thể loại <span className="required">*</span></label>
-                  <select
-                    name="genre_id"
-                    value={formData.genre_id}
-                    onChange={handleInputChange}
-                    required
-                  >
-                    <option value="">-- Chọn thể loại --</option>
-                    {genres.map((genre) => (
-                      <option key={genre.genre_id} value={genre.genre_id}>
+                  <input
+                    type="text"
+                    id="genre-search"
+                    placeholder="Nhập tên thể loại..."
+                    value={genreSearchTerm}
+                    onChange={e => setGenreSearchTerm(e.target.value)}
+                  />
+                  {/* Hiển thị danh sách thể loại lọc theo genreSearchTerm */}
+                  <div className="search-dropdown">
+                    {filteredGenres.map(genre => (
+                      <div key={genre.genre_id} onClick={() => handleSelectGenre(genre)} className="dropdown-item">
                         {genre.name}
-                      </option>
+                      </div>
                     ))}
-                  </select>
+                  </div>
                 </div>
               </div>
 
               <div className="form-group">
-                <label>Album</label>
+                <label>URL ảnh bìa</label>
                 <input
-                  type="text"
-                  name="album"
-                  value={formData.album}
+                  type="url"
+                  name="cover_url"
+                  value={formData.cover_url || ""}
                   onChange={handleInputChange}
-                  placeholder="Tên album (tùy chọn)"
+                  placeholder="https://example.com/image.jpg"
                 />
+                <small className="form-hint">Nhập URL ảnh hoặc tải file bên dưới</small>
               </div>
 
-              {modalMode === "create" && (
-                <>
-                  <div className="form-group">
-                    <label>URL ảnh bìa</label>
-                    <input
-                      type="url"
-                      name="cover_url"
-                      value={formData.cover_url || ""}
-                      onChange={handleInputChange}
-                      placeholder="https://example.com/image.jpg"
-                    />
-                    <small className="form-hint">Nhập URL ảnh hoặc tải file bên dưới</small>
+              <div className="form-group">
+                <label>Hoặc tải file ảnh bìa</label>
+                {coverPreview && (
+                  <div className="image-preview">
+                    <img src={coverPreview} alt="Cover preview" />
                   </div>
+                )}
+                <input
+                  type="file"
+                  name="cover"
+                  accept="image/*"
+                  onChange={handleFileChange}
+                />
+                <small className="form-hint">JPG, PNG, GIF, WEBP - Tối đa 5MB</small>
+              </div>
 
-                  <div className="form-group">
-                    <label>Hoặc tải file ảnh bìa</label>
-                    {coverPreview && (
-                      <div className="image-preview">
-                        <img src={coverPreview} alt="Cover preview" />
-                      </div>
-                    )}
-                    <input
-                      type="file"
-                      name="cover"
-                      accept="image/*"
-                      onChange={handleFileChange}
-                    />
-                    <small className="form-hint">JPG, PNG, GIF, WEBP - Tối đa 5MB</small>
+              <div className="form-group">
+                <label>File nhạc <span className="required">*</span></label>
+                {audioFileName && (
+                  <div className="file-selected">
+                    <FaMusic /> {audioFileName}
                   </div>
-
-                  <div className="form-group">
-                    <label>File nhạc <span className="required">*</span></label>
-                    {audioFileName && (
-                      <div className="file-selected">
-                        <FaMusic /> {audioFileName}
-                      </div>
-                    )}
-                    <input
-                      type="file"
-                      name="audio"
-                      accept="audio/mp3,audio/wav,audio/ogg,audio/m4a"
-                      onChange={handleFileChange}
-                      required
-                    />
-                    <small className="form-hint">MP3, WAV, OGG, M4A - Tối đa 10MB</small>
-                  </div>
-                </>
-              )}
+                )}
+                <input
+                  type="file"
+                  name="audio"
+                  accept="audio/mp3,audio/wav,audio/ogg,audio/m4a"
+                  onChange={handleFileChange}
+                  required
+                />
+                <small className="form-hint">MP3, WAV, OGG, M4A - Tối đa 10MB</small>
+              </div>
               </form>
             </div>
 

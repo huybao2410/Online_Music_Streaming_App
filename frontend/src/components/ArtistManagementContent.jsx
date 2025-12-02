@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { FaPlus, FaEdit, FaTrash, FaSearch, FaUserAlt, FaTimes } from "react-icons/fa";
+import { FaPlus, FaEdit, FaTrash, FaSearch, FaUserAlt, FaTimes, FaCloudUploadAlt } from "react-icons/fa";
 import axios from "axios";
 import "./ArtistManagementContent.css";
 
@@ -19,7 +19,7 @@ const buildAvatarUrl = (url) => {
   return `${PHP_API_URL}/${url}`;
 };
 
-export default function ArtistManagementContent() {
+export default function ArtistManagementContent({ showModal: externalShowModal, setShowModal: externalSetShowModal }) {
   const [artists, setArtists] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -30,6 +30,23 @@ export default function ArtistManagementContent() {
 
   // Modal states
   const [showModal, setShowModal] = useState(false);
+
+  // Đảm bảo modal chỉ hiện khi showModal === true và props không override state
+  // Sửa lại logic nhận props showModal/setShowModal từ ngoài:
+  useEffect(() => {
+    if (typeof externalShowModal === 'boolean') {
+      setShowModal(externalShowModal);
+    }
+  }, [externalShowModal]);
+
+  // Đảm bảo khi đóng modal, set cả state nội bộ và props nếu có
+  const handleCloseModal = () => {
+    setShowModal(false);
+    if (externalSetShowModal) externalSetShowModal(false);
+    setCurrentArtist(null);
+    setFormData({ name: "", bio: "", avatar: null });
+    setAvatarPreview(null);
+  };
   const [modalMode, setModalMode] = useState("create"); // "create" or "edit"
   const [currentArtist, setCurrentArtist] = useState(null);
 
@@ -136,16 +153,7 @@ export default function ArtistManagementContent() {
     setShowModal(true);
   };
 
-  const closeModal = () => {
-    setShowModal(false);
-    setCurrentArtist(null);
-    setFormData({
-      name: "",
-      bio: "",
-      avatar: null,
-    });
-    setAvatarPreview(null);
-  };
+  // Thay closeModal bằng handleCloseModal
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -199,7 +207,7 @@ export default function ArtistManagementContent() {
         if (response.data.success) {
           setSuccess("Thêm nghệ sĩ thành công!");
           fetchArtists();
-          closeModal();
+          handleCloseModal();
         }
       } else {
         // Sử dụng Node.js API cho admin operations
@@ -217,7 +225,7 @@ export default function ArtistManagementContent() {
         if (response.data.success) {
           setSuccess("Cập nhật nghệ sĩ thành công!");
           fetchArtists();
-          closeModal();
+          handleCloseModal();
         }
       }
     } catch (err) {
@@ -275,7 +283,10 @@ export default function ArtistManagementContent() {
             Tổng số: <strong>{totalArtists}</strong> nghệ sĩ
           </p>
         </div>
-        <button className="btn-add" onClick={() => openModal("create")}>
+        <button
+          className="btn-add"
+          onClick={() => openModal("create")}
+        >
           <FaPlus /> Thêm nghệ sĩ
         </button>
       </div>
@@ -340,7 +351,7 @@ export default function ArtistManagementContent() {
                   <th>Avatar</th>
                   <th>Tên nghệ sĩ</th>
                   <th>Số bài hát</th>
-                  <th>Thao tác</th>
+                  <th>Hành động</th>
                 </tr>
               </thead>
               <tbody>
@@ -433,15 +444,21 @@ export default function ArtistManagementContent() {
       )}
 
       {showModal && (
-        <div className="modal-overlay" onClick={closeModal}>
-          <div className="modal-box" onClick={(e) => e.stopPropagation()}>
+        <div className="modal-overlay" onClick={handleCloseModal}>
+          {/* Class 'artist-modal-specific' dùng để style riêng cho form này */}
+          <div className="modal-box artist-modal-specific" onClick={(e) => e.stopPropagation()}>
+
+            {/* Header Modal */}
             <div className="modal-header">
               <h3>{modalMode === "create" ? "Thêm nghệ sĩ mới" : "Chỉnh sửa nghệ sĩ"}</h3>
-              <button className="close-btn" onClick={closeModal}><FaTimes /></button>
+              <button className="close-btn" onClick={handleCloseModal}><FaTimes /></button>
             </div>
 
+            {/* Body Modal */}
             <div className="modal-body">
               <form id="artist-form" onSubmit={handleSubmit} className="modal-form">
+
+                {/* Tên Nghệ sĩ */}
                 <div className="form-group">
                   <label>Tên nghệ sĩ <span className="required">*</span></label>
                   <input
@@ -451,9 +468,37 @@ export default function ArtistManagementContent() {
                     onChange={handleInputChange}
                     required
                     placeholder="VD: Sơn Tùng M-TP"
+                    autoFocus
                   />
                 </div>
 
+                {/* Ảnh Đại Diện (Có Preview) */}
+                <div className="form-group">
+                  <label>Ảnh đại diện</label>
+                  <div
+                    className="avatar-upload-area"
+                    onClick={() => document.getElementById('avatar-input').click()}
+                  >
+                    {avatarPreview ? (
+                      <img src={avatarPreview} alt="Preview" className="avatar-preview" />
+                    ) : (
+                      <div className="upload-placeholder">
+                        <FaCloudUploadAlt size={32} />
+                        <span>Nhấn để tải ảnh lên</span>
+                      </div>
+                    )}
+                  </div>
+                  <input
+                    id="avatar-input"
+                    type="file"
+                    name="avatar"
+                    accept="image/*"
+                    onChange={handleFileChange}
+                    style={{ display: 'none' }}
+                  />
+                </div>
+
+                {/* Tiểu sử */}
                 <div className="form-group">
                   <label>Tiểu sử</label>
                   <textarea
@@ -461,34 +506,17 @@ export default function ArtistManagementContent() {
                     value={formData.bio}
                     onChange={handleInputChange}
                     rows="4"
-                    placeholder="Nhập tiểu sử nghệ sĩ..."
+                    placeholder="Nhập thông tin mô tả..."
                   />
-                </div>
-
-                <div className="form-group">
-                  <label>Avatar</label>
-                  {avatarPreview && (
-                    <div className="avatar-preview">
-                      <img src={avatarPreview} alt="Preview" />
-                    </div>
-                  )}
-                  <input
-                    type="file"
-                    name="avatar"
-                    accept="image/*"
-                    onChange={handleFileChange}
-                  />
-                  <small className="form-hint">Định dạng: JPG, PNG. Tối đa 5MB</small>
                 </div>
               </form>
             </div>
 
+            {/* Footer (Nút bấm) */}
             <div className="modal-actions">
-              <button type="button" className="btn-cancel" onClick={closeModal}>
-                Hủy
-              </button>
+              <button type="button" className="btn-cancel" onClick={handleCloseModal}>Hủy</button>
               <button type="submit" form="artist-form" className="btn-submit">
-                {modalMode === "create" ? "Thêm" : "Cập nhật"}
+                {modalMode === "create" ? "Thêm mới" : "Lưu thay đổi"}
               </button>
             </div>
           </div>
