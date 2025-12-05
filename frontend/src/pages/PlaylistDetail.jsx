@@ -28,6 +28,12 @@ export default function PlaylistDetail() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
 
+  const fixUrl = (url) => {
+    if (!url) return url;
+    return url.replace("10.0.2.2", "localhost");
+  };
+
+
   const fetchPlaylistDetail = async () => {
     try {
       const token = localStorage.getItem("token");
@@ -40,12 +46,12 @@ export default function PlaylistDetail() {
 
       if (response.data.success) {
         const playlistData = response.data.playlist;
-        
+
         // Xử lý URL ảnh bìa playlist
         if (playlistData.cover_url && !playlistData.cover_url.startsWith('http')) {
           playlistData.cover_url = `http://localhost:5000${playlistData.cover_url}`;
         }
-        
+
         // Xử lý bài hát
         if (playlistData.songs) {
           playlistData.songs = playlistData.songs.map(song => {
@@ -64,7 +70,7 @@ export default function PlaylistDetail() {
             };
           });
         }
-        
+
         setPlaylist(playlistData);
         // Tạo màu nền động dựa trên tên playlist
         function stringToColor(str) {
@@ -142,7 +148,7 @@ export default function PlaylistDetail() {
   const formatDuration = (seconds) => {
     const numSeconds = parseInt(seconds, 10);
     if (isNaN(numSeconds) || numSeconds <= 0) return "0:00";
-    
+
     const mins = Math.floor(numSeconds / 60);
     const secs = numSeconds % 60;
     return `${mins}:${secs.toString().padStart(2, '0')}`;
@@ -153,26 +159,36 @@ export default function PlaylistDetail() {
     const total = playlist.songs.reduce((sum, song) => sum + (parseInt(song.duration) || 0), 0);
     const hours = Math.floor(total / 3600);
     const mins = Math.floor((total % 3600) / 60);
-    
+
     if (hours > 0) return `${hours} giờ ${mins} phút`;
     return `${mins} phút`;
   };
 
   const formatSongForPlayer = (song) => {
     let audioUrl = song.audio_url;
+
+    console.log("[formatSongForPlayer] RAW song:", song);
+    console.log("[formatSongForPlayer] RAW audio_url:", audioUrl);
+
     if (audioUrl && !audioUrl.startsWith('http')) {
       audioUrl = `http://localhost:8081/music_API/online_music/${audioUrl}`;
+      console.log("[formatSongForPlayer] FIXED audioUrl:", audioUrl);
     }
-    
-    return {
+
+    const formatted = {
       id: song.song_id,
       title: song.title,
       artist: song.artist_name,
       cover: song.cover_url,
-      url: audioUrl,
+      url: fixUrl(audioUrl),
       duration: song.duration
     };
+
+    console.log("[formatSongForPlayer] FINAL formatted song:", formatted);
+
+    return formatted;
   };
+
 
   const handlePlayPlaylist = () => {
     if (!playlist?.songs || playlist.songs.length === 0) return;
@@ -232,7 +248,7 @@ export default function PlaylistDetail() {
       return (
         <div className="playlist-cover-grid">
           {songCovers.map((cover, idx) => (
-            <img key={idx} src={cover} alt="" />
+            <img key={idx} src={fixUrl(cover)} alt="" />
           ))}
         </div>
       );
@@ -249,12 +265,12 @@ export default function PlaylistDetail() {
 
   return (
     <div className="playlist-detail-page">
-      <div className="playlist-banner" style={bannerColor ? {background: `linear-gradient(180deg, ${bannerColor} 0%, #0f0f1e 100%)`} : {}}>
+      <div className="playlist-banner" style={bannerColor ? { background: `linear-gradient(180deg, ${bannerColor} 0%, #0f0f1e 100%)` } : {}}>
         <div className="playlist-banner-content">
           <div className="playlist-cover-large">
             {renderPlaylistCover()}
           </div>
-          
+
           <div className="playlist-header-info">
             {/* --- TRẠNG THÁI PUBLIC / PRIVATE --- */}
             <span className="playlist-badge">
@@ -267,9 +283,9 @@ export default function PlaylistDetail() {
 
             <h1 className="playlist-title">{playlist.name}</h1>
             {playlist.description && <p className="playlist-desc">{playlist.description}</p>}
-            
+
             <div className="playlist-stats">
-              <img 
+              <img
                 src={`https://ui-avatars.com/api/?name=${encodeURIComponent(playlist.owner_name || 'User')}&background=4a9b9b&color=fff&size=24`}
                 alt={playlist.owner_name}
                 className="owner-avatar"
@@ -289,8 +305,8 @@ export default function PlaylistDetail() {
       </div>
 
       <div className="playlist-controls">
-        <button 
-          className="play-button-large" 
+        <button
+          className="play-button-large"
           disabled={!playlist.songs?.length}
           onClick={handlePlayPlaylist}
           title="Play"
@@ -301,9 +317,9 @@ export default function PlaylistDetail() {
             <BiPlay size={32} />
           )}
         </button>
-        
+
         {playlist.songs?.length > 0 && (
-          <button 
+          <button
             className="icon-button shuffle"
             onClick={handleShufflePlaylist}
             title="Shuffle"
@@ -311,17 +327,17 @@ export default function PlaylistDetail() {
             <BsShuffle size={24} />
           </button>
         )}
-        
+
         {isOwner && (
           <>
-            <button 
+            <button
               className="icon-button add"
               onClick={() => setShowAddModal(true)}
               title="Add songs"
             >
               <BsPlus size={28} />
             </button>
-            <button 
+            <button
               className="icon-button edit"
               onClick={() => setShowEditModal(true)}
               title="Edit songs"
@@ -329,7 +345,7 @@ export default function PlaylistDetail() {
             >
               <FiEdit2 size={22} />
             </button>
-            <button 
+            <button
               className="icon-button delete"
               onClick={handleDeletePlaylist}
               title="Delete playlist"
@@ -338,7 +354,7 @@ export default function PlaylistDetail() {
             </button>
           </>
         )}
-        
+
         <button className="icon-button more">
           <BsThreeDots size={24} />
         </button>
@@ -359,8 +375,8 @@ export default function PlaylistDetail() {
             </div>
 
             {playlist.songs.map((song, index) => (
-              <div 
-                key={song.song_id} 
+              <div
+                key={song.song_id}
                 className={`track-row ${isCurrentSong(song) ? 'active' : ''}`}
                 onClick={() => handlePlaySong(song, index)}
               >
@@ -371,16 +387,26 @@ export default function PlaylistDetail() {
                     <span className="track-number">{index + 1}</span>
                   )}
                 </div>
-                
+
                 <div className="col-title">
                   <div className="track-info">
+                    {(() => {
+                      console.log("Image URL:", song.cover_url);
+                      return null;
+                    })()}
+
                     {song.cover_url ? (
-                      <img src={song.cover_url} alt={song.title} className="track-image" />
+                      <img
+                        src={fixUrl(song.cover_url)}
+                        alt={song.title}
+                        className="track-image"
+                      />
                     ) : (
                       <div className="track-image-placeholder">
                         <BsMusicNoteBeamed size={20} />
                       </div>
                     )}
+
                     <div className="track-details">
                       <div className={`track-name ${isCurrentSong(song) ? 'active' : ''}`}>
                         {song.title}
@@ -389,19 +415,19 @@ export default function PlaylistDetail() {
                     </div>
                   </div>
                 </div>
-                
+
                 <div className="col-album">{song.album || "-"}</div>
                 <div className="col-date">
-                  {song.added_at ? new Date(song.added_at).toLocaleDateString('en-US', { 
-                    month: 'short', 
-                    day: 'numeric', 
-                    year: 'numeric' 
+                  {song.added_at ? new Date(song.added_at).toLocaleDateString('en-US', {
+                    month: 'short',
+                    day: 'numeric',
+                    year: 'numeric'
                   }) : "-"}
                 </div>
-                
+
                 {/* HIỂN THỊ THỜI LƯỢNG */}
                 <div className="col-duration">{formatDuration(song.duration)}</div>
-                
+
                 {isOwner && (
                   <div className="col-actions">
                     <button
@@ -425,7 +451,7 @@ export default function PlaylistDetail() {
             <h3>Bắt đầu thêm bài hát</h3>
             <p>Tìm kiếm và thêm bài hát yêu thích vào playlist</p>
             {isOwner && (
-              <button 
+              <button
                 className="add-songs-button"
                 onClick={() => setShowAddModal(true)}
               >

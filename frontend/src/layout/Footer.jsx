@@ -33,6 +33,10 @@ export default function Footer() {
   const [adTriggered, setAdTriggered] = useState(false);
   const [showPlaylistModal, setShowPlaylistModal] = useState(false);
 
+  const fixUrl = (url) => {
+    if (!url) return url;
+    return url.replace("10.0.2.2", "localhost");
+  };
   // ⭐ NEW – Premium state
   const [isPremium, setIsPremium] = useState(false);
   const [favorites, setFavorites] = useState([]); // Thêm state favorites
@@ -306,7 +310,7 @@ export default function Footer() {
           <div className="footer-left">
             <div className="track-info-container">
               {currentSong.cover ? (
-                <img src={currentSong.cover} alt={currentSong.title} className="track-image" />
+                <img src={fixUrl(currentSong.cover)} alt={currentSong.title} className="track-image" />
               ) : (
                 <div className="track-image-placeholder">♫</div>
               )}
