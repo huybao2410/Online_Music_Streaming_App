@@ -11,7 +11,7 @@ const API = axios.create({
  */
 export const getSongs = async () => {
   try {
-    const response = await API.get("/song/get_songs.php");
+    const response = await API.get("/song/get_songs_web.php");
 
     if (response.data.status && Array.isArray(response.data.songs)) {
       const fixedSongs = response.data.songs.map((song) => ({
