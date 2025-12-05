@@ -237,9 +237,10 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 20px;
-  margin-top: 20px;
+  margin-top: 10px;      /* GIẢM từ 20px → 10px */
+  margin-bottom: 12px;   /* GIẢM từ 20px → 12px */
 }
+
 
 .section-header h2 { font-size: 24px; font-weight: 700; margin: 0; }
 
@@ -373,4 +374,29 @@
   color: #fff;
   background: rgba(255, 255, 255, 0.15);
   transform: scale(1.1);
+}
+/* Giảm khoảng cách phía trên của mỗi section */
+.section-header {
+  margin-top: 4px !important;   /* từ 20px → 4px */
+  margin-bottom: 12px !important;
+}
+
+/* Nếu section wrapper có padding/margin dư */
+section {
+  margin-top: 0 !important;
+  padding-top: 0 !important;
+}
+
+/* Khoảng cách giữa grid/scroll và header trên */
+.horizontal-scroll,
+.songs-horizontal-scroll,
+.playlist-grid {
+  margin-top: 0 !important;
+  padding-top: 0 !important;
+}
+/* Giảm khoảng cách trên/dưới của mọi section */
+.home-container section {
+  margin-top: 10px !important;
+  margin-bottom: 10px !important;
+  padding-top: 0 !important;
 }
