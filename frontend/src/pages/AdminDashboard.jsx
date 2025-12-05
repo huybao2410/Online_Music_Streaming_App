@@ -181,13 +181,13 @@ const AdminDashboard = () => {
               <FaTachometerAlt />
               <span>Dashboard</span>
             </button>
-            <button
+            {/* <button
               className={`nav-item ${activeTab === "stats" ? "active" : ""}`}
               onClick={() => setActiveTab("stats")}
             >
               <MdDashboard />
               <span>Thống kê</span>
-            </button>
+            </button> */}
           </div>
 
           <div className="nav-section">
@@ -369,85 +369,12 @@ const AdminDashboard = () => {
                 </div>
               </div>
 
-              {/* Quick Actions */}
-              {/* Quick Actions */}
-              <div className="quick-actions-section">
-                <h3>⚡ Hành Động Nhanh</h3>
-                <div className="quick-actions-grid">
-                  {/* Quản lý Album */}
-                  <div 
-                    className="quick-action-card"
-                    onClick={() => setActiveTab("albums")}
-                  >
-                    <div className="action-icon cyan">
-                      <FaCompactDisc size={28} />
-                    </div>
-                    <p>Quản Lý Album</p>
-                  </div>
 
-                  {/* Quản lý Bài Hát */}
-                  <div 
-                    className="quick-action-card"
-                    onClick={() => setActiveTab("songs")}
-                  >
-                    <div className="action-icon blue">
-                      <FaMusic size={28} />
-                    </div>
-                    <p>Quản Lý Bài Hát</p>
-                  </div>
-
-                  {/* Quản lý Nghệ Sĩ */}
-                  <div 
-                    className="quick-action-card"
-                    onClick={() => setActiveTab("artists")}
-                  >
-                    <div className="action-icon green">
-                      <MdPeopleAlt size={28} />
-                    </div>
-                    <p>Quản Lý Nghệ Sĩ</p>
-                  </div>
-
-                  {/* Quản lý Thể Loại */}
-                  <div 
-                    className="quick-action-card"
-                    onClick={() => setActiveTab("genres")}
-                  >
-                    <div className="action-icon pink">
-                      <MdQueueMusic size={28} />
-                    </div>
-                    <p>Quản Lý Thể Loại</p>
-                  </div>
-
-                  {/* Quản lý Người Dùng */}
-                  <div 
-                    className="quick-action-card"
-                    onClick={() => setActiveTab("users")}
-                  >
-                    <div className="action-icon purple">
-                      <FaUsers size={28} />
-                    </div>
-                    <p>Quản Lý Người Dùng</p>
-                  </div>
-
-                  {/* Quản lý Playlist */}
-                  <div 
-                    className="quick-action-card"
-                    onClick={() => setActiveTab("playlists")}
-                  >
-                    <div className="action-icon orange">
-                      <MdQueueMusic size={28} />
-                    </div>
-                    <p>Quản Lý Playlist</p>
-                  </div>
-
-                  {/* Icon test đơn giản */}
-                  <div className="quick-action-card">
-                    <div className="action-icon cyan">
-                      <FaMusic size={32} />
-                    </div>
-                    <p>Test Icon</p>
-                  </div>
-                </div>
+              <div className="tab-content">
+                <h2>📊 Bảng Thống Kê</h2>
+              </div>
+              <div className="dashboard-statistics-embedded">
+                <AdminStatistics />
               </div>
             </div>
           )}
