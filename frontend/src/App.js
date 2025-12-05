@@ -3,10 +3,8 @@ import { BrowserRouter as Router, Routes, Route, Navigate, useNavigate } from "r
 import MainLayout from "./layout/MainLayout";
 import HomePage from "./pages/HomePage";
 import AdminDashboard from "./pages/AdminDashboard";
-import AdminLayout from "./layout/AdminLayout";
 import LoginDialog from "./pages/LoginDialog";
 import SignupDialog from "./pages/SignupDialog";
-import UploadSong from "./pages/UploadSong";
 import UserProfile from "./pages/UserProfile";
 import PlaylistDetail from "./pages/PlaylistDetail";
 import EditPlaylist from "./pages/EditPlaylist";
@@ -21,6 +19,7 @@ import ArtistDetailPage from "./pages/ArtistDetailPage";
 import PremiumPage from "./pages/PremiumPage";
 import PaymentCallback from "./pages/PaymentCallback";
 import PremiumSuccess from "./pages/PremiumSuccess";
+import PremiumStatusPage from "./pages/PremiumStatusPage";
 import AlbumDetail from "./pages/AlbumDetailPage";
 
 // Component redirect dựa trên role khi vào trang chủ
@@ -95,12 +94,11 @@ function App() {
           <Route path="/premium-upgrade" element={<PremiumPage />} />
           <Route path="/artists" element={<ArtistsPage />} />
           <Route path="/artist/:artistId" element={<ArtistDetailPage />} />
-          
-
+          {/* Thêm route PremiumStatus giữ nguyên layout */}
+          <Route path="/premium-status" element={<PremiumStatusPage />} />
         </Route>
 
         {/* Routes công khai */}
-        <Route path="/upload" element={<UploadSong />} />
         <Route path="/login" element={<LoginDialog />} />
         <Route path="/signup" element={<SignupDialog />} />
         <Route path="/artist-selection" element={<ArtistSelectionScreen />} />

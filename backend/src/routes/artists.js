@@ -53,6 +53,7 @@ const isAdmin = (req, res, next) => {
 };
 
 // Get all artists for admin (no filter) - cho admin panel
+// Get all artists for admin (only artists with bio & avatar)
 router.get('/admin/all', async (req, res) => {
   try {
     const query = `
@@ -64,28 +65,31 @@ router.get('/admin/all', async (req, res) => {
         COUNT(DISTINCT s.song_id) as song_count
       FROM artists a
       LEFT JOIN songs s ON a.artist_id = s.artist_id
+      WHERE 
+        a.bio IS NOT NULL AND a.bio <> '' AND
+        a.avatar_url IS NOT NULL AND a.avatar_url <> ''
       GROUP BY a.artist_id, a.name, a.bio, a.avatar_url
       ORDER BY a.name ASC
     `;
 
     const [artists] = await pool.query(query);
 
-    console.log(`✅ Admin: Retrieved ${artists.length} artists (all, no filter)`);
+    console.log(`✅ Admin: Retrieved ${artists.length} artists (with bio + avatar)`);
 
-    // Avatar mặc định cho nghệ sĩ không có avatar
-    const DEFAULT_AVATAR = 'https://ui-avatars.com/api/?name=';
+
+
 
     return res.json({
       status: true,
       success: true,
       count: artists.length,
-      artists: artists.map(artist => ({
-        artist_id: artist.artist_id,
-        name: artist.name,
-        bio: artist.bio || '',
-        avatar_url: artist.avatar_url || `${DEFAULT_AVATAR}${encodeURIComponent(artist.name)}&background=4a9b9b&color=fff&size=200`,
-        song_count: artist.song_count
-      }))
+      artists
+
+
+
+
+
+
     });
   } catch (error) {
     console.error('❌ Error in /api/artists/admin/all:', error);
@@ -97,6 +101,7 @@ router.get('/admin/all', async (req, res) => {
     });
   }
 });
+
 
 // Get all artists (public)
 router.get('/', async (req, res) => {

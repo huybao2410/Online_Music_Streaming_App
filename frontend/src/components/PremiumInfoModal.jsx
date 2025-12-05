@@ -13,13 +13,16 @@ export default function PremiumInfoModal({ onClose }) {
 
   const fetchSubscription = async () => {
     try {
-      const token = localStorage.getItem('token');
-      const res = await axios.get('http://localhost:5000/api/subscriptions/current', {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-
-      if (res.data.success && res.data.subscription) {
-        setSubscription(res.data.subscription);
+      const userId = localStorage.getItem('user_id');
+      const res = await axios.get(`http://localhost/music_API/online_music/user/check_premium.php?user_id=${userId}`);
+      if (res.data.status === "success" && res.data.is_premium) {
+        setSubscription({
+          start_date: res.data.start_date,
+          end_date: res.data.end_date,
+          subscription_id: res.data.subscription_id
+        });
+      } else {
+        setSubscription(null);
       }
     } catch (error) {
       console.error('Error fetching subscription:', error);
@@ -33,14 +36,11 @@ export default function PremiumInfoModal({ onClose }) {
 
     setLoading(true);
     try {
-      const token = localStorage.getItem('token');
-      const res = await axios.post(
-        'http://localhost:5000/api/subscriptions/cancel',
-        {},
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-
-      if (res.data.success) {
+      const userId = localStorage.getItem('user_id');
+      const res = await axios.post('http://localhost/music_API/online_music/user/cancel_premium.php', {
+        user_id: userId
+      });
+      if (res.data.status === "success") {
         alert("❌ Bạn đã hủy gói Premium thành công.");
         localStorage.setItem("is_premium", "0");
         window.dispatchEvent(new Event("premiumUpdated"));

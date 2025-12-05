@@ -156,8 +156,7 @@ const AlbumDetailPage = () => {
         />
         <div style={{flex: 1}}>
           <div style={{fontSize: 18, color: '#b3b3b3', fontWeight: 500, marginBottom: 4}}>Album · {songs.length} Bài hát</div>
-          <h1 style={{fontSize: 44, fontWeight: 800, color: '#fff', margin: 0}}>{albumInfo.name}</h1>
-          {/* Đã bỏ dòng nhỏ tên nghệ sĩ dưới tiêu đề album */}
+          <h1 style={{fontSize: 44, fontWeight: 800, color: '#fff', margin: 0}}>{albumInfo.name}</h1> 
           <div style={{display: 'flex', alignItems: 'center', gap: 16, marginTop: 12}}>
             <button className="favorite-button" onClick={handleToggleFavorite} disabled={favoriteLoading} style={{background: 'none', border: 'none', cursor: 'pointer'}}>
               {favoriteLoading ? (

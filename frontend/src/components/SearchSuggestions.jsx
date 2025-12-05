@@ -86,39 +86,57 @@ export default function SearchSuggestions({ suggestions, onClose, onSelect }) {
         )}
 
         {/* Artists */}
-        {artists.length > 0 && (
-          <div className="suggestion-section">
-            <h4 className="suggestion-title">
-              <FaUser /> Nghệ sĩ
-            </h4>
-            <div className="suggestion-list">
-              {artists.map((artist) => (
-                <div
-                  key={`artist-${artist.id}`}
-                  className="suggestion-item"
-                  onClick={() => handleArtistClick(artist)}
-                >
-                  <div className="suggestion-image circular">
-                    {artist.avatar_url ? (
-                      <img 
-                        src={artist.avatar_url.replace('10.0.2.2', 'localhost')} 
-                        alt={artist.name} 
-                      />
-                    ) : (
-                      <div className="suggestion-placeholder">
-                        <FaUser />
-                      </div>
-                    )}
-                  </div>
-                  <div className="suggestion-info">
-                    <div className="suggestion-name">{artist.name}</div>
-                    <div className="suggestion-meta">Nghệ sĩ</div>
-                  </div>
-                </div>
-              ))}
+      
+{artists.length > 0 && (
+  <div className="suggestion-section">
+    <h4 className="suggestion-title">
+      <FaUser /> Nghệ sĩ
+    </h4>
+
+    <div className="suggestion-list">
+      {artists
+        .filter((artist) => {
+          // ❌ Không có avatar → bỏ
+          if (!artist.avatar_url || artist.avatar_url.trim() === "") return false;
+
+          const url = artist.avatar_url.toLowerCase();
+
+          // ❌ Avatar lỗi → bỏ
+          if (
+            url.includes("placeholder") ||
+            url.includes("default") ||
+            url.includes("text") ||
+            url.includes("base64,") && url.length < 50 // base64 quá ngắn = lỗi
+          ) {
+            return false;
+          }
+
+          return true; // ✔ Avatar hợp lệ → giữ lại
+        })
+        .map((artist) => (
+          <div
+            key={`artist-${artist.id}`}
+            className="suggestion-item"
+            onClick={() => handleArtistClick(artist)}
+          >
+            <div className="suggestion-image circular">
+              <img
+                src={artist.avatar_url.replace("10.0.2.2", "localhost")}
+                alt={artist.name}
+              />
+            </div>
+
+            <div className="suggestion-info">
+              <div className="suggestion-name">{artist.name}</div>
+              <div className="suggestion-meta">Nghệ sĩ</div>
             </div>
           </div>
-        )}
+        ))}
+    </div>
+  </div>
+)}
+
+
 
         {/* Albums */}
         {albums.length > 0 && (

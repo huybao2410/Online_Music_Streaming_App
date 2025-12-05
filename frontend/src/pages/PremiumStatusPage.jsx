@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { HiArrowLeft } from 'react-icons/hi2';
 import axios from 'axios';
 import './PremiumStatusPage.css';
 
@@ -99,7 +100,17 @@ export default function PremiumStatusPage() {
 
   return (
     <div className="premium-status-page">
-      <div className="premium-status-container">
+      <div className="premium-status-container" style={{position: 'relative'}}>
+        {/* Back button inside form container */}
+        <button
+          className="back-btn"
+          style={{ position: 'absolute', top: 24, left: 24, zIndex: 10, display: 'flex', alignItems: 'center', padding: 8, borderRadius: '50%', background: 'rgba(0,0,0,0.15)', boxShadow: '0 2px 8px #0002' }}
+          onClick={() => navigate("/")}
+          aria-label="Về trang chủ"
+        >
+          <HiArrowLeft size={28} />
+        </button>
+
         <div className="premium-header">
           <div className="premium-icon">💎</div>
           <h1>Thành viên Premium</h1>
@@ -151,10 +162,6 @@ export default function PremiumStatusPage() {
             disabled={cancelling}
           >
             {cancelling ? "Đang xử lý..." : "Hủy gói Premium"}
-          </button>
-
-          <button className="back-btn" onClick={() => navigate('/')}>
-            Quay lại trang chủ
           </button>
         </div>
       </div>

@@ -47,6 +47,15 @@ export default function LoginDialog({ onClose, onSuccess }) {
         localStorage.setItem("rememberMe", "true");
       }
 
+      // Check premium status after login
+      try {
+        const premiumRes = await axios.get(`http://localhost/music_API/online_music/check_premium.php?user_id=${user.id || user.user_id}`);
+        const isPremium = premiumRes.data?.is_premium || premiumRes.data?.premium;
+        localStorage.setItem("is_premium", isPremium ? "1" : "0");
+      } catch (premiumErr) {
+        localStorage.setItem("is_premium", "0");
+      }
+
       // Phát sự kiện để Header & Sidebar biết
       window.dispatchEvent(new Event("storage"));
 
@@ -179,6 +188,14 @@ export default function LoginDialog({ onClose, onSuccess }) {
                   localStorage.setItem("email", user.email);
                   if (user.avatar_url) {
                     localStorage.setItem("avatar", user.avatar_url);
+                  }
+                  // Check premium status after Google login
+                  try {
+                    const premiumRes = await axios.get(`http://localhost:8081/music_API/online_music/user/check_premium.php?user_id=${user.id || user.user_id}`);
+                    const isPremium = premiumRes.data?.is_premium || premiumRes.data?.premium;
+                    localStorage.setItem("is_premium", isPremium ? "1" : "0");
+                  } catch (premiumErr) {
+                    localStorage.setItem("is_premium", "0");
                   }
                   window.dispatchEvent(new Event("storage"));
                   onSuccess?.();

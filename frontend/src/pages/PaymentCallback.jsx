@@ -17,6 +17,20 @@ export default function PaymentCallback() {
     if (responseCode === '00') {
       setStatus('success');
       setMessage('Thanh toán thành công!');
+      // Đồng bộ trạng thái premium cho toàn app
+      const token = localStorage.getItem('token');
+      if (token) {
+        fetch('http://localhost:5000/api/subscriptions/current', {
+          headers: { Authorization: `Bearer ${token}` }
+        })
+          .then(res => res.json())
+          .then(data => {
+            if (data.success && data.subscription && data.subscription.is_premium) {
+              localStorage.setItem('is_premium', '1');
+              window.dispatchEvent(new Event('storage'));
+            }
+          });
+      }
     } else {
       setStatus('failed');
       setMessage('Thanh toán thất bại!');
@@ -24,7 +38,7 @@ export default function PaymentCallback() {
   }, [searchParams]);
 
   const handleGoHome = () => {
-    navigate('/');
+    navigate('/', { state: { showPremiumSuccess: true } });
   };
 
   const handleRetry = () => {

@@ -81,6 +81,10 @@ export default function PremiumPage() {
         error: null,
       });
 
+      // Đồng bộ trạng thái premium cho toàn app
+      localStorage.setItem("is_premium", "1");
+      window.dispatchEvent(new Event("storage"));
+
       window.history.replaceState({}, '', '/premium-upgrade');
       return;
     }
@@ -226,8 +230,6 @@ export default function PremiumPage() {
               >
                 {subscription.is_premium ? 'Bạn đã là Premium' : processing ? 'Đang xử lý...' : 'Nâng cấp ngay →'}
               </button>
-
-              <p className="payment-note">Thanh toán qua VNPay</p>
             </div>
           </div>
 

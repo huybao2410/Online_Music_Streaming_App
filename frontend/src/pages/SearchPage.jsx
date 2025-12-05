@@ -21,13 +21,28 @@ export default function SearchPage() {
     const fetchResults = async () => {
       if (!query) return;
       setLoading(true);
+
       try {
         const result = await searchAll(query);
+
         if (result.success) {
+          // Songs
           setSongs(result.songs || []);
-          setArtists(result.artists || []);
+
+          // 🔥 Chỉ load nghệ sĩ có avatar + bio
+          const filteredArtists = (result.artists || []).filter(
+            (artist) =>
+              artist.avatar_url &&
+              artist.avatar_url.trim() !== "" &&
+              artist.bio &&
+              artist.bio.trim() !== ""
+          );
+          setArtists(filteredArtists);
+
+          // Albums
           setAlbums(result.albums || []);
 
+          // Auto playlist
           if (result.songs && result.songs.length > 0) {
             const formattedPlaylist = result.songs.map((s) => ({
               id: s.id,
@@ -82,12 +97,15 @@ export default function SearchPage() {
         <button className={`tab-btn ${activeTab === "all" ? "active" : ""}`} onClick={() => setActiveTab("all")}>
           Tất cả
         </button>
+
         <button className={`tab-btn ${activeTab === "songs" ? "active" : ""}`} onClick={() => setActiveTab("songs")}>
           <FaMusic /> Bài hát ({songs.length})
         </button>
+
         <button className={`tab-btn ${activeTab === "artists" ? "active" : ""}`} onClick={() => setActiveTab("artists")}>
           <FaUser /> Nghệ sĩ ({artists.length})
         </button>
+
         <button className={`tab-btn ${activeTab === "albums" ? "active" : ""}`} onClick={() => setActiveTab("albums")}>
           <FaCompactDisc /> Album ({albums.length})
         </button>
@@ -99,16 +117,17 @@ export default function SearchPage() {
         {filteredArtists.length > 0 && (
           <div className="result-section">
             <h3 className="section-title"><FaUser /> Nghệ sĩ</h3>
+
             <div className="artists-grid">
               {filteredArtists.map((artist) => (
                 <div key={artist.id} className="artist-card" onClick={() => navigate(`/artist/${artist.id}`)}>
                   <div className="artist-avatar">
-                    {artist.avatar_url ? (
-                      <img src={artist.avatar_url.replace("10.0.2.2", "localhost")} alt={artist.name} />
-                    ) : (
-                      <div className="avatar-placeholder"><FaUser /></div>
-                    )}
+                    <img
+                      src={artist.avatar_url.replace("10.0.2.2", "localhost")}
+                      alt={artist.name}
+                    />
                   </div>
+
                   <div className="artist-info">
                     <h4>{artist.name}</h4>
                     <p>Nghệ sĩ</p>
@@ -123,6 +142,7 @@ export default function SearchPage() {
         {filteredAlbums.length > 0 && (
           <div className="result-section">
             <h3 className="section-title"><FaCompactDisc /> Album</h3>
+
             <div className="albums-grid">
               {filteredAlbums.map((album, idx) => (
                 <div key={`album-${idx}`} className="album-card">
@@ -133,6 +153,7 @@ export default function SearchPage() {
                       <div className="cover-placeholder"><FaCompactDisc /></div>
                     )}
                   </div>
+
                   <div className="album-info">
                     <h4>{album.name}</h4>
                     <p>{album.artist_name}</p>
@@ -182,14 +203,12 @@ export default function SearchPage() {
                   >
                     <div className="song-index">{idx + 1}</div>
 
-                    {/* ẢNH BOX LANDSCAPE + INFO */}
                     <div className="song-main">
                       <div className="song-cover">
-                        {song.cover_url ? (
-                          <img src={song.cover_url.replace("10.0.2.2", "localhost")} alt={song.title} />
-                        ) : (
-                          <div className="cover-placeholder"><FaMusic /></div>
-                        )}
+                        <img
+                          src={song.cover_url ? song.cover_url.replace("10.0.2.2", "localhost") : ""}
+                          alt={song.title}
+                        />
                       </div>
 
                       <div className="song-details">

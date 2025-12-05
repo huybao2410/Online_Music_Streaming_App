@@ -361,15 +361,8 @@ export default function ArtistManagementContent({ showModal: externalShowModal, 
                     <td>
                       <img
                         src={buildAvatarUrl(artist.avatar_url)}
-
-
-
                         alt={artist.name}
                         className="avatar-thumb"
-
-
-
-
                       />
                     </td>
                     <td className="artist-name">{artist.name}</td>

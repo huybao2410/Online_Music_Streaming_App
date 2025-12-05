@@ -6,6 +6,8 @@ const { authenticate } = require("../middlewares/auth");
 
 // GET subscription of logged-in user
 router.get("/me", authenticate, getMySubscription);
+// Đồng bộ route /current cho frontend
+router.get("/current", authenticate, getMySubscription);
 
 // ⭐ Route lấy danh sách gói Premium
 router.get("/plans", getPlans);

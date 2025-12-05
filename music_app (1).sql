@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Nov 30, 2025 at 08:14 PM
+-- Generation Time: Dec 05, 2025 at 07:38 AM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -210,12 +210,13 @@ CREATE TABLE `albums` (
 --
 
 INSERT INTO `albums` (`album_id`, `name`, `artist_id`, `description`, `cover_url`, `release_date`, `created_at`, `updated_at`) VALUES
-(3, 'Sơn Tùng M-TP', 11, 'Album', 'http://10.0.2.2:8081/music_API/online_music/album/album_cover/album_1762643216.jpeg', '2025-11-09', '2025-11-08 23:06:56', '2025-11-10 07:47:54'),
+(3, 'Sơn Tùng M-TP', 11, 'Album123', 'http://10.0.2.2:8081/music_API/online_music/album/album_cover/album_1762643216.jpeg', '2025-11-08', '2025-11-08 23:06:56', '2025-12-02 11:54:07'),
 (4, 'Nhạc chill', 1, 'Hãy tận hưởng âm nhạc cùng Chill Chill', 'http://10.0.2.2:8081/music_API/online_music/album/album_cover/album_1762760004.jpeg', '2025-11-10', '2025-11-10 07:33:24', '2025-11-10 07:33:24'),
 (5, 'Mỹ Tâm', 15, 'Album', 'http://10.0.2.2:8081/music_API/online_music/album/album_cover/album_1762761150.jpg', '2025-11-10', '2025-11-10 07:52:30', '2025-11-10 07:52:30'),
 (6, 'Jack - J97', 14, 'Album', 'http://10.0.2.2:8081/music_API/online_music/album/album_cover/album_1762896202.jpg', '2025-11-12', '2025-11-11 21:23:22', '2025-11-11 21:23:22'),
-(9, 'Ed Sheeran', 2, 'Album', 'http://10.0.2.2:8081/music_API/online_music/album/album_cover/album_1762907616.jpg', '2025-11-12', '2025-11-12 00:33:36', '2025-11-12 00:33:36'),
-(12, 'Đen', 12, 'Album', 'http://10.0.2.2:8081/music_API/online_music/album/album_cover/album_1763164837.jpeg', '2025-11-15', '2025-11-15 00:00:37', '2025-11-15 00:00:37');
+(9, 'Ed Sheeran', 2, 'Album', 'http://10.0.2.2:8081/music_API/online_music/album/album_cover/album_1762907616.jpg', '2025-11-11', '2025-11-12 00:33:36', '2025-12-02 11:59:40'),
+(12, 'Đen', 12, 'Album', 'http://10.0.2.2:8081/music_API/online_music/album/album_cover/album_1763164837.jpeg', '2025-11-15', '2025-11-15 00:00:37', '2025-11-15 00:00:37'),
+(25, 'The NewOne', 14, '234fssdf', 'https://bizweb.dktcdn.net/thumb/grande/100/411/628/products/booklet-2-1-1-86f8961a-2c66-4dbe-b979-f0466a7c3083.jpg?v=1677758994023', '2025-12-01', '2025-12-03 04:34:48', '2025-12-03 04:36:00');
 
 -- --------------------------------------------------------
 
@@ -235,10 +236,6 @@ CREATE TABLE `album_songs` (
 --
 
 INSERT INTO `album_songs` (`album_id`, `song_id`, `track_number`, `added_at`) VALUES
-(3, 6, 3, '2025-11-10 07:47:54'),
-(3, 7, 2, '2025-11-10 07:47:54'),
-(3, 8, 1, '2025-11-10 07:47:54'),
-(3, 17, 4, '2025-11-10 07:47:54'),
 (4, 1, 5, '2025-11-10 07:33:24'),
 (4, 2, 4, '2025-11-10 07:33:24'),
 (4, 17, 3, '2025-11-10 07:33:24'),
@@ -252,16 +249,17 @@ INSERT INTO `album_songs` (`album_id`, `song_id`, `track_number`, `added_at`) VA
 (6, 33, 5, '2025-11-11 21:23:22'),
 (6, 34, 3, '2025-11-11 21:23:22'),
 (6, 35, 2, '2025-11-11 21:23:22'),
-(9, 2, 5, '2025-11-12 00:33:36'),
-(9, 3, 3, '2025-11-12 00:33:36'),
-(9, 41, 4, '2025-11-12 00:33:36'),
-(9, 42, 1, '2025-11-12 00:33:36'),
-(9, 43, 2, '2025-11-12 00:33:36'),
+(9, 77, 1, '2025-12-02 11:59:40'),
 (12, 36, 5, '2025-11-15 00:00:37'),
 (12, 37, 3, '2025-11-15 00:00:37'),
 (12, 38, 2, '2025-11-15 00:00:37'),
 (12, 39, 4, '2025-11-15 00:00:37'),
-(12, 40, 1, '2025-11-15 00:00:37');
+(12, 40, 1, '2025-11-15 00:00:37'),
+(25, 2, 5, '2025-12-03 04:36:00'),
+(25, 4, 4, '2025-12-03 04:36:00'),
+(25, 16, 3, '2025-12-03 04:36:00'),
+(25, 17, 1, '2025-12-03 04:36:00'),
+(25, 18, 2, '2025-12-03 04:36:00');
 
 -- --------------------------------------------------------
 
@@ -285,7 +283,7 @@ CREATE TABLE `artists` (
 INSERT INTO `artists` (`artist_id`, `name`, `bio`, `avatar_url`, `created_at`, `updated_at`) VALUES
 (1, 'Taylor Swift', 'Nữ ca sĩ, nhạc sĩ người Mỹ nổi tiếng với các ca khúc pop và country, từng đạt nhiều giải Grammy.', 'http://10.0.2.2:8081/music_API/online_music/artist_avatar/taylor_swift.jpeg', '2025-11-08 21:08:13', '2025-11-11 19:50:25'),
 (2, 'Ed Sheeran', 'Ca sĩ, nhạc sĩ người Anh với phong cách pop, acoustic, nổi tiếng với các bản hit như \"Shape of You\" và \"Perfect\".', 'http://10.0.2.2:8081/music_API/online_music/artist_avatar/ed_sheeran.jpeg', '2025-11-08 21:08:13', '2025-11-11 19:48:29'),
-(3, 'Adele', 'Ca sĩ người Anh sở hữu giọng hát nội lực, được biết đến với các ca khúc ballad đầy cảm xúc như \"Hello\" và \"Someone Like You\".', 'http://10.0.2.2:8081/music_API/online_music/artist_avatar/adele.jpeg', '2025-11-08 21:08:13', '2025-11-11 19:47:58'),
+(3, 'Adele', 'Ca sĩ người Anh sở hữu giọng hát nội lực, được biết đến với các ca khúc ballad đầy cảm xúc như \"Hello\" và \"Someone Like You\".', 'artist/artist_avatar/artist-1764681929598-266470668.jpg', '2025-11-08 21:08:13', '2025-12-02 13:25:29'),
 (4, 'The Weeknd', 'Ca sĩ người Canada với phong cách R&B pha lẫn pop, nổi bật với album \"After Hours\" và ca khúc \"Blinding Lights\".', 'http://10.0.2.2:8081/music_API/online_music/artist_avatar/the_weeknd.jpeg', '2025-11-08 21:08:13', '2025-11-11 19:46:50'),
 (5, 'Billie Eilish', 'Ca sĩ kiêm nhạc sĩ trẻ người Mỹ, nổi tiếng với phong cách âm nhạc độc đáo và chất giọng trầm đặc trưng.', 'http://10.0.2.2:8081/music_API/online_music/artist_avatar/billie_eilish.jpeg', '2025-11-08 21:08:13', '2025-11-11 19:46:27'),
 (6, 'Bruno Mars', 'Ca sĩ, nhạc sĩ và nhà sản xuất người Mỹ, được biết đến với các bản hit như \"Uptown Funk\" và \"24K Magic\".', 'http://10.0.2.2:8081/music_API/online_music/artist_avatar/bruno_mars.jpeg', '2025-11-08 21:08:13', '2025-11-11 19:45:43'),
@@ -338,19 +336,9 @@ INSERT INTO `artists` (`artist_id`, `name`, `bio`, `avatar_url`, `created_at`, `
 (100, 'BTS (Bangtan Boys)', 'Nhóm nhạc Hàn', 'http://10.0.2.2:8081/music_API/online_music/artist_avatar/bts_bangtan_boys.jpeg', '2025-11-16 18:36:12', '2025-11-16 18:36:12'),
 (101, 'PSY', 'Nghệ sĩ Hàn', 'http://10.0.2.2:8081/music_API/online_music/artist_avatar/psy.jpeg', '2025-11-16 18:37:26', '2025-11-16 18:37:26'),
 (102, 'Wonder Girls', 'Nhóm nhạc Hàn', 'http://10.0.2.2:8081/music_API/online_music/artist_avatar/wonder_girls.jpeg', '2025-11-16 18:37:46', '2025-11-16 18:37:46'),
-(103, 'Taylor Swift', 'Nữ ca sĩ, nhạc sĩ người Mỹ nổi tiếng với các ca khúc pop và country, từng đạt nhiều giải Grammy.', 'http://10.0.2.2:8081/music_API/online_music/artist_avatar/taylor_swift.jpg', '2025-11-19 02:31:43', '2025-11-19 02:31:43'),
-(104, 'Ed Sheeran', 'Ca sĩ, nhạc sĩ người Anh với phong cách pop, acoustic, nổi tiếng với các bản hit như \"Shape of You\" và \"Perfect\".', 'http://10.0.2.2:8081/music_API/online_music/artist_avatar/ed_sheeran.jpg', '2025-11-19 02:31:43', '2025-11-19 02:31:43'),
-(105, 'Adele', 'Ca sĩ người Anh sở hữu giọng hát nội lực, được biết đến với các ca khúc ballad đầy cảm xúc như \"Hello\" và \"Someone Like You\".', 'http://10.0.2.2:8081/music_API/online_music/artist_avatar/adele.jpg', '2025-11-19 02:31:43', '2025-11-19 02:31:43'),
-(106, 'The Weeknd', 'Ca sĩ người Canada với phong cách R&B pha lẫn pop, nổi bật với album \"After Hours\" và ca khúc \"Blinding Lights\".', 'http://10.0.2.2:8081/music_API/online_music/artist_avatar/the_weeknd.jpg', '2025-11-19 02:31:43', '2025-11-19 02:31:43'),
-(107, 'Billie Eilish', 'Ca sĩ kiêm nhạc sĩ trẻ người Mỹ, nổi tiếng với phong cách âm nhạc độc đáo và chất giọng trầm đặc trưng.', 'http://10.0.2.2:8081/music_API/online_music/artist_avatar/billie_eilish.jpg', '2025-11-19 02:31:43', '2025-11-19 02:31:43'),
-(109, 'Ariana Grande', 'Nữ ca sĩ người Mỹ nổi tiếng với giọng hát 4 quãng tám và phong cách pop-R&B hiện đại.', 'http://10.0.2.2:8081/music_API/online_music/artist_avatar/ariana_grande.jpg', '2025-11-19 02:31:43', '2025-11-19 02:31:43'),
-(110, 'Justin Bieber', 'Nam ca sĩ người Canada nổi lên từ YouTube, sở hữu nhiều bản hit quốc tế như \"Sorry\" và \"Peaches\".', 'http://10.0.2.2:8081/music_API/online_music/artist_avatar/justin_bieber.jpg', '2025-11-19 02:31:43', '2025-11-19 02:31:43'),
 (111, 'Olivia Rodrigo', 'Ca sĩ, nhạc sĩ trẻ người Mỹ nổi tiếng với các ca khúc pop-rock đầy cảm xúc như \"drivers license\" và \"vampire\".', 'http://10.0.2.2:8081/music_API/online_music/artist_avatar/olivia_rodrigo.jpg', '2025-11-19 02:31:43', '2025-11-19 02:31:43'),
-(112, 'Shawn Mendes', 'Ca sĩ, nhạc sĩ người Canada với phong cách pop và acoustic, nổi bật với các ca khúc \"Stitches\" và \"Treat You Better\".', 'http://10.0.2.2:8081/music_API/online_music/artist_avatar/shawn_mendes.jpg', '2025-11-19 02:31:43', '2025-11-19 02:31:43'),
-(113, 'Sơn Tùng M-TP', 'Ca sĩ, nhạc sĩ và nhà sản xuất người Việt Nam, nổi bật với các ca khúc \"Lạc Trôi\", \"Hãy Trao Cho Anh\" và \"Chúng Ta Của Hiện Tại\".', 'http://10.0.2.2:8081/music_API/online_music/artist_avatar/son_tung_m_tp.jpg', '2025-11-19 02:31:43', '2025-11-20 17:35:41'),
-(114, 'Đen Vâu', 'Rapper và nhạc sĩ người Việt Nam, nổi tiếng với phong cách rap sâu lắng, truyền cảm.', 'http://10.0.2.2:8081/music_API/online_music/artist_avatar/den_vau.jpg', '2025-11-19 02:31:43', '2025-11-19 02:31:43'),
-(115, 'Hoàng Thùy Linh', 'Ca sĩ, diễn viên người Việt Nam, nổi bật với phong cách âm nhạc dân gian đương đại.', 'http://10.0.2.2:8081/music_API/online_music/artist_avatar/hoang_thuy_linh.jpg', '2025-11-19 02:31:43', '2025-11-19 02:31:43'),
-(117, 'Mỹ Tâm', 'Nữ ca sĩ hàng đầu Việt Nam, được mệnh danh là \"Họa mi tóc nâu\", sở hữu lượng người hâm mộ đông đảo.', 'http://10.0.2.2:8081/music_API/online_music/artist_avatar/my_tam.jpg', '2025-11-19 02:31:43', '2025-11-19 02:31:43');
+(118, 'Nhà Phát Minh Đỉnh Chóp', 'Là một lõi ngon', 'artist/artist_avatar/artist-1764633642633-603532808.jpg', '2025-12-02 00:00:42', '2025-12-02 00:00:42'),
+(119, 'The NewOne', '123', 'artist/artist_avatar/artist-1764637791122-357595339.jpg', '2025-12-02 01:09:51', '2025-12-02 01:09:51');
 
 -- --------------------------------------------------------
 
@@ -429,7 +417,10 @@ INSERT INTO `favorite_albums` (`id`, `user_id`, `album_id`, `created_at`) VALUES
 (26, '45', '12', '2025-11-20 00:01:08'),
 (27, '46', '12', '2025-11-30 18:06:25'),
 (28, '46', '6', '2025-11-30 18:06:30'),
-(29, '46', '5', '2025-11-30 18:06:30');
+(29, '46', '5', '2025-11-30 18:06:30'),
+(30, '48', '9', '2025-11-30 21:07:11'),
+(31, '48', '6', '2025-11-30 21:07:12'),
+(32, '48', '12', '2025-11-30 22:42:46');
 
 -- --------------------------------------------------------
 
@@ -449,15 +440,14 @@ CREATE TABLE `favorite_songs` (
 --
 
 INSERT INTO `favorite_songs` (`id`, `user_id`, `song_id`, `added_at`) VALUES
-(4, 46, 77, '2025-11-29 13:33:45'),
-(5, 46, 71, '2025-11-29 13:33:47'),
-(8, 46, 75, '2025-11-29 13:59:28'),
-(9, 46, 76, '2025-12-01 01:06:14'),
-(10, 46, 78, '2025-12-01 01:06:15'),
-(11, 46, 67, '2025-12-01 01:06:18'),
-(12, 46, 66, '2025-12-01 01:06:18'),
-(13, 46, 65, '2025-12-01 01:06:19'),
-(14, 46, 64, '2025-12-01 01:06:20');
+(15, 48, 74, '2025-12-01 03:55:44'),
+(16, 48, 77, '2025-12-01 04:30:53'),
+(24, 46, 74, '2025-12-01 06:47:18'),
+(25, 46, 76, '2025-12-01 06:49:38'),
+(26, 46, 71, '2025-12-01 06:49:39'),
+(27, 46, 67, '2025-12-01 06:49:40'),
+(28, 46, 61, '2025-12-01 06:49:41'),
+(29, 46, 57, '2025-12-01 06:49:43');
 
 -- --------------------------------------------------------
 
@@ -506,10 +496,7 @@ INSERT INTO `genres` (`genre_id`, `name`, `description`, `created_at`) VALUES
 (27, 'Folk', 'Nhạc dân gian, phản ánh văn hóa truyền thống của từng vùng miền.', '2025-11-08 21:08:20'),
 (28, 'Chill', 'Nhạc nhẹ nhàng, thư giãn, thích hợp khi làm việc hoặc nghỉ ngơi.', '2025-11-08 21:08:20'),
 (29, 'Instrumental', 'Nhạc không lời, tập trung vào giai điệu và nhạc cụ.', '2025-11-08 21:08:20'),
-(30, 'Children', 'Nhạc thiếu nhi, vui tươi, trong sáng, dành cho trẻ em.', '2025-11-08 21:08:20'),
-(31, '25', NULL, '2025-11-08 22:12:46'),
-(32, 'V', NULL, '2025-11-10 15:02:00'),
-(94, 'p', NULL, '2025-11-16 17:50:54');
+(30, 'Children', 'Nhạc thiếu nhi, vui tươi, trong sáng, dành cho trẻ em.', '2025-11-08 21:08:20');
 
 -- --------------------------------------------------------
 
@@ -680,9 +667,7 @@ INSERT INTO `playlists` (`playlist_id`, `user_id`, `name`, `is_public`, `created
 (36, 32, 'abc', 0, '2025-11-20 17:00:58', '2025-11-20 17:00:58'),
 (37, 32, 'kkk', 0, '2025-11-20 17:30:05', '2025-11-20 17:30:05'),
 (46, 45, 'concat', 0, '2025-11-21 13:48:49', '2025-11-21 13:48:49'),
-(48, 46, '123', 0, '2025-11-25 21:36:13', '2025-11-25 21:36:13'),
-(53, 46, '3213', 1, '2025-11-28 00:33:24', '2025-11-28 00:33:24'),
-(54, 46, '123', 0, '2025-11-29 03:17:28', '2025-11-29 03:17:28');
+(55, 48, '123', 0, '2025-11-30 22:48:00', '2025-11-30 22:48:00');
 
 -- --------------------------------------------------------
 
@@ -730,20 +715,7 @@ INSERT INTO `playlist_songs` (`playlist_id`, `song_id`, `added_at`) VALUES
 (37, 30, '2025-11-20 23:40:20'),
 (37, 35, '2025-11-20 23:40:22'),
 (37, 55, '2025-11-20 17:37:49'),
-(37, 64, '2025-11-20 17:37:27'),
-(46, 73, '2025-11-21 13:48:55'),
-(46, 74, '2025-11-21 13:49:05'),
-(46, 75, '2025-11-21 13:49:08'),
-(46, 76, '2025-11-21 13:49:12'),
-(48, 73, '2025-11-27 21:08:54'),
-(48, 74, '2025-11-27 21:08:51'),
-(48, 75, '2025-11-27 21:08:43'),
-(48, 76, '2025-11-27 21:08:48'),
-(48, 78, '2025-11-28 00:16:05'),
-(53, 74, '2025-11-29 06:22:44'),
-(53, 78, '2025-11-29 02:13:32'),
-(54, 75, '2025-11-29 03:56:06'),
-(54, 78, '2025-11-29 03:53:13');
+(37, 64, '2025-11-20 17:37:27');
 
 -- --------------------------------------------------------
 
@@ -836,12 +808,7 @@ INSERT INTO `songs` (`song_id`, `title`, `artist_id`, `genre_id`, `duration`, `a
 (70, 'FAKE LOVE', 100, 14, 0, 'http://10.0.2.2:8081/music_API/online_music/audio/fake_love.mp3', 'http://10.0.2.2:8081/music_API/online_music/cover/_fake_love.jpeg', NULL, 0, '2025-11-16 18:42:01', '2025-11-16 18:42:01', 0),
 (71, 'Gangnam Style', 101, 14, 0, 'http://10.0.2.2:8081/music_API/online_music/audio/gangnam_style.mp3', 'http://10.0.2.2:8081/music_API/online_music/cover/_gangnam_style.jpeg', NULL, 1, '2025-11-16 18:42:33', '2025-11-17 04:23:05', 0),
 (72, 'Nobody', 102, 14, 0, 'http://10.0.2.2:8081/music_API/online_music/audio/nobody.mp3', 'http://10.0.2.2:8081/music_API/online_music/cover/_nobody.jpeg', NULL, 3, '2025-11-16 18:43:18', '2025-11-17 12:30:50', 0),
-(73, 'Shinunoga E-Wa', 93, 31, 0, 'http://localhost:8081/music_API/online_music/audio/shinunoga_e_wa.mp3', 'http://localhost:8081/music_API/online_music/cover/_shinunoga_e_wa.jpeg', NULL, 0, '2025-11-21 13:48:55', '2025-11-21 13:48:55', 0),
-(74, 'Sorry', 8, 31, 0, 'http://localhost:8081/music_API/online_music/audio/sorry.mp3', 'http://localhost:8081/music_API/online_music/cover/_sorry.jpeg', NULL, 0, '2025-11-21 13:49:05', '2025-11-21 13:49:05', 0),
-(75, 'Waka Waka', 80, 31, 0, 'http://localhost:8081/music_API/online_music/audio/waka_waka.mp3', 'http://localhost:8081/music_API/online_music/cover/_waka_waka.jpeg', NULL, 0, '2025-11-21 13:49:08', '2025-11-21 13:49:08', 0),
-(76, 'Gieo Quẻ', 32, 31, 0, 'http://localhost:8081/music_API/online_music/audio/gieo_que.mp3', 'http://localhost:8081/music_API/online_music/cover/hoang_thuy_linh_en_gieo_que.jpeg', NULL, 0, '2025-11-21 13:49:12', '2025-11-21 13:49:12', 0),
-(77, 'Anh Sai Rồi', 11, 10, 205, 'http://10.0.2.2:8081/music_API/online_music/audio/son_tung_m_tp_anh_sai_roi_1764245079.mp3', 'http://10.0.2.2:8081/music_API/online_music/cover/son_tung_m_tp_anh_sai_roi_cover_1764245079.jpg', NULL, 0, '2025-11-27 12:04:39', '2025-11-27 12:04:39', 0),
-(78, 'Anh Sai Rồi', 11, 31, 0, 'http://localhost:8081/music_API/online_music/audio/son_tung_m_tp_anh_sai_roi_1764245079.mp3', 'http://localhost:8081/music_API/online_music/cover/son_tung_m_tp_anh_sai_roi_cover_1764245079.jpg', NULL, 0, '2025-11-28 00:16:05', '2025-11-28 00:16:05', 0);
+(77, 'Anh Sai Rồi', 11, 10, 205, 'http://10.0.2.2:8081/music_API/online_music/audio/son_tung_m_tp_anh_sai_roi_1764245079.mp3', 'http://10.0.2.2:8081/music_API/online_music/cover/son_tung_m_tp_anh_sai_roi_cover_1764245079.jpg', NULL, 0, '2025-11-27 12:04:39', '2025-11-27 12:04:39', 0);
 
 -- --------------------------------------------------------
 
@@ -902,9 +869,8 @@ INSERT INTO `transactions` (`id`, `user_id`, `plan_id`, `plan_name`, `amount`, `
 ('1763586510962', 32, 1, '1 tháng', 49000, 'pending', 'VNPay', '2025-11-20 04:08:30', '2025-11-20 04:08:30'),
 ('1763588495778', 36, 1, '1 tháng', 49000, 'completed', 'VNPay', '2025-11-20 04:42:15', '2025-11-20 04:41:35'),
 ('1763588923204', 36, 1, '1 tháng', 49000, 'completed', 'VNPay', '2025-11-20 04:49:31', '2025-11-20 04:48:43'),
-('1763872513391', 46, 1, '1 tháng', 49000, 'pending', 'VNPay', '2025-11-23 04:35:13', '2025-11-23 11:35:13'),
-('POnlineMusicWeb_1764527420079_57', 46, 1, '1 tháng', 49000, 'pending', 'VNPay', NULL, '2025-12-01 01:30:20'),
-('POnlineMusicWeb_1764527601155_337', 46, 3, '1 năm', 499000, 'completed', 'VNPay', '2025-12-01 01:34:43', '2025-12-01 01:33:21');
+('POnlineMusicWeb_1764542405424_94', 48, 1, '1 tháng', 49000, 'completed', 'VNPay', '2025-12-01 05:41:04', '2025-12-01 05:40:05'),
+('POnlineMusicWeb_1764915172794_133', 52, 3, '1 năm', 499000, 'completed', 'VNPay', '2025-12-05 13:13:51', '2025-12-05 13:12:52');
 
 -- --------------------------------------------------------
 
@@ -934,10 +900,9 @@ INSERT INTO `users` (`id`, `username`, `email`, `phone_number`, `password_hash`,
 (32, 'Thanh Đình', 'thanhdinh1806.tphcm@gmail.com', NULL, '#', 'https://lh3.googleusercontent.com/a/ACg8ocLB1hb9PlcCAsBXVLL5121WlKlpe8hulQkAyto4nEYhPJjpcQ=s96-c', NULL, 'user', 'active', '2025-11-16 16:47:58', '2025-11-28 00:09:18'),
 (36, 'Đình Thanh', 'dangthanhdinh.1806@gmail.com', NULL, '#', 'https://lh3.googleusercontent.com/a/ACg8ocI-qcPPlV369oRzT9J0EGoqU8jrfHxLFfTdue7czOSzHRWLtA=s96-c', NULL, 'user', 'active', '2025-11-19 21:41:00', '2025-11-19 21:41:00'),
 (45, 'Thanh Đình Nguyễn Ngô', 'nguyenngothanhdinh.hvt@gmail.com', NULL, '#', 'https://lh3.googleusercontent.com/a/ACg8ocKYNfyZ4lXvrH2w4nQ1Xwu7AVk-pHcwzF5R3AmxuazRfliC_GM=s96-c', NULL, 'user', 'active', '2025-11-19 23:07:04', '2025-11-19 23:07:04'),
-(46, 'Nguyễn Hồng Huy Bảo', 'huybaonguyenhong@gmail.com', NULL, '$2a$10$GOOGLE_OAUTH_USER_NO_PASSWORD_HASH_PLACEHOLDER', 'https://lh3.googleusercontent.com/a/ACg8ocJV4KAFwgJWm_3xNMcT3zT9w7CwEWizjzsKwwkTkgXwcjuxQoFh=s96-c', NULL, 'user', 'active', '2025-11-21 14:41:09', '2025-11-27 22:43:38'),
 (47, 'admin1', 'admin1@example.com', '0329944649', '$2b$10$bqTFQg8QYxoqhh7LaeRpfuiobv7QlyseH3ARrB/Fi4rfYkvuF0wYK', '/uploads/avatars/avatar-1764070203040-179363556.jpg', '1989-12-31', 'admin', 'active', '2025-11-23 05:12:24', '2025-11-25 11:30:03'),
-(48, 'Nguyen Huy Bao', 'huybaonguyen2004@gmail.com', NULL, '$2a$10$GOOGLE_OAUTH_USER_NO_PASSWORD_HASH_PLACEHOLDER', 'https://lh3.googleusercontent.com/a/ACg8ocLLZvAeSvdwNdFrUEqw7lrMfTWItaavMQGUg3w9SbTmYqQr8w=s96-c', NULL, 'user', 'banned', '2025-11-27 21:42:25', '2025-11-28 00:09:14'),
-(49, NULL, '123asd@gmail.com', NULL, '$2b$10$FRXXEwJTPfMGQaIZp5uOMOysSke1/GAn7jCdRJchvZVpa//Fc6t5u', NULL, NULL, 'user', 'active', '2025-11-28 00:13:19', '2025-11-28 00:13:19');
+(48, 'Nguyen Huy Bao', 'huybaonguyen2004@gmail.com', NULL, '$2a$10$GOOGLE_OAUTH_USER_NO_PASSWORD_HASH_PLACEHOLDER', 'https://lh3.googleusercontent.com/a/ACg8ocLLZvAeSvdwNdFrUEqw7lrMfTWItaavMQGUg3w9SbTmYqQr8w=s96-c', NULL, 'user', 'active', '2025-11-27 21:42:25', '2025-11-30 20:55:02'),
+(52, 'Nguyễn Hồng Huy Bảo', 'huybaonguyenhong@gmail.com', NULL, '$2a$10$GOOGLE_OAUTH_USER_NO_PASSWORD_HASH_PLACEHOLDER', 'https://lh3.googleusercontent.com/a/ACg8ocJV4KAFwgJWm_3xNMcT3zT9w7CwEWizjzsKwwkTkgXwcjuxQoFh=s96-c', NULL, 'user', 'active', '2025-12-05 06:12:50', '2025-12-05 06:12:50');
 
 -- --------------------------------------------------------
 
@@ -1023,7 +988,8 @@ CREATE TABLE `user_subscriptions` (
 INSERT INTO `user_subscriptions` (`id`, `user_id`, `subscription_plan_id`, `start_date`, `duration_days`, `adjusted_duration_days`, `status`, `renewal_count`, `auto_renew`, `last_renewal_date`, `payment_status`, `payment_method_token`, `payment_gateway`, `prorated_amount`, `created_at`, `updated_at`) VALUES
 (1, 32, 1, '2025-11-18 11:06:44', 30, NULL, 'active', 0, 0, NULL, 'completed', NULL, NULL, 0.00, '2025-11-18 11:06:44', '2025-11-18 11:06:44'),
 (5, 36, 1, '2025-11-19 21:42:15', 30, NULL, 'active', 0, 0, NULL, 'completed', NULL, 'vnpay', 0.00, '2025-11-19 21:42:15', '2025-11-19 21:49:31'),
-(12, 46, 3, '2025-11-30 18:35:10', 365, NULL, 'active', 0, 0, NULL, 'completed', NULL, 'vnpay', 0.00, '2025-11-30 18:35:10', '2025-11-30 18:35:10');
+(13, 48, 1, '2025-11-30 22:41:28', 30, NULL, 'active', 0, 0, NULL, 'completed', NULL, 'vnpay', 0.00, '2025-11-30 22:41:28', '2025-11-30 22:41:28'),
+(14, 52, 3, '2025-12-05 06:14:02', 365, NULL, 'active', 0, 0, NULL, 'completed', NULL, 'vnpay', 0.00, '2025-12-05 06:14:02', '2025-12-05 06:14:02');
 
 --
 -- Indexes for dumped tables
@@ -1171,13 +1137,13 @@ ALTER TABLE `ads_songs`
 -- AUTO_INCREMENT for table `albums`
 --
 ALTER TABLE `albums`
-  MODIFY `album_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=23;
+  MODIFY `album_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=26;
 
 --
 -- AUTO_INCREMENT for table `artists`
 --
 ALTER TABLE `artists`
-  MODIFY `artist_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=118;
+  MODIFY `artist_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=123;
 
 --
 -- AUTO_INCREMENT for table `downloaded_songs`
@@ -1189,13 +1155,13 @@ ALTER TABLE `downloaded_songs`
 -- AUTO_INCREMENT for table `favorite_albums`
 --
 ALTER TABLE `favorite_albums`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=30;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=33;
 
 --
 -- AUTO_INCREMENT for table `favorite_songs`
 --
 ALTER TABLE `favorite_songs`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=15;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=30;
 
 --
 -- AUTO_INCREMENT for table `genres`
@@ -1213,13 +1179,13 @@ ALTER TABLE `listening_history`
 -- AUTO_INCREMENT for table `playlists`
 --
 ALTER TABLE `playlists`
-  MODIFY `playlist_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=55;
+  MODIFY `playlist_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=57;
 
 --
 -- AUTO_INCREMENT for table `songs`
 --
 ALTER TABLE `songs`
-  MODIFY `song_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=79;
+  MODIFY `song_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=81;
 
 --
 -- AUTO_INCREMENT for table `subscription_plans`
@@ -1231,7 +1197,7 @@ ALTER TABLE `subscription_plans`
 -- AUTO_INCREMENT for table `users`
 --
 ALTER TABLE `users`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=50;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=53;
 
 --
 -- AUTO_INCREMENT for table `user_artists_follow`
@@ -1249,7 +1215,7 @@ ALTER TABLE `user_favorite_artists`
 -- AUTO_INCREMENT for table `user_subscriptions`
 --
 ALTER TABLE `user_subscriptions`
-  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=13;
+  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=15;
 
 --
 -- Constraints for dumped tables

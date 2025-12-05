@@ -192,7 +192,7 @@ export default function Header({ isLoginOpen, setIsLoginOpen }) {
         {isPremium ? (
           <button
             className="premium-active"
-            onClick={() => setShowPremiumModal(true)}
+            onClick={() => navigate('/premium-status')}
           >
             💎 Thành viên Premium
           </button>
