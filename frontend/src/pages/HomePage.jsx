@@ -11,6 +11,7 @@ import { PlayerContext } from "../context/PLayerContext";
 import "../layout/Layout.css";
 import "./HomePage.css";
 import SongList from "../components/SongList";
+import TopChartBox from "../components/TopChartBox";
 import { AiFillHeart, AiOutlineHeart } from "react-icons/ai";
 import { FaPlay } from "react-icons/fa";
 
@@ -483,6 +484,33 @@ const HomePage = () => {
               </div>
             </section>
           )}
+
+          {/* BẢNG XẾP HẠNG */}
+          <section className="top-charts-section" style={{marginBottom: 30}}>
+            <div className="section-header">
+              <h2>Bảng Xếp Hạng</h2>
+            </div>
+            <div className="top-charts-grid" style={{display: 'flex', gap: 24, width: '100%'}}>
+              {/* Top 50 Bài Hát Thịnh Hành */}
+              <TopChartBox
+                title="Top 50 Bài Hát Thịnh Hành"
+                apiUrl="http://localhost:8081/music_API/online_music/song/get_top_songs_web.php"
+                color="#5c3a3a"
+              />
+              {/* Top 50 Nhạc Việt */}
+              <TopChartBox
+                title="Top 50 Nhạc Việt"
+                apiUrl="http://localhost:8081/music_API/online_music/song/get_top_songs_web.php?genre_name=V-Pop"
+                color="#5c5c3a"
+              />
+              {/* Top 50 Nhạc Hoa */}
+              <TopChartBox
+                title="Top 50 Nhạc Hoa"
+                apiUrl="http://localhost:8081/music_API/online_music/song/get_top_songs_web.php?genre_name=K-Pop"
+                color="#3a3a5c"
+              />
+            </div>
+          </section>
 
           {/* GỢI Ý CHO BẠN */}
           {allSongs.length > 0 && (

@@ -22,12 +22,13 @@ const FavoriteAlbums = () => {
         headers: { Authorization: `Bearer ${token}` }
       });
       if (res.data.success) {
-        // Chuẩn hóa dữ liệu trả về
+        // Chuẩn hóa dữ liệu trả về, giữ song_count
         const mapped = res.data.favorites.map(album => ({
           album_id: album.album_id || album.id,
           name: album.name || album.album_name,
           artist_name: album.artist_name || album.artist,
           cover_url: album.cover || album.cover_url,
+          song_count: album.song_count ?? album.songCount ?? '-',
         }));
         setFavorites(mapped);
       }
@@ -110,7 +111,7 @@ const FavoriteAlbums = () => {
               <div className="col-number">#</div>
               <div className="col-title">Tiêu Đề</div>
               <div className="col-artist">Nghệ Sĩ</div>
-              <div className="col-album">Album</div>
+              <div className="col-album">Số lượng bài hát</div>
               <div className="col-remove"></div>
             </div>
             {favorites.map((album, index) => (
@@ -145,7 +146,7 @@ const FavoriteAlbums = () => {
                   </div>
                 </div>
                 <div className="col-artist">{album.artist_name}</div>
-                <div className="col-album">{album.name}</div>
+                <div className="col-album">{album.song_count ?? '-'}</div>
                 <div className="col-remove">
                   <button
                     className="action-icon"

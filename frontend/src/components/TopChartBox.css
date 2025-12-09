@@ -1,0 +1,17 @@
+.marquee-title {
+  display: block;
+  position: relative;
+  overflow: hidden;
+  max-width: 170px;
+  height: 22px;
+}
+.marquee-title span {
+  display: inline-block;
+  white-space: nowrap;
+  animation: marquee 7s linear infinite;
+}
+@keyframes marquee {
+  0% { transform: translateX(0); }
+  90% { transform: translateX(calc(-100% + 170px)); }
+  100% { transform: translateX(0); }
+}

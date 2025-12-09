@@ -262,40 +262,69 @@ export default function PlaylistDetail() {
 
       {/* SONG LIST */}
       <div className="playlist-content">
+        <div className="table-header" style={{
+          display: 'flex',
+          alignItems: 'center',
+          padding: '0 16px',
+          height: 48,
+          color: '#b3b3b3',
+          fontWeight: 600,
+          fontSize: 15,
+          borderBottom: '1px solid #23232b',
+          letterSpacing: 1.2
+        }}>
+          <div className="col-number" style={{width: 40, minWidth: 40, textAlign: 'center'}}>#</div>
+          <div className="col-title" style={{flex: 2, display: 'flex', alignItems: 'center'}}>TIÊU ĐỀ</div>
+          <div className="col-album" style={{flex: 1, display: 'flex', alignItems: 'center'}}>ALBUM</div>
+          <div className="col-duration" style={{width: 70, minWidth: 70, textAlign: 'center', display: 'flex', alignItems: 'center', justifyContent: 'center'}}><BiTime /></div>
+          {isOwner && <div className="col-actions" style={{width: 40, minWidth: 40}}></div>}
+        </div>
         {playlist.songs.map((song, index) => (
           <div
             key={song._nid}
             className={`track-row ${isCurrent(song) ? "active" : ""}`}
             onClick={() => handlePlaySong(song, index)}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              padding: '0 16px',
+              height: 56,
+              borderRadius: 8,
+              marginBottom: 2,
+              cursor: 'pointer',
+              background: isCurrent(song) ? '#18191c' : 'transparent',
+              transition: 'background 0.2s'
+            }}
           >
-            <div className="col-number">{index + 1}</div>
+            <div className="col-number" style={{width: 40, minWidth: 40, textAlign: 'center'}}>{index + 1}</div>
 
-            <div className="col-title">
-              <div className="track-info">
+            <div className="col-title" style={{flex: 2, display: 'flex', alignItems: 'center'}}>
+              <div className="track-info" style={{display: 'flex', alignItems: 'center', gap: 12}}>
                 {song.cover_url ? (
-                  <img src={song.cover_url} className="track-image" />
+                  <img src={song.cover_url} className="track-image" style={{width: 40, height: 40, borderRadius: 6, objectFit: 'cover'}} />
                 ) : (
-                  <div className="track-placeholder"><BsMusicNoteBeamed /></div>
+                  <div className="track-placeholder" style={{width: 40, height: 40, borderRadius: 6, background: '#23232b', display: 'flex', alignItems: 'center', justifyContent: 'center'}}><BsMusicNoteBeamed /></div>
                 )}
-                <div>
-                  <div className="track-name">{song.title}</div>
-                  <div className="track-artist">{song.artist_name}</div>
+                <div style={{display: 'flex', flexDirection: 'column', justifyContent: 'center'}}>
+                  <div className="track-name" style={{fontWeight: 600, color: '#fff', fontSize: 16}}>{song.title}</div>
+                  <div className="track-artist" style={{color: '#b3b3b3', fontSize: 13}}>{song.artist_name}</div>
                 </div>
               </div>
             </div>
 
-            <div className="col-album">{song.album}</div>
+            <div className="col-album" style={{flex: 1, color: '#b3b3b3', fontSize: 15}}>{song.album}</div>
 
-            <div className="col-duration">{formatDuration(song.duration)}</div>
+            <div className="col-duration" style={{width: 70, minWidth: 70, textAlign: 'center', color: '#b3b3b3', fontSize: 15}}>{formatDuration(song.duration)}</div>
 
             {isOwner && (
-              <div className="col-actions">
+              <div className="col-actions" style={{width: 40, minWidth: 40, textAlign: 'center'}}>
                 <button
                   className="action-icon"
                   onClick={(e) => {
                     e.stopPropagation();
                     handleRemoveSong(song._nid);
                   }}
+                  style={{background: 'none', border: 'none', color: '#ff6b6b', cursor: 'pointer'}}
                 >
                   <AiOutlineDelete size={16} />
                 </button>

@@ -18,10 +18,33 @@ const FavoriteSongs = () => {
         });
         const data = await res.json();
         if (data.success) {
-          const mapped = data.favorites.map(song => ({
+          // Gộp các bài hát trùng song_id, gộp nghệ sĩ thành chuỗi
+          const songMap = {};
+          data.favorites.forEach(song => {
+            const id = song.song_id || song.id;
+            if (!songMap[id]) {
+              songMap[id] = {
+                ...song,
+                url: song.audio || song.url,
+                cover: song.cover || song.cover_url,
+                artist: song.artist ? [song.artist] : [],
+                album: song.album ? [song.album] : [],
+              };
+            } else {
+              // Gộp nghệ sĩ nếu chưa có
+              if (song.artist && !songMap[id].artist.includes(song.artist)) {
+                songMap[id].artist.push(song.artist);
+              }
+              // Gộp album nếu chưa có
+              if (song.album && !songMap[id].album.includes(song.album)) {
+                songMap[id].album.push(song.album);
+              }
+            }
+          });
+          const mapped = Object.values(songMap).map(song => ({
             ...song,
-            url: song.audio || song.url,
-            cover: song.cover || song.cover_url
+            artist: song.artist.join(', '),
+            album: song.album.filter(Boolean).join(', ')
           }));
           setFavorites(mapped);
         } else {

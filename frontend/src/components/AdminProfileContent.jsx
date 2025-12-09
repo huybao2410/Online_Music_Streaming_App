@@ -194,7 +194,7 @@ export default function AdminProfileContent() {
         <div className="profile-avatar-section">
           <div className="avatar-wrapper-profile">
             <img
-              src={avatarPreview || profile.avatar_url || "https://via.placeholder.com/150"}
+              src={"https://images.icon-icons.com/1378/PNG/512/avatardefault_92824.png"}
               alt="Avatar"
               className="profile-avatar-img"
             />
