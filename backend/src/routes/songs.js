@@ -7,6 +7,105 @@ const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
 
+
+router.get("/top-songs", async (req, res) => {
+  try {
+    const [rows] = await pool.query(`
+      SELECT 
+        s.song_id,
+        s.title,
+        s.cover_url,
+        s.audio_url,
+        s.play_count,
+        s.is_top,
+        g.name AS genre_name,
+        GROUP_CONCAT(a.name SEPARATOR ', ') AS artist_names
+      FROM songs s
+      LEFT JOIN genres g ON s.genre_id = g.genre_id
+      LEFT JOIN song_artists sa ON s.song_id = sa.song_id
+      LEFT JOIN artists a ON sa.artist_id = a.artist_id
+      WHERE s.is_top = 1
+      GROUP BY s.song_id
+      ORDER BY s.play_count DESC;
+    `);
+
+    res.json({ status: true, songs: rows });
+  } catch (err) {
+    console.error("top-songs error:", err);
+    res.json({ status: false, msg: "Lỗi server khi load top songs" });
+  }
+});
+
+
+router.get("/", async (req, res) => {
+  try {
+    const [rows] = await pool.query(`
+      SELECT 
+        s.song_id,
+        s.title,
+        s.cover_url,
+        s.audio_url,
+        s.play_count,
+        s.is_top,
+        g.name AS genre_name,
+        GROUP_CONCAT(a.name SEPARATOR ', ') AS artist_names
+      FROM songs s
+      LEFT JOIN genres g ON s.genre_id = g.genre_id
+      LEFT JOIN song_artists sa ON s.song_id = sa.song_id
+      LEFT JOIN artists a ON sa.artist_id = a.artist_id
+      GROUP BY s.song_id
+      ORDER BY s.created_at DESC;
+    `);
+
+    res.json({ success: true, songs: rows });
+  } catch (error) {
+    console.error("Error fetching songs:", error);
+    return res.status(500).json({ success: false });
+  }
+});
+
+router.get("/:id", async (req, res) => {
+  const id = Number(req.params.id);
+
+  // tránh lỗi khi id không phải số
+  if (isNaN(id)) {
+    return res.status(400).json({ success: false, message: "Invalid song id" });
+  }
+
+  try {
+    const [rows] = await pool.query(
+      `
+      SELECT 
+        s.song_id,
+        s.title,
+        s.cover_url,
+        s.audio_url,
+        s.play_count,
+        s.is_top,
+        g.name AS genre_name,
+        GROUP_CONCAT(a.name SEPARATOR ', ') AS artist_names,
+        (SELECT COUNT(*) FROM playlist_songs WHERE song_id = s.song_id) AS playlist_count
+      FROM songs s
+      LEFT JOIN genres g ON s.genre_id = g.genre_id
+      LEFT JOIN song_artists sa ON s.song_id = sa.song_id
+      LEFT JOIN artists a ON sa.artist_id = a.artist_id
+      WHERE s.song_id = ?
+      GROUP BY s.song_id
+      `,
+      [id]
+    );
+
+    if (!rows.length) {
+      return res.status(404).json({ success: false, message: "Không tìm thấy bài hát" });
+    }
+
+    res.json({ success: true, song: rows[0] });
+  } catch (error) {
+    console.error("Error fetching song:", error);
+    return res.status(500).json({ success: false });
+  }
+});
+
 // Configure multer for song cover upload
 const coverStorage = multer.diskStorage({
   destination: function (req, file, cb) {
@@ -68,78 +167,15 @@ const uploadAudio = multer({
 // Middleware to check admin role
 const isAdmin = (req, res, next) => {
   if (req.user.role !== 'admin') {
-    return res.status(403).json({ 
+    return res.status(403).json({
       success: false,
-      message: 'Không có quyền truy cập' 
+      message: 'Không có quyền truy cập'
     });
   }
   next();
 };
 
-// GET all songs (public)
-router.get('/', async (req, res) => {
-  try {
-    console.log('GET /api/songs - Request received');
-    const { search, artist_id, limit = 50, offset = 0 } = req.query;
-    
-    let query = `
-      SELECT s.*, a.name as artist_name, a.avatar_url as artist_avatar
-      FROM songs s
-      LEFT JOIN artists a ON s.artist_id = a.artist_id
-      WHERE 1=1
-    `;
-    const params = [];
 
-    if (search) {
-      query += ' AND (s.title LIKE ? OR a.name LIKE ?)';
-      params.push(`%${search}%`, `%${search}%`);
-    }
-
-    if (artist_id) {
-      query += ' AND s.artist_id = ?';
-      params.push(artist_id);
-    }
-
-    query += ' ORDER BY s.created_at DESC LIMIT ? OFFSET ?';
-    params.push(parseInt(limit), parseInt(offset));
-
-    console.log('Executing query:', query);
-    console.log('With params:', params);
-
-    const [songs] = await pool.query(query, params);
-    console.log('Found songs:', songs.length);
-
-    // Get total count
-    let countQuery = 'SELECT COUNT(*) as total FROM songs s LEFT JOIN artists a ON s.artist_id = a.artist_id WHERE 1=1';
-    const countParams = [];
-    
-    if (search) {
-      countQuery += ' AND (s.title LIKE ? OR a.name LIKE ?)';
-      countParams.push(`%${search}%`, `%${search}%`);
-    }
-    
-    if (artist_id) {
-      countQuery += ' AND s.artist_id = ?';
-      countParams.push(artist_id);
-    }
-
-    const [countResult] = await pool.query(countQuery, countParams);
-
-    return res.json({
-      success: true,
-      songs,
-      total: countResult[0].total
-    });
-  } catch (error) {
-    console.error('Error fetching songs:', error);
-    console.error('Error details:', error.message);
-    return res.status(500).json({
-      success: false,
-      message: 'Lỗi khi tải danh sách bài hát',
-      error: error.message
-    });
-  }
-});
 
 // Upsert (import) song from external source (e.g., PHP API) so it can be referenced by playlist
 // This lets the frontend send minimal metadata + a stable external key and receive a numeric id.
@@ -192,37 +228,7 @@ router.post('/import', async (req, res) => {
   }
 });
 
-// GET song by ID
-router.get('/:id', async (req, res) => {
-  try {
-    const [songs] = await pool.query(
-      `SELECT s.*, a.name as artist_name, a.avatar_url as artist_avatar,
-        (SELECT COUNT(*) FROM playlist_songs WHERE song_id = s.id) as playlist_count
-      FROM songs s
-      LEFT JOIN artists a ON s.artist_id = a.artist_id
-      WHERE s.id = ?`,
-      [req.params.id]
-    );
 
-    if (!songs.length) {
-      return res.status(404).json({
-        success: false,
-        message: 'Không tìm thấy bài hát'
-      });
-    }
-
-    return res.json({
-      success: true,
-      song: songs[0]
-    });
-  } catch (error) {
-    console.error('Error fetching song:', error);
-    return res.status(500).json({
-      success: false,
-      message: 'Lỗi khi tải thông tin bài hát'
-    });
-  }
-});
 
 // POST create song (admin only)
 router.post('/',
@@ -235,7 +241,7 @@ router.post('/',
       { name: 'cover', maxCount: 1 },
       { name: 'audio', maxCount: 1 }
     ]);
-    
+
     upload(req, res, (err) => {
       if (err) {
         return res.status(400).json({
@@ -419,5 +425,7 @@ router.delete('/:id', verifyToken, isAdmin, async (req, res) => {
     });
   }
 });
+
+
 
 module.exports = router;
