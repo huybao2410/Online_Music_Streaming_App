@@ -15,31 +15,31 @@ export default function SearchPage() {
   const { setCurrentSong, setPlaylist } = useContext(PlayerContext);
   const navigate = useNavigate();
 
-  const query = searchParams.get("query");
+  const query = searchParams.get("query") || "";
 
   useEffect(() => {
     const fetchResults = async () => {
-      if (!query) return;
+      if (!query) {
+        setSongs([]);
+        setArtists([]);
+        setAlbums([]);
+        setLoading(false);
+        return;
+      }
+
       setLoading(true);
 
       try {
-        const result = await searchAll(query);
+        const result = await searchAll(query, 1, 50);
+
+        console.log("FULL RESULT:", result);
 
         if (result.success) {
-          // Songs
           setSongs(result.songs || []);
 
-          // 🔥 Chỉ load nghệ sĩ có avatar + bio
-          const filteredArtists = (result.artists || []).filter(
-            (artist) =>
-              artist.avatar_url &&
-              artist.avatar_url.trim() !== "" &&
-              artist.bio &&
-              artist.bio.trim() !== ""
-          );
-          setArtists(filteredArtists);
+          // ⛔ BỎ LỌC — SPOTIFY LUÔN HIỂN THỊ NGHỆ SĨ TRONG KẾT QUẢ
+          setArtists(result.artists || []);
 
-          // Albums
           setAlbums(result.albums || []);
 
           // Auto playlist
@@ -48,19 +48,15 @@ export default function SearchPage() {
               id: s.id,
               title: s.title,
               artist: s.artist_name,
-              cover: s.cover_url
-                ? s.cover_url.replace("10.0.2.2", "localhost")
-                : "http://localhost:8081/music_API/online_music/cover/default.png",
-              url: s.audio_url
-                ? s.audio_url.replace("10.0.2.2", "localhost")
-                : "",
+              cover: s.cover_url ? s.cover_url.replace("10.0.2.2", "localhost") : "",
+              url: s.audio_url ? s.audio_url.replace("10.0.2.2", "localhost") : "",
               duration: s.duration,
             }));
             setPlaylist(formattedPlaylist);
           }
         }
-      } catch (error) {
-        console.error("Search error:", error);
+      } catch (err) {
+        console.error("Search error:", err);
       } finally {
         setLoading(false);
       }
@@ -76,8 +72,8 @@ export default function SearchPage() {
     return `${mins}:${secs.toString().padStart(2, "0")}`;
   };
 
-  if (!query) return <div className="search-empty">Hãy nhập từ khóa để tìm kiếm</div>;
-  if (loading) return <div className="search-loading">🔎 Đang tìm kiếm...</div>;
+  if (!query) return <div className="vivora-search-empty">Hãy nhập từ khóa để tìm kiếm</div>;
+  if (loading) return <div className="vivora-search-loading">🔎 Đang tìm kiếm...</div>;
 
   const totalResults = songs.length + artists.length + albums.length;
 
@@ -86,51 +82,33 @@ export default function SearchPage() {
   const filteredAlbums = activeTab === "all" || activeTab === "albums" ? albums : [];
 
   return (
-    <div className="search-page">
-      <div className="search-header">
+    <div className="vivora-search-page">
+      <div className="vivora-search-header">
         <h2>Kết quả cho "{query}"</h2>
-        <p className="search-count">{totalResults} kết quả</p>
+        <p className="vivora-search-count">{totalResults} kết quả</p>
       </div>
 
-      {/* TABS */}
-      <div className="search-tabs">
-        <button className={`tab-btn ${activeTab === "all" ? "active" : ""}`} onClick={() => setActiveTab("all")}>
-          Tất cả
-        </button>
-
-        <button className={`tab-btn ${activeTab === "songs" ? "active" : ""}`} onClick={() => setActiveTab("songs")}>
-          <FaMusic /> Bài hát ({songs.length})
-        </button>
-
-        <button className={`tab-btn ${activeTab === "artists" ? "active" : ""}`} onClick={() => setActiveTab("artists")}>
-          <FaUser /> Nghệ sĩ ({artists.length})
-        </button>
-
-        <button className={`tab-btn ${activeTab === "albums" ? "active" : ""}`} onClick={() => setActiveTab("albums")}>
-          <FaCompactDisc /> Album ({albums.length})
-        </button>
+      <div className="vivora-search-tabs">
+        <button className={`vivora-tab-btn ${activeTab === "all" ? "active" : ""}`} onClick={() => setActiveTab("all")}>Tất cả</button>
+        <button className={`vivora-tab-btn ${activeTab === "songs" ? "active" : ""}`} onClick={() => setActiveTab("songs")}><FaMusic /> Bài hát ({songs.length})</button>
+        <button className={`vivora-tab-btn ${activeTab === "artists" ? "active" : ""}`} onClick={() => setActiveTab("artists")}><FaUser /> Nghệ sĩ ({artists.length})</button>
+        <button className={`vivora-tab-btn ${activeTab === "albums" ? "active" : ""}`} onClick={() => setActiveTab("albums")}><FaCompactDisc /> Album ({albums.length})</button>
       </div>
 
-      <div className="search-results">
+      <div className="vivora-search-results">
 
-        {/* ===== NGHỆ SĨ ===== */}
+        {/* ARTISTS */}
         {filteredArtists.length > 0 && (
-          <div className="result-section">
-            <h3 className="section-title"><FaUser /> Nghệ sĩ</h3>
-
-            <div className="artists-grid">
+          <div className="vivora-result-section">
+            <h3 className="vivora-section-title"><FaUser /> Nghệ sĩ</h3>
+            <div className="vivora-artists-grid">
               {filteredArtists.map((artist) => (
-                <div key={artist.id} className="artist-card" onClick={() => navigate(`/artist/${artist.id}`)}>
-                  <div className="artist-avatar">
-                    <img
-                      src={artist.avatar_url.replace("10.0.2.2", "localhost")}
-                      alt={artist.name}
-                    />
+                <div key={artist.id} className="vivora-artist-card" onClick={() => navigate(`/artist/${artist.id}`)}>
+                  <div className="vivora-artist-avatar">
+                    <img src={artist.avatar_url?.replace("10.0.2.2", "localhost")} alt={artist.name} />
                   </div>
-
-                  <div className="artist-info">
+                  <div className="vivora-artist-info">
                     <h4>{artist.name}</h4>
-                    <p>Nghệ sĩ</p>
                   </div>
                 </div>
               ))}
@@ -138,23 +116,17 @@ export default function SearchPage() {
           </div>
         )}
 
-        {/* ===== ALBUM ===== */}
+        {/* ALBUMS */}
         {filteredAlbums.length > 0 && (
-          <div className="result-section">
-            <h3 className="section-title"><FaCompactDisc /> Album</h3>
-
-            <div className="albums-grid">
-              {filteredAlbums.map((album, idx) => (
-                <div key={`album-${idx}`} className="album-card">
-                  <div className="album-cover">
-                    {album.cover_url ? (
-                      <img src={album.cover_url.replace("10.0.2.2", "localhost")} alt={album.name} />
-                    ) : (
-                      <div className="cover-placeholder"><FaCompactDisc /></div>
-                    )}
+          <div className="vivora-result-section">
+            <h3 className="vivora-section-title"><FaCompactDisc /> Album</h3>
+            <div className="vivora-albums-grid">
+              {filteredAlbums.map((album) => (
+                <div key={album.id} className="vivora-album-card" onClick={() => navigate(`/album/${album.id}`)}>
+                  <div className="vivora-album-cover">
+                    <img src={album.cover_url?.replace("10.0.2.2", "localhost")} alt={album.name} />
                   </div>
-
-                  <div className="album-info">
+                  <div className="vivora-album-info">
                     <h4>{album.name}</h4>
                     <p>{album.artist_name}</p>
                   </div>
@@ -164,71 +136,31 @@ export default function SearchPage() {
           </div>
         )}
 
-        {/* ===== BÀI HÁT ===== */}
+        {/* SONGS */}
         {filteredSongs.length > 0 && (
-          <div className="result-section songs-section">
-            <h3 className="section-title"><FaMusic /> Bài hát</h3>
-
-            <div className="songs-list">
-              {filteredSongs.map((song, idx) => {
-                const formattedSong = {
-                  id: song.id,
-                  title: song.title,
-                  artist: song.artist_name,
-                  cover: song.cover_url
-                    ? song.cover_url.replace("10.0.2.2", "localhost")
-                    : "http://localhost:8081/music_API/online_music/cover/default.png",
-                  url: song.audio_url ? song.audio_url.replace("10.0.2.2", "localhost") : "",
-                  duration: song.duration,
-                };
-
-                return (
-                  <div
-                    key={song.id}
-                    className="song-row"
-                    onClick={() => {
-                      setCurrentSong(formattedSong);
-                      const formattedPlaylist = songs.map((s) => ({
-                        id: s.id,
-                        title: s.title,
-                        artist: s.artist_name,
-                        cover: s.cover_url
-                          ? s.cover_url.replace("10.0.2.2", "localhost")
-                          : "http://localhost:8081/music_API/online_music/cover/default.png",
-                        url: s.audio_url ? s.audio_url.replace("10.0.2.2", "localhost") : "",
-                        duration: s.duration,
-                      }));
-                      setPlaylist(formattedPlaylist);
-                    }}
-                  >
-                    <div className="song-index">{idx + 1}</div>
-
-                    <div className="song-main">
-                      <div className="song-cover">
-                        <img
-                          src={song.cover_url ? song.cover_url.replace("10.0.2.2", "localhost") : ""}
-                          alt={song.title}
-                        />
-                      </div>
-
-                      <div className="song-details">
-                        <div className="song-title">{song.title}</div>
-                        <div className="song-artist">{song.artist_name}</div>
-                      </div>
+          <div className="vivora-result-section">
+            <h3 className="vivora-section-title"><FaMusic /> Bài hát</h3>
+            <div className="vivora-songs-list">
+              {filteredSongs.map((song, idx) => (
+                <div key={song.id} className="vivora-song-row" onClick={() => setCurrentSong(song)}>
+                  <div className="vivora-song-index">{idx + 1}</div>
+                  <div className="vivora-song-main">
+                    <div className="vivora-song-cover"><img src={song.cover_url?.replace("10.0.2.2", "localhost")} alt={song.title} /></div>
+                    <div className="vivora-song-details">
+                      <div className="vivora-song-title">{song.title}</div>
+                      <div className="vivora-song-artist">{song.artist_name}</div>
                     </div>
-
-                    {song.genre_name && <div className="song-genre">{song.genre_name}</div>}
-                    {song.duration && <div className="song-duration">{formatDuration(song.duration)}</div>}
                   </div>
-                );
-              })}
+                  <div className="vivora-song-genre">{song.genre_name}</div>
+                  <div className="vivora-song-duration">{formatDuration(song.duration)}</div>
+                </div>
+              ))}
             </div>
           </div>
         )}
 
         {totalResults === 0 && (
-          <div className="no-results">
-            <FaMusic size={48} />
+          <div className="vivora-no-results">
             <h3>Không tìm thấy kết quả</h3>
             <p>Hãy thử từ khóa khác</p>
           </div>

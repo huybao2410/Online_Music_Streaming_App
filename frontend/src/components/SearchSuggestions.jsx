@@ -1,178 +1,49 @@
 // frontend/src/components/SearchSuggestions.jsx
-import React, { useContext } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { FaMusic, FaUser, FaCompactDisc } from 'react-icons/fa';
-import { PlayerContext } from '../context/PLayerContext';
-import './SearchSuggestions.css';
+import React from "react";
+import "./SearchSuggestions.css";
 
-export default function SearchSuggestions({ suggestions, onClose, onSelect }) {
-  const navigate = useNavigate();
-  const { setCurrentSong } = useContext(PlayerContext);
-
+export default function SearchSuggestions({ suggestions, onSelect }) {
   if (!suggestions) return null;
-
   const { songs = [], artists = [], albums = [] } = suggestions;
-  const hasResults = songs.length > 0 || artists.length > 0 || albums.length > 0;
 
-  if (!hasResults) return null;
-
-  const handleSongClick = (song) => {
-    onSelect && onSelect();
-    
-    // Format song cho PlayerContext - Replace 10.0.2.2 with localhost
-    const formattedSong = {
-      id: song.id,
-      title: song.title,
-      artist: song.artist_name,
-      cover: song.cover_url 
-        ? song.cover_url.replace('10.0.2.2', 'localhost')
-        : 'http://localhost:8081/music_API/online_music/cover/default.png',
-      url: song.audio_url
-        ? song.audio_url.replace('10.0.2.2', 'localhost')
-        : '',
-      duration: song.duration
-    };
-    
-    setCurrentSong(formattedSong);
-  };
-
-  const handleArtistClick = (artist) => {
-    onSelect && onSelect();
-    navigate(`/artist/${artist.id}`);
-  };
-
-  const handleAlbumClick = (album) => {
-    onSelect && onSelect();
-    // Navigate to album detail if you have that route
-    console.log('View album:', album);
-  };
+  const fixURL = (url) =>
+    url && url.trim() !== "" ? url.replace("10.0.2.2", "localhost") : "https://placehold.co/50x50?text=No+Img";
 
   return (
-    <div className="search-suggestions">
-      <div className="suggestions-content">
-        {/* Songs */}
-        {songs.length > 0 && (
-          <div className="suggestion-section">
-            <h4 className="suggestion-title">
-              <FaMusic /> Bài hát
-            </h4>
-            <div className="suggestion-list">
-              {songs.map((song) => (
-                <div
-                  key={`song-${song.id}`}
-                  className="suggestion-item"
-                  onClick={() => handleSongClick(song)}
-                >
-                  <div className="suggestion-image">
-                    {song.cover_url ? (
-                      <img 
-                        src={song.cover_url.replace('10.0.2.2', 'localhost')} 
-                        alt={song.title} 
-                      />
-                    ) : (
-                      <div className="suggestion-placeholder">
-                        <FaMusic />
-                      </div>
-                    )}
-                  </div>
-                  <div className="suggestion-info">
-                    <div className="suggestion-name">{song.title}</div>
-                    <div className="suggestion-meta">{song.artist_name}</div>
-                  </div>
-                </div>
-              ))}
-            </div>
+    <div className="vivora-suggestions-box">
+      {songs.map((s) => (
+        <div key={"song-" + s.id} className="vivora-suggestion-item" onClick={() => onSelect("song", s)}>
+          <img src={fixURL(s.cover_url)} className="vivora-suggestion-img" alt="song" />
+          <div className="vivora-suggestion-info">
+            <span className="vivora-suggestion-title">{s.title}</span>
+            <span className="vivora-suggestion-type">Bài hát</span>
           </div>
-        )}
+        </div>
+      ))}
 
-        {/* Artists */}
-      
-{artists.length > 0 && (
-  <div className="suggestion-section">
-    <h4 className="suggestion-title">
-      <FaUser /> Nghệ sĩ
-    </h4>
-
-    <div className="suggestion-list">
-      {artists
-        .filter((artist) => {
-          // ❌ Không có avatar → bỏ
-          if (!artist.avatar_url || artist.avatar_url.trim() === "") return false;
-
-          const url = artist.avatar_url.toLowerCase();
-
-          // ❌ Avatar lỗi → bỏ
-          if (
-            url.includes("placeholder") ||
-            url.includes("default") ||
-            url.includes("text") ||
-            url.includes("base64,") && url.length < 50 // base64 quá ngắn = lỗi
-          ) {
-            return false;
-          }
-
-          return true; // ✔ Avatar hợp lệ → giữ lại
-        })
-        .map((artist) => (
-          <div
-            key={`artist-${artist.id}`}
-            className="suggestion-item"
-            onClick={() => handleArtistClick(artist)}
-          >
-            <div className="suggestion-image circular">
-              <img
-                src={artist.avatar_url.replace("10.0.2.2", "localhost")}
-                alt={artist.name}
-              />
-            </div>
-
-            <div className="suggestion-info">
-              <div className="suggestion-name">{artist.name}</div>
-              <div className="suggestion-meta">Nghệ sĩ</div>
-            </div>
+      {artists.map((a) => (
+        <div key={"artist-" + a.id} className="vivora-suggestion-item" onClick={() => onSelect("artist", a)}>
+          <img src={fixURL(a.avatar_url)} className="vivora-suggestion-img vivora-round" alt="artist" />
+          <div className="vivora-suggestion-info">
+            <span className="vivora-suggestion-title">{a.name}</span>
+            <span className="vivora-suggestion-type">Nghệ sĩ</span>
           </div>
-        ))}
-    </div>
-  </div>
-)}
+        </div>
+      ))}
 
-
-
-        {/* Albums */}
-        {albums.length > 0 && (
-          <div className="suggestion-section">
-            <h4 className="suggestion-title">
-              <FaCompactDisc /> Album
-            </h4>
-            <div className="suggestion-list">
-              {albums.map((album, index) => (
-                <div
-                  key={`album-${index}`}
-                  className="suggestion-item"
-                  onClick={() => handleAlbumClick(album)}
-                >
-                  <div className="suggestion-image">
-                    {album.cover_url ? (
-                      <img 
-                        src={album.cover_url.replace('10.0.2.2', 'localhost')} 
-                        alt={album.name} 
-                      />
-                    ) : (
-                      <div className="suggestion-placeholder">
-                        <FaCompactDisc />
-                      </div>
-                    )}
-                  </div>
-                  <div className="suggestion-info">
-                    <div className="suggestion-name">{album.name}</div>
-                    <div className="suggestion-meta">{album.artist_name}</div>
-                  </div>
-                </div>
-              ))}
-            </div>
+      {albums.map((al) => (
+        <div key={"album-" + al.id} className="vivora-suggestion-item" onClick={() => onSelect("album", al)}>
+          <img src={fixURL(al.cover_url)} className="vivora-suggestion-img" alt="album" />
+          <div className="vivora-suggestion-info">
+            <span className="vivora-suggestion-title">{al.name}</span>
+            <span className="vivora-suggestion-type">Album</span>
           </div>
-        )}
-      </div>
+        </div>
+      ))}
+
+      {songs.length === 0 && artists.length === 0 && albums.length === 0 && (
+        <div className="vivora-suggestion-empty">Không có gợi ý phù hợp</div>
+      )}
     </div>
   );
 }
