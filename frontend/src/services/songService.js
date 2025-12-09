@@ -111,7 +111,7 @@ export const searchAll = async (query) => {
 };
 export const getSongsByGenre = async (genre_id) => {
   const res = await fetch(
-    `http://localhost:8081/music_API/online_music/song/get_songs_by_genre.php?genre_id=${genre_id}`
+    `http://localhost:8081/music_API/online_music/song/get_songs_by_genre_web.php?genre_id=${genre_id}`
   );
 
   const data = await res.json();

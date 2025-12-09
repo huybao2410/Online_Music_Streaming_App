@@ -3,133 +3,92 @@ import { FaPlus, FaEdit, FaTrash, FaSearch, FaUserAlt, FaTimes, FaCloudUploadAlt
 import axios from "axios";
 import "./ArtistManagementContent.css";
 
-// Sử dụng PHP API để load nghệ sĩ
-const PHP_API_URL = "http://localhost:8081/music_API/online_music";
+// Base URL for PHP API
+const PHP_API_URL = "http://10.0.2.2:8081/music_API/online_music";
 const NODE_API_URL = "http://localhost:5000/api";
 
+// Generate safe avatar filename
+const generateAvatarFilename = (input) => {
+  let originalName = "";
+
+  if (typeof input === "string") originalName = input;
+  else if (input && typeof input.name === "string") originalName = input.name;
+  else originalName = "avatar.jpg";
+
+  const ext = originalName.includes(".")
+    ? originalName.substring(originalName.lastIndexOf("."))
+    : ".jpg";
+
+  const timestamp = Date.now();
+  const rand = Math.floor(Math.random() * 1e9);
+
+  return `artist-${timestamp}-${rand}${ext}`;
+};
+
+// Build avatar URL for display
 const buildAvatarUrl = (url) => {
   if (!url) return null;
 
-  // Nếu là full URL → sửa localhost rồi return
   if (url.startsWith("http://") || url.startsWith("https://")) {
     return url.replace("10.0.2.2", "localhost");
   }
 
-  // Nếu chỉ là path → prepend PHP_API_URL
   return `${PHP_API_URL}/${url}`;
 };
 
 export default function ArtistManagementContent({ showModal: externalShowModal, setShowModal: externalSetShowModal }) {
+
   const [artists, setArtists] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
 
-  // Filter & Search
   const [searchTerm, setSearchTerm] = useState("");
-
-  // Modal states
   const [showModal, setShowModal] = useState(false);
-
-  // Đảm bảo modal chỉ hiện khi showModal === true và props không override state
-  // Sửa lại logic nhận props showModal/setShowModal từ ngoài:
-  useEffect(() => {
-    if (typeof externalShowModal === 'boolean') {
-      setShowModal(externalShowModal);
-    }
-  }, [externalShowModal]);
-
-  // Đảm bảo khi đóng modal, set cả state nội bộ và props nếu có
-  const handleCloseModal = () => {
-    setShowModal(false);
-    if (externalSetShowModal) externalSetShowModal(false);
-    setCurrentArtist(null);
-    setFormData({ name: "", bio: "", avatar: null });
-    setAvatarPreview(null);
-  };
-  const [modalMode, setModalMode] = useState("create"); // "create" or "edit"
+  const [modalMode, setModalMode] = useState("create");
   const [currentArtist, setCurrentArtist] = useState(null);
 
-  // Form data
-  const [formData, setFormData] = useState({
-    name: "",
-    bio: "",
-    avatar: null,
-  });
-
+  const [formData, setFormData] = useState({ name: "", bio: "", avatar: null });
   const [avatarPreview, setAvatarPreview] = useState(null);
 
-  // Pagination
   const [currentPage, setCurrentPage] = useState(1);
   const [totalArtists, setTotalArtists] = useState(0);
   const artistsPerPage = 10;
 
   useEffect(() => {
-    console.log("Component mounted, fetching artists...");
+    if (typeof externalShowModal === "boolean") setShowModal(externalShowModal);
+  }, [externalShowModal]);
+
+  useEffect(() => {
     fetchArtists();
   }, [currentPage, searchTerm]);
 
   const fetchArtists = async () => {
     try {
       setLoading(true);
-      setError("");
-
-      console.log("📥 Admin: Fetching ALL artists from Node.js API...");
-
-      // 🔴 QUAN TRỌNG: Admin cần hiển thị TẤT CẢ nghệ sĩ
-      // Sử dụng API mới: /api/artists/admin/all (trả về tất cả không filter)
-
-      const response = await axios.get(`http://localhost:5000/api/artists/admin/all`);
-      console.log("📥 Artists response:", response.data);
+      const response = await axios.get(`${NODE_API_URL}/artists/admin/all`);
 
       if ((response.data.status || response.data.success) && Array.isArray(response.data.artists)) {
-        let uniqueArtists = response.data.artists;
+        let arr = response.data.artists;
 
-        // Apply client-side search filter
         if (searchTerm) {
-          const searchLower = searchTerm.toLowerCase();
-          uniqueArtists = uniqueArtists.filter(artist =>
-            artist.name.toLowerCase().includes(searchLower)
-          );
+          const key = searchTerm.toLowerCase();
+          arr = arr.filter(a => a.name.toLowerCase().includes(key));
         }
 
-        setTotalArtists(uniqueArtists.length);
+        setTotalArtists(arr.length);
 
-        // Apply pagination
-        const startIndex = (currentPage - 1) * artistsPerPage;
-        const paginatedArtists = uniqueArtists.slice(startIndex, startIndex + artistsPerPage);
-
-        setArtists(paginatedArtists);
-        console.log(`✅ Admin: Showing ${paginatedArtists.length} artists on page ${currentPage}/${Math.ceil(uniqueArtists.length / artistsPerPage)} (Total: ${uniqueArtists.length})`);
-        console.log(`✅ Loaded ${paginatedArtists.length} artists from songs fallback (total: ${uniqueArtists.length})`);
+        const start = (currentPage - 1) * artistsPerPage;
+        setArtists(arr.slice(start, start + artistsPerPage));
       } else {
-        console.warn("⚠️ API trả dữ liệu không hợp lệ:", response.data);
         setError("API không trả về dữ liệu hợp lệ");
-        setArtists([]);
       }
-    } catch (err) {
-      console.error("❌ Error fetching artists:", err);
-      console.error("Error details:", err.response?.data || err.message);
 
-      if (err.code === "ERR_NETWORK") {
-        setError("⚠️ Không thể kết nối với PHP API server!\n\n" +
-          "Vui lòng:\n" +
-          "1. Bật XAMPP Apache server\n" +
-          "2. Kiểm tra PHP API chạy ở: http://localhost:8081/music_API\n" +
-          "3. Đảm bảo file get_songs.php tồn tại");
-      } else {
-        setError("Không thể tải danh sách nghệ sĩ. Vui lòng thử lại.");
-      }
-      setArtists([]);
+    } catch (err) {
+      setError("Không thể tải nghệ sĩ.");
     } finally {
       setLoading(false);
     }
-  };
-
-  // Helper function to fix localhost URLs
-  const fixLocalUrl = (url) => {
-    if (!url) return "";
-    return url.replace("10.0.2.2", "localhost");
   };
 
   const openModal = (mode, artist = null) => {
@@ -137,42 +96,37 @@ export default function ArtistManagementContent({ showModal: externalShowModal, 
     setCurrentArtist(artist);
 
     if (mode === "edit" && artist) {
-      setFormData({
-        name: artist.name || "",
-        bio: artist.bio || "",
-        avatar: null,
-      });
+      setFormData({ name: artist.name, bio: artist.bio || "", avatar: null });
+      setAvatarPreview(buildAvatarUrl(artist.avatar_url));
     } else {
-      setFormData({
-        name: "",
-        bio: "",
-        avatar: null,
-      });
+      setFormData({ name: "", bio: "", avatar: null });
+      setAvatarPreview(null);
     }
 
     setShowModal(true);
   };
 
-  // Thay closeModal bằng handleCloseModal
+  const handleCloseModal = () => {
+    setShowModal(false);
+    if (externalSetShowModal) externalSetShowModal(false);
+    setFormData({ name: "", bio: "", avatar: null });
+    setAvatarPreview(null);
+  };
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    setFormData({ ...formData, [name]: value });
+    setFormData(prev => ({ ...prev, [name]: value }));
   };
 
   const handleFileChange = (e) => {
-    const { files } = e.target;
-    if (files && files[0]) {
-      const file = files[0];
-      setFormData({ ...formData, avatar: file });
+    const file = e.target.files?.[0];
+    if (!file) return;
 
-      // Create preview
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setAvatarPreview(reader.result);
-      };
-      reader.readAsDataURL(file);
-    }
+    setFormData(prev => ({ ...prev, avatar: file }));
+
+    const reader = new FileReader();
+    reader.onloadend = () => setAvatarPreview(reader.result);
+    reader.readAsDataURL(file);
   };
 
   const handleSubmit = async (e) => {
@@ -182,129 +136,95 @@ export default function ArtistManagementContent({ showModal: externalShowModal, 
 
     try {
       const token = localStorage.getItem("token");
-      if (!token) {
-        setError("Bạn cần đăng nhập để thực hiện thao tác này.");
-        return;
-      }
+      if (!token) return setError("Bạn cần đăng nhập.");
 
-      const formDataToSend = new FormData();
-      formDataToSend.append("name", formData.name);
-      formDataToSend.append("bio", formData.bio);
+      const fd = new FormData();
+      fd.append("name", formData.name);
+      fd.append("bio", formData.bio || "");
+
+      let finalAvatarUrl = currentArtist?.avatar_url || "";
 
       if (formData.avatar) {
-        formDataToSend.append("avatar", formData.avatar);
-      }
+        const filename = generateAvatarFilename(formData.avatar);
 
-      if (modalMode === "create") {
-        // Sử dụng Node.js API cho admin operations
-        const response = await axios.post(`${NODE_API_URL}/artists`, formDataToSend, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "multipart/form-data",
-          },
+        const renamedFile = new File([formData.avatar], filename, {
+          type: formData.avatar.type
         });
 
-        if (response.data.success) {
-          setSuccess("Thêm nghệ sĩ thành công!");
-          fetchArtists();
-          handleCloseModal();
-        }
-      } else {
-        // Sử dụng Node.js API cho admin operations
-        const response = await axios.put(
-          `${NODE_API_URL}/artists/${currentArtist.artist_id}`,
-          formDataToSend,
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-              "Content-Type": "multipart/form-data",
-            },
-          }
-        );
+        fd.append("avatar", renamedFile);
 
-        if (response.data.success) {
-          setSuccess("Cập nhật nghệ sĩ thành công!");
-          fetchArtists();
-          handleCloseModal();
-        }
+        finalAvatarUrl = `http://10.0.2.2:8081/music_API/online_music/artist_avatar/${filename}`;
+        fd.append("avatar_url", finalAvatarUrl);
+      } else {
+        fd.append("avatar_url", finalAvatarUrl);
       }
+
+      let response;
+
+      if (modalMode === "create") {
+        response = await axios.post(`${NODE_API_URL}/artists`, fd, {
+          headers: { Authorization: `Bearer ${token}`, "Content-Type": "multipart/form-data" }
+        });
+      } else {
+        response = await axios.put(`${NODE_API_URL}/artists/${currentArtist.artist_id}`, fd, {
+          headers: { Authorization: `Bearer ${token}`, "Content-Type": "multipart/form-data" }
+        });
+      }
+
+      if (response.data.success) {
+        setSuccess(modalMode === "create" ? "Thêm nghệ sĩ thành công!" : "Cập nhật thành công!");
+        fetchArtists();
+        handleCloseModal();
+      } else {
+        setError(response.data.message || "Có lỗi xảy ra.");
+      }
+
     } catch (err) {
-      console.error("Error submitting form:", err);
-      setError(
-        err.response?.data?.message ||
-        "Có lỗi xảy ra khi lưu nghệ sĩ. Vui lòng thử lại."
-      );
+      setError("Lỗi khi lưu nghệ sĩ.");
     }
   };
 
-  const handleDelete = async (artistId) => {
-    if (!window.confirm("Bạn có chắc chắn muốn xóa nghệ sĩ này?")) {
-      return;
-    }
+  const handleDelete = async (id) => {
+    if (!window.confirm("Bạn có chắc muốn xóa?")) return;
 
     try {
       const token = localStorage.getItem("token");
-      // Sử dụng Node.js API cho admin operations
-      const response = await axios.delete(`${NODE_API_URL}/artists/${artistId}`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
+      const res = await axios.delete(`${NODE_API_URL}/artists/${id}`, {
+        headers: { Authorization: `Bearer ${token}` }
       });
 
-      if (response.data.success) {
-        setSuccess("Xóa nghệ sĩ thành công!");
+      if (res.data.success) {
+        setSuccess("Xóa thành công!");
         fetchArtists();
       }
+
     } catch (err) {
-      console.error("Error deleting artist:", err);
-      setError(
-        err.response?.data?.message ||
-        "Có lỗi xảy ra khi xóa nghệ sĩ. Vui lòng thử lại."
-      );
+      setError("Không thể xóa nghệ sĩ.");
     }
   };
 
   const totalPages = Math.ceil(totalArtists / artistsPerPage);
-
-  const goToPage = (page) => {
-    if (page >= 1 && page <= totalPages) {
-      setCurrentPage(page);
-    }
-  };
+  const goToPage = (p) => (p >= 1 && p <= totalPages) && setCurrentPage(p);
 
   return (
     <div className="artist-management-content">
+
+      {/* HEADER */}
       <div className="content-header">
-        <div className="header-left">
-          <h2>
-            <FaUserAlt /> Quản lý nghệ sĩ
-          </h2>
-          <p>
-            Tổng số: <strong>{totalArtists}</strong> nghệ sĩ
-          </p>
+        <div>
+          <h2><FaUserAlt /> Quản lý nghệ sĩ</h2>
+          <p>Tổng số: <b>{totalArtists}</b></p>
         </div>
-        <button
-          className="btn-add"
-          onClick={() => openModal("create")}
-        >
+        <button className="btn-add" onClick={() => openModal("create")}>
           <FaPlus /> Thêm nghệ sĩ
         </button>
       </div>
 
-      {error && (
-        <div className="alert alert-error">
-          <span>{error}</span>
-          <button onClick={() => setError("")}>×</button>
-        </div>
-      )}
+      {/* ALERTS */}
+      {error && <div className="alert alert-error">{error}</div>}
+      {success && <div className="alert alert-success">{success}</div>}
 
-      {success && (
-        <div className="alert alert-success">
-          <span>{success}</span>
-          <button onClick={() => setSuccess("")}>×</button>
-        </div>
-      )}
-
+      {/* SEARCH */}
       <div className="filters-bar">
         <div className="search-box">
           <FaSearch />
@@ -312,209 +232,132 @@ export default function ArtistManagementContent({ showModal: externalShowModal, 
             type="text"
             placeholder="Tìm kiếm nghệ sĩ..."
             value={searchTerm}
-            onChange={(e) => {
-              setSearchTerm(e.target.value);
-              setCurrentPage(1);
-            }}
+            onChange={(e) => { setSearchTerm(e.target.value); setCurrentPage(1); }}
           />
         </div>
       </div>
 
-      {loading ? (
-        <div className="loading-state">
-          <div className="spinner"></div>
-          <p>Đang tải dữ liệu...</p>
-        </div>
-      ) : error && artists.length === 0 ? (
-        <div className="empty-state error">
-          <FaUserAlt size={48} />
-          <p>{error}</p>
-          <button className="btn-add" onClick={fetchArtists}>
-            <FaPlus /> Thử lại
-          </button>
-        </div>
-      ) : artists.length === 0 ? (
-        <div className="empty-state">
-          <FaUserAlt size={48} />
-          <p>Chưa có nghệ sĩ nào</p>
-          <button className="btn-add" onClick={() => openModal("create")}>
-            <FaPlus /> Thêm nghệ sĩ đầu tiên
-          </button>
-        </div>
-      ) : (
+      {/* TABLE */}
+      {!loading && artists.length > 0 && (
         <>
-          <div className="table-container">
-            <table className="data-table">
-              <thead>
-                <tr>
-                  <th>ID</th>
-                  <th>Avatar</th>
-                  <th>Tên nghệ sĩ</th>
-                  <th>Số bài hát</th>
-                  <th>Hành động</th>
-                </tr>
-              </thead>
-              <tbody>
-                {artists.map((artist) => (
-                  <tr key={artist.artist_id}>
-                    <td>{artist.artist_id}</td>
-                    <td>
-                      <img
-                        src={buildAvatarUrl(artist.avatar_url)}
-                        alt={artist.name}
-                        className="avatar-thumb"
-                      />
-                    </td>
-                    <td className="artist-name">{artist.name}</td>
-                    <td>{artist.song_count} bài hát</td>
-                    <td>
-                      <div className="action-btns">
-                        <button
-                          className="btn-icon edit"
-                          onClick={() => openModal("edit", artist)}
-                          title="Sửa"
-                        >
-                          <FaEdit />
-                        </button>
-                        <button
-                          className="btn-icon delete"
-                          onClick={() => handleDelete(artist.artist_id)}
-                          title="Xóa"
-                        >
-                          <FaTrash />
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+          <table className="data-table">
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Avatar</th>
+                <th>Tên nghệ sĩ</th>
+                <th>Số bài hát</th>
+                <th>Hành động</th>
+              </tr>
+            </thead>
 
+            <tbody>
+              {artists.map((artist) => (
+                <tr key={artist.artist_id}>
+                  <td>{artist.artist_id}</td>
+
+                  <td>
+                    <img
+                      src={buildAvatarUrl(artist.avatar_url)}
+                      className="avatar-thumb"
+                      alt=""
+                    />
+                  </td>
+
+                  <td>{artist.name}</td>
+                  <td>{artist.song_count ?? 0}</td>
+
+                  <td>
+                    <button className="btn-icon edit" onClick={() => openModal("edit", artist)}>
+                      <FaEdit />
+                    </button>
+                    <button className="btn-icon delete" onClick={() => handleDelete(artist.artist_id)}>
+                      <FaTrash />
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+
+          {/* PAGINATION */}
           {totalPages > 1 && (
             <div className="pagination">
-              <button
-                className="page-btn"
-                onClick={() => goToPage(currentPage - 1)}
-                disabled={currentPage === 1}
-              >
-                « Trước
-              </button>
+              <button disabled={currentPage === 1} onClick={() => goToPage(currentPage - 1)}>«</button>
 
-              {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
-                let pageNum;
-                if (totalPages <= 5) {
-                  pageNum = i + 1;
-                } else if (currentPage <= 3) {
-                  pageNum = i + 1;
-                } else if (currentPage >= totalPages - 2) {
-                  pageNum = totalPages - 4 + i;
-                } else {
-                  pageNum = currentPage - 2 + i;
-                }
+              {Array.from({ length: totalPages }, (_, i) => (
+                <button
+                  key={i}
+                  className={currentPage === i + 1 ? "active" : ""}
+                  onClick={() => goToPage(i + 1)}
+                >
+                  {i + 1}
+                </button>
+              ))}
 
-                return (
-                  <button
-                    key={pageNum}
-                    className={`page-btn ${currentPage === pageNum ? "active" : ""}`}
-                    onClick={() => goToPage(pageNum)}
-                  >
-                    {pageNum}
-                  </button>
-                );
-              })}
-
-              <button
-                className="page-btn"
-                onClick={() => goToPage(currentPage + 1)}
-                disabled={currentPage === totalPages}
-              >
-                Sau »
-              </button>
+              <button disabled={currentPage === totalPages} onClick={() => goToPage(currentPage + 1)}>»</button>
             </div>
           )}
         </>
       )}
 
+      {/* MODAL */}
       {showModal && (
         <div className="modal-overlay" onClick={handleCloseModal}>
-          {/* Class 'artist-modal-specific' dùng để style riêng cho form này */}
-          <div className="modal-box artist-modal-specific" onClick={(e) => e.stopPropagation()}>
+          <div className="modal-box" onClick={e => e.stopPropagation()}>
 
-            {/* Header Modal */}
             <div className="modal-header">
-              <h3>{modalMode === "create" ? "Thêm nghệ sĩ mới" : "Chỉnh sửa nghệ sĩ"}</h3>
+              <h3>{modalMode === "create" ? "Thêm nghệ sĩ" : "Chỉnh sửa nghệ sĩ"}</h3>
               <button className="close-btn" onClick={handleCloseModal}><FaTimes /></button>
             </div>
 
-            {/* Body Modal */}
-            <div className="modal-body">
-              <form id="artist-form" onSubmit={handleSubmit} className="modal-form">
+            <form id="artist-form" onSubmit={handleSubmit}>
 
-                {/* Tên Nghệ sĩ */}
-                <div className="form-group">
-                  <label>Tên nghệ sĩ <span className="required">*</span></label>
-                  <input
-                    type="text"
-                    name="name"
-                    value={formData.name}
-                    onChange={handleInputChange}
-                    required
-                    placeholder="VD: Sơn Tùng M-TP"
-                    autoFocus
-                  />
+              <div className="form-group">
+                <label>Tên nghệ sĩ *</label>
+                <input
+                  name="name"
+                  value={formData.name}
+                  required
+                  onChange={handleInputChange}
+                />
+              </div>
+
+              <div className="form-group">
+                <label>Ảnh đại diện</label>
+
+                <div className="avatar-upload-area" onClick={() => document.getElementById("avatar-input").click()}>
+                  {avatarPreview
+                    ? <img src={avatarPreview} className="avatar-preview" alt="" />
+                    : <div className="upload-placeholder"><FaCloudUploadAlt size={32} />Nhấn để tải ảnh</div>}
                 </div>
 
-                {/* Ảnh Đại Diện (Có Preview) */}
-                <div className="form-group">
-                  <label>Ảnh đại diện</label>
-                  <div
-                    className="avatar-upload-area"
-                    onClick={() => document.getElementById('avatar-input').click()}
-                  >
-                    {avatarPreview ? (
-                      <img src={avatarPreview} alt="Preview" className="avatar-preview" />
-                    ) : (
-                      <div className="upload-placeholder">
-                        <FaCloudUploadAlt size={32} />
-                        <span>Nhấn để tải ảnh lên</span>
-                      </div>
-                    )}
-                  </div>
-                  <input
-                    id="avatar-input"
-                    type="file"
-                    name="avatar"
-                    accept="image/*"
-                    onChange={handleFileChange}
-                    style={{ display: 'none' }}
-                  />
-                </div>
+                <input
+                  id="avatar-input"
+                  type="file"
+                  accept="image/*"
+                  style={{ display: "none" }}
+                  onChange={handleFileChange}
+                />
+              </div>
 
-                {/* Tiểu sử */}
-                <div className="form-group">
-                  <label>Tiểu sử</label>
-                  <textarea
-                    name="bio"
-                    value={formData.bio}
-                    onChange={handleInputChange}
-                    rows="4"
-                    placeholder="Nhập thông tin mô tả..."
-                  />
-                </div>
-              </form>
-            </div>
+              <div className="form-group">
+                <label>Tiểu sử</label>
+                <textarea name="bio" value={formData.bio} onChange={handleInputChange} rows="3" />
+              </div>
 
-            {/* Footer (Nút bấm) */}
-            <div className="modal-actions">
-              <button type="button" className="btn-cancel" onClick={handleCloseModal}>Hủy</button>
-              <button type="submit" form="artist-form" className="btn-submit">
-                {modalMode === "create" ? "Thêm mới" : "Lưu thay đổi"}
-              </button>
-            </div>
+              <div className="modal-actions">
+                <button type="button" className="btn-cancel" onClick={handleCloseModal}>Hủy</button>
+                <button type="submit" className="btn-submit">
+                  {modalMode === "create" ? "Thêm mới" : "Lưu thay đổi"}
+                </button>
+              </div>
+
+            </form>
           </div>
         </div>
       )}
+
     </div>
   );
 }
