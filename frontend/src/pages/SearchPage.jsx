@@ -197,7 +197,6 @@ export default function SearchPage() {
           </div>
         )}
 
-
         {totalResults === 0 && (
           <div className="vivora-no-results">
             <h3>Không tìm thấy kết quả</h3>
