@@ -214,8 +214,16 @@ const fetchUserPlaylists = async () => {
   };
 
   const handleGenreSelect = (genre) => {
-    window.dispatchEvent(new CustomEvent("genreSelected", { detail: genre }));
-  };
+  window.dispatchEvent(
+    new CustomEvent("genreSelected", {
+      detail: {
+        id: genre.id,
+        genre_id: genre.id,
+        name: genre.name
+      }
+    })
+  );
+};
 
   return (
         <aside className="sidebar">

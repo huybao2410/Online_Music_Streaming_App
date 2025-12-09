@@ -125,24 +125,24 @@ const HomePage = () => {
   }, []);
 
   // GENRE
-  useEffect(() => {
+useEffect(() => {
   const handle = async (event) => {
-    const genre = event.detail;  // {id, name}
+    const genre = event.detail; // { genre_id, name }
 
-    setSelectedGenre(genre.name);  
+    setSelectedGenre(genre.name);
     setActiveTab("genre");
     setLoading(true);
 
     try {
       let data;
 
-      // 🔥 Nếu id = 0 → tất cả bài hát
-      if (genre.id === 0) {
-        data = await getSongs();
-      } else {
-        // 🔥 Gửi tên thể loại cho API
-        data = await getSongsByGenre(genre.name);
-      }
+      // id === 0 => load all
+     if (genre.id === 0) {
+  data = await getSongs();
+} else {
+  data = await getSongsByGenre(genre.genre_id);  
+}
+
 
       setGenreSongs(data || []);
     } catch (err) {
@@ -155,7 +155,10 @@ const HomePage = () => {
 
   window.addEventListener("genreSelected", handle);
   return () => window.removeEventListener("genreSelected", handle);
+
 }, []);
+
+
 
   // ARTIST
   useEffect(() => {
