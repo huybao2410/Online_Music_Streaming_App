@@ -81,15 +81,32 @@
   font-weight: 500;
 }
 
-.nav-item:hover {
-  background: rgba(255, 255, 255, 0.1);
+/* Đảm bảo hiệu ứng hover/active kéo dài toàn bộ chiều ngang sidebar */
+.nav-item {
+  position: relative;
+  z-index: 1;
+}
+.nav-item:hover,
+.nav-item.active {
   color: #fff;
 }
-
-.nav-item.active {
+.nav-item:hover::before,
+.nav-item.active::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100vw;
+  max-width: 280px;
+  height: 100%;
   background: rgba(255, 255, 255, 0.15);
+  z-index: -1;
+}
+.nav-item:hover::before {
+  background: rgba(255, 255, 255, 0.1);
+}
+.nav-item.active {
   border-left-color: #60a5fa;
-  color: #fff;
 }
 
 .nav-item svg {

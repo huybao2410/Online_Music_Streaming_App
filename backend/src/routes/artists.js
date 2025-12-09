@@ -220,7 +220,7 @@ router.post('/',
       }
 
       // Lưu đường dẫn tương đối cho PHP API
-      const avatarUrl = req.file ? `artist/artist_avatar/${req.file.filename}` : null;
+      const avatarUrl = req.file ? `http://10.0.2.2:8081/music_API/online_music/artist_avatar/${req.file.filename}` : null;
 
       const [result] = await pool.query(
         'INSERT INTO artists (name, bio, avatar_url) VALUES (?, ?, ?)',

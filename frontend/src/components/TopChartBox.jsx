@@ -73,10 +73,20 @@ export default function TopChartBox({ title, apiUrl, color }) {
               <div style={{fontWeight: 700, color: '#fff', width: 24, textAlign: 'center'}}>{idx + 1}</div>
               <img src={fixUrl(song.cover_url)} alt={song.title} style={{width: 48, height: 48, borderRadius: 8, objectFit: 'cover'}} />
               <div style={{flex: 1, minWidth: 0}}>
-                <div className="marquee-title">
-                  <span>{song.title}</span>
-                </div>
-                <div style={{color: '#e0e0e0', fontSize: 13, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis'}}>{song.artist || song.artist_name}</div>
+                {song.title && song.title.length > 15 ? (
+                  <div className="marquee-title">
+                    <span>{song.title}</span>
+                  </div>
+                ) : (
+                  <div style={{fontWeight: 700, color: '#fff', fontSize: 16, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis'}}>{song.title}</div>
+                )}
+                {(song.artist || song.artist_name) && (song.artist || song.artist_name).length > 25 ? (
+                  <div className="marquee-title" style={{color: '#e0e0e0', fontSize: 13}}>
+                    <span>{song.artist || song.artist_name}</span>
+                  </div>
+                ) : (
+                  <div style={{color: '#e0e0e0', fontSize: 13, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis'}}>{song.artist || song.artist_name}</div>
+                )}
                 {song.label && <div style={{color: '#b3b3b3', fontSize: 11}}>{song.label}</div>}
               </div>
               <button

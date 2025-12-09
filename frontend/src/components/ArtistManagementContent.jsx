@@ -244,16 +244,24 @@ export default function ArtistManagementContent({ showModal: externalShowModal, 
 
     try {
       const token = localStorage.getItem("token");
-      // Sử dụng Node.js API cho admin operations
-      const response = await axios.delete(`${NODE_API_URL}/artists/${artistId}`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
+      // Đảm bảo truyền đúng id nghệ sĩ khi gọi API
+      const formData = new FormData();
+      formData.append("artist_id", artistId);
+      const response = await axios.post(
+        `${PHP_API_URL}/artist/delete_artist.php`,
+        formData,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
 
-      if (response.data.success) {
+      if (response.data.status || response.data.success) {
         setSuccess("Xóa nghệ sĩ thành công!");
         fetchArtists();
+      } else {
+        setError(response.data.message || "Xóa nghệ sĩ thất bại. Kiểm tra lại dữ liệu hoặc quyền.");
       }
     } catch (err) {
       console.error("Error deleting artist:", err);

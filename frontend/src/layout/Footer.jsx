@@ -370,8 +370,11 @@ export default function Footer() {
               className={`action-btn like-btn ${isLiked ? "liked" : ""}`}
               onClick={toggleLike}
               title="Thêm vào yêu thích"
+              style={{display: 'flex', alignItems: 'center', justifyContent: 'center', width: 36, height: 36, padding: 0}}
             >
-              {isLiked ? <AiFillHeart size={20} /> : <AiOutlineHeart size={20} />}
+              <span style={{display: 'flex', alignItems: 'center', justifyContent: 'center', width: 24, height: 24}}>
+                {isLiked ? <AiFillHeart size={24} style={{width: 24, height: 24}} /> : <AiOutlineHeart size={24} style={{width: 24, height: 24}} />}
+              </span>
             </button>
 
             <button
