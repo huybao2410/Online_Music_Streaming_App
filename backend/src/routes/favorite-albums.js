@@ -18,22 +18,29 @@ function normalizeCoverUrl(url) {
 router.get('/', verifyToken, async (req, res) => {
   const user_id = req.user.id;
   try {
-    // Lấy thông tin album từ bảng favorite_albums và join với albums
+    // Lấy thông tin album và nghệ sĩ
     const [rows] = await pool.query(
-      `SELECT a.album_id, a.name, a.cover_url, fa.id as favorite_id 
-       FROM favorite_albums fa 
-       JOIN albums a ON fa.album_id = a.album_id 
+      `SELECT a.album_id, a.name, a.cover_url, fa.id as favorite_id,
+        GROUP_CONCAT(DISTINCT ar.name SEPARATOR ', ') as artist_names,
+        COUNT(DISTINCT als.song_id) as song_count
+       FROM favorite_albums fa
+       JOIN albums a ON fa.album_id = a.album_id
+       LEFT JOIN album_songs als ON a.album_id = als.album_id
+       LEFT JOIN song_artists sa ON als.song_id = sa.song_id
+       LEFT JOIN artists ar ON sa.artist_id = ar.artist_id
        WHERE fa.user_id = ?
+       GROUP BY a.album_id, a.name, a.cover_url, fa.id
        ORDER BY fa.created_at DESC`,
       [user_id]
     );
-    
+
     const albums = rows.map(album => ({
       ...album,
-      // Ưu tiên cover_url, nếu không có thì dùng cover (tùy tên cột trong DB của bạn)
+      artist_name: album.artist_names || '',
+      song_count: album.song_count || 0,
       cover_url: normalizeCoverUrl(album.cover_url)
     }));
-    
+
     res.json({ success: true, favorites: albums });
   } catch (err) {
     console.error("Lỗi lấy album yêu thích:", err);

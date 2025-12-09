@@ -34,13 +34,17 @@ router.get('/', verifyToken, async (req, res) => {
         sa.artist_id,
         a.name as artist_name,
         s.genre_id,
-        g.name as genre_name
+        g.name as genre_name,
+        GROUP_CONCAT(DISTINCT al.name SEPARATOR ', ') as album_names
       FROM favorites_songs fs
       JOIN songs s ON fs.song_id = s.song_id
       LEFT JOIN song_artists sa ON s.song_id = sa.song_id
       LEFT JOIN artists a ON sa.artist_id = a.artist_id
       LEFT JOIN genres g ON s.genre_id = g.genre_id
+      LEFT JOIN album_songs als ON s.song_id = als.song_id
+      LEFT JOIN albums al ON als.album_id = al.album_id
       WHERE fs.user_id = ?
+      GROUP BY s.song_id, fs.added_at, s.title, s.duration, s.audio_url, s.cover_url, s.release_date, sa.artist_id, a.name, s.genre_id, g.name
       ORDER BY fs.added_at DESC
       LIMIT ? OFFSET ?
     `;
@@ -51,16 +55,16 @@ router.get('/', verifyToken, async (req, res) => {
       success: true,
       count: favorites.length,
       favorites: favorites.map(item => ({
-        id: item.song_id,       // ID duy nhất để key trong React
-        song_id: item.song_id,  // ID bài hát chuẩn
+        id: item.song_id,
+        song_id: item.song_id,
         title: item.title,
         artist: item.artist_name,
         artist_id: item.artist_id,
         genre: item.genre_name,
         genre_id: item.genre_id,
+        album: item.album_names || '-',
         duration: item.duration,
         added_at: item.added_at,
-        // Xử lý URL để tránh lỗi không load được
         audio: processUrl(item.audio_url),
         cover: processUrl(item.cover_url),
         release_date: item.release_date

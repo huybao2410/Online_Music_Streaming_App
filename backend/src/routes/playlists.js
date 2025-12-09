@@ -101,21 +101,23 @@ router.get('/:id', verifyToken, async (req, res) => {
       });
     }
 
-    // Get songs in playlist
+    // Get songs in playlist, kèm tên album liên quan
     const [songs] = await pool.query(
       `SELECT s.song_id, s.title, s.audio_url, s.cover_url, s.duration,
               a.name as artist_name, a.artist_id,
-              ps.added_at
+              ps.added_at,
+              GROUP_CONCAT(DISTINCT al.name SEPARATOR ', ') as album
        FROM playlist_songs ps
        JOIN songs s ON ps.song_id = s.song_id
-      LEFT JOIN song_artists sa ON s.song_id = sa.song_id
-      LEFT JOIN artists a ON sa.artist_id = a.artist_id
+       LEFT JOIN song_artists sa ON s.song_id = sa.song_id
+       LEFT JOIN artists a ON sa.artist_id = a.artist_id
+       LEFT JOIN album_songs als ON s.song_id = als.song_id
+       LEFT JOIN albums al ON als.album_id = al.album_id
        WHERE ps.playlist_id = ?
+       GROUP BY s.song_id, s.title, s.audio_url, s.cover_url, s.duration, a.name, a.artist_id, ps.added_at
        ORDER BY ps.added_at DESC`,
       [req.params.id]
     );
-    
-    console.log(`Playlist ${req.params.id} has ${songs.length} songs`);
 
     return res.json({
       success: true,
