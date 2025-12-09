@@ -6,19 +6,38 @@ const API = "http://localhost:5000";
 
 export default function AdminTopSongs() {
   const [songs, setSongs] = useState([]);
+  const [filteredSongs, setFilteredSongs] = useState([]);
   const [selectedTop, setSelectedTop] = useState([]);
+
+  const [searchText, setSearchText] = useState("");
+  const [selectedGenre, setSelectedGenre] = useState("all");
+  const [selectedTopFilter, setSelectedTopFilter] = useState("all");
+
+  const [genres, setGenres] = useState([]); // danh sách thể loại
 
   const [currentPage, setCurrentPage] = useState(1);
   const songsPerPage = 10;
 
   useEffect(() => {
     loadSongs();
+    loadGenres();
   }, []);
+
+  const loadGenres = async () => {
+    try {
+      const res = await axios.get(`${API}/api/genres`);
+      if (res.data.success) {
+        setGenres(res.data.genres);
+      }
+    } catch (err) {
+      console.error(err);
+      console.warn("Không load được thể loại");
+    }
+  };
 
   const loadSongs = async () => {
     try {
-      // 🔥 Load tất cả bài hát
-      const res = await axios.get(`${API}/songs`);
+      const res = await axios.get(`${API}/api/songs`);
 
       if (res.data.success && Array.isArray(res.data.songs)) {
         const result = res.data.songs;
@@ -30,8 +49,8 @@ export default function AdminTopSongs() {
         }));
 
         setSongs(converted);
+        setFilteredSongs(converted);
 
-        // 🎯 Tự động tick bài nào is_top = 1
         const topIds = converted
           .filter((s) => s.is_top === 1)
           .map((s) => s.song_id);
@@ -41,6 +60,51 @@ export default function AdminTopSongs() {
     } catch (error) {
       console.error("Load songs failed:", error);
     }
+  };
+
+  // 🎯 Hàm lọc tổng hợp
+  const applyFilters = (search, genre, topStatus) => {
+    let list = [...songs];
+
+    // 1️⃣ Lọc theo tìm kiếm
+    const lower = search.toLowerCase();
+    list = list.filter((song) => {
+      const title = song.title?.toLowerCase() || "";
+      const artist = song.artist_names?.toLowerCase() || "";
+      return title.includes(lower) || artist.includes(lower);
+    });
+
+    // 2️⃣ Lọc theo thể loại
+    if (genre !== "all") {
+      list = list.filter(song => song.genre_id === Number(genre));
+    }
+
+    // 3️⃣ Lọc theo is_top
+    if (topStatus !== "all") {
+      const topValue = topStatus === "top" ? 1 : 0;
+      list = list.filter((song) => song.is_top === topValue);
+    }
+
+    setFilteredSongs(list);
+    setCurrentPage(1);
+  };
+
+  // SEARCH
+  const handleSearch = (value) => {
+    setSearchText(value);
+    applyFilters(value, selectedGenre, selectedTopFilter);
+  };
+
+  // GENRE FILTER
+  const handleGenreChange = (value) => {
+    setSelectedGenre(value);
+    applyFilters(searchText, value, selectedTopFilter);
+  };
+
+  // TOP FILTER
+  const handleTopFilterChange = (value) => {
+    setSelectedTopFilter(value);
+    applyFilters(searchText, selectedGenre, value);
   };
 
   const toggleTop = (id) => {
@@ -62,9 +126,9 @@ export default function AdminTopSongs() {
     }
   };
 
-  const totalPages = Math.ceil(songs.length / songsPerPage);
+  const totalPages = Math.ceil(filteredSongs.length / songsPerPage);
   const indexStart = (currentPage - 1) * songsPerPage;
-  const pageSongs = songs.slice(indexStart, indexStart + songsPerPage);
+  const pageSongs = filteredSongs.slice(indexStart, indexStart + songsPerPage);
 
   const changePage = (p) => {
     if (p >= 1 && p <= totalPages) setCurrentPage(p);
@@ -73,9 +137,44 @@ export default function AdminTopSongs() {
   return (
     <div className="admin-top-songs">
       <div className="header-row">
-        <h2>🔥 Quản Lý Top Songs</h2>
-        <button className="btn-save" onClick={saveTopSongs}>
-          💾 Lưu Top Songs
+        <h2>Quản Lý Top Songs</h2>
+
+        {/* Ô tìm kiếm */}
+        <input
+          type="text"
+          className="search-input"
+          placeholder="Tìm bài hát hoặc nghệ sĩ..."
+          value={searchText}
+          onChange={(e) => handleSearch(e.target.value)}
+        />
+
+        {/* Bộ lọc thể loại */}
+        <select
+          className="filter-select"
+          value={selectedGenre}
+          onChange={(e) => handleGenreChange(e.target.value)}
+        >
+          <option value="all">Tất cả thể loại</option>
+          {genres.map((g) => (
+            <option key={g.genre_id} value={g.genre_id}>
+              {g.name}
+            </option>
+          ))}
+        </select>
+
+        {/* Bộ lọc Top */}
+        <select
+          className="filter-select"
+          value={selectedTopFilter}
+          onChange={(e) => handleTopFilterChange(e.target.value)}
+        >
+          <option value="all">Tất cả</option>
+          <option value="top">Chỉ bài Top</option>
+          <option value="non-top">Chỉ bài không Top</option>
+        </select>
+
+        <button className="btn-save-hot-songs" onClick={saveTopSongs}>
+          Lưu
         </button>
       </div>
 
@@ -122,8 +221,12 @@ export default function AdminTopSongs() {
         </tbody>
       </table>
 
+      {/* Pagination */}
       <div className="pagination">
-        <button onClick={() => changePage(currentPage - 1)} disabled={currentPage === 1}>
+        <button
+          onClick={() => changePage(currentPage - 1)}
+          disabled={currentPage === 1}
+        >
           ◀
         </button>
 
