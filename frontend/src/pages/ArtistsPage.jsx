@@ -20,7 +20,7 @@ export default function ArtistsPage() {
     try {
       setLoading(true);
 
-      const songsResponse = await axios.get(`${PHP_API_URL}/song/get_songs.php`);
+      const songsResponse = await axios.get(`${PHP_API_URL}/song/get_songs_web.php`);
 
       if (songsResponse.data.status === "success") {
         const artistsMap = new Map();

@@ -9,7 +9,7 @@
 - **URL**: `http://localhost:8081/music_API/online_music`
 - **Database**: MySQL qua XAMPP
 - **Endpoints**:
-  - `GET /song/get_songs.php` - Lấy danh sách bài hát
+  - `GET /song/get_songs_web.php` - Lấy danh sách bài hát
 
 **Sử dụng bởi:**
 - ✅ `HomePage.jsx` - Hiển thị bài hát cho user
@@ -39,7 +39,7 @@ SongManagementContent → PHP API (port 8081) → get_songs.php → MySQL
 ```
 ```javascript
 // fetchSongs() trong SongManagementContent.jsx
-const response = await axios.get(`${PHP_API_URL}/song/get_songs.php`);
+const response = await axios.get(`${PHP_API_URL}/song/get_songs_web.php`);
 ```
 
 ### **2. Thêm Bài Hát (CREATE)**

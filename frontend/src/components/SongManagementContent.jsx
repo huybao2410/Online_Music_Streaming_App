@@ -73,7 +73,7 @@ export default function SongManagementContent({ setActiveTab, openArtistAddModal
       setLoading(true);
       setError("");
 
-      const response = await axios.get(`${PHP_API_URL}/song/get_songs.php`);
+      const response = await axios.get(`${PHP_API_URL}/song/get_songs_web.php`);
       if (response.data.status && Array.isArray(response.data.songs)) {
         const formattedSongs = response.data.songs.map((song) => {
           return {
@@ -679,10 +679,10 @@ export default function SongManagementContent({ setActiveTab, openArtistAddModal
                     )}
                   </div>
 
-                  <div className="form-group">
+                  {/* <div className="form-group">
                     <label>Album</label>
                     <input type="text" name="album" value={formData.album} onChange={handleInputChange} />
-                  </div>
+                  </div> */}
                 </div>
 
                 <div className="form-group">

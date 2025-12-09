@@ -1,4 +1,4 @@
-const API_BASE_URL = "http://localhost:8081/music_API/online_music/song/get_songs.php";
+const API_BASE_URL = "http://localhost:8081/music_API/online_music/song/get_songs_web.php";
 
 export const getGenres = async () => {
   try {

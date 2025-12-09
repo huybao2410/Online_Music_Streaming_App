@@ -9,6 +9,8 @@ import GenreManagementContent from "../components/GenreManagementContent";
 import axios from "axios";
 import AdminAlbums from "./AdminAlbums";
 import AdminStatistics from "../components/AdminStatistics";
+import AdminTopSongs from "../components/AdminTopSongs";
+
 import {
   FaTachometerAlt,
   FaMusic,
@@ -101,7 +103,7 @@ const AdminDashboard = () => {
 
         // Gọi thêm API lấy Albums
         const [songsRes, artistsRes, usersRes, genresRes, albumsRes] = await Promise.all([
-          axios.get("http://localhost:8081/music_API/online_music/song/get_songs.php"),
+          axios.get("http://localhost:8081/music_API/online_music/song/get_songs_web.php"),
           axios.get("http://localhost:8081/music_API/online_music/artist/get_artists.php"),
           axios.get("/api/admin/users", {
             headers: { Authorization: `Bearer ${token}` }
@@ -228,12 +230,12 @@ const AdminDashboard = () => {
               <span>Người dùng</span>
             </button>
             <button
-              className={`nav-item ${activeTab === "playlists" ? "active" : ""}`}
-              onClick={() => setActiveTab("playlists")}
-            >
-              <MdQueueMusic />
-              <span>Playlist</span>
-            </button>
+  className={`nav-item ${activeTab === "top_songs" ? "active" : ""}`}
+  onClick={() => setActiveTab("top_songs")}
+>
+  <FaMusic style={{ transform: "rotate(20deg)" }} />
+  <span>Top Songs</span>
+</button>
           </div>
         </nav>
       </aside>
@@ -467,6 +469,12 @@ const AdminDashboard = () => {
           {activeTab === "songs" && <div className="tab-content"><SongManagementContent setActiveTab={setActiveTab} openArtistAddModal={() => { setActiveTab('artists'); setShowArtistModal(true); }} /></div>}
           {activeTab === "albums" && <div className="tab-content"><AdminAlbums /></div>}
           {activeTab === "artists" && <div className="tab-content"><ArtistManagementContent showModal={showArtistModal} setShowModal={setShowArtistModal} /></div>}
+          {activeTab === "top_songs" && (
+  <div className="tab-content">
+    <AdminTopSongs />
+  </div>
+)}
+
         </div>
       </div>
 
