@@ -31,13 +31,14 @@ router.get('/', verifyToken, async (req, res) => {
         s.audio_url,
         s.cover_url,
         s.release_date,
-        s.artist_id,
+        sa.artist_id,
         a.name as artist_name,
         s.genre_id,
         g.name as genre_name
-      FROM favorite_songs fs
+      FROM favorites_songs fs
       JOIN songs s ON fs.song_id = s.song_id
-      LEFT JOIN artists a ON s.artist_id = a.artist_id
+      LEFT JOIN song_artists sa ON s.song_id = sa.song_id
+      LEFT JOIN artists a ON sa.artist_id = a.artist_id
       LEFT JOIN genres g ON s.genre_id = g.genre_id
       WHERE fs.user_id = ?
       ORDER BY fs.added_at DESC
@@ -91,7 +92,7 @@ router.post('/add', verifyToken, async (req, res) => {
 
     // Kiểm tra đã thích chưa
     const [existing] = await pool.query(
-      'SELECT id FROM favorite_songs WHERE user_id = ? AND song_id = ?',
+      'SELECT song_id FROM favorites_songs WHERE user_id = ? AND song_id = ?',
       [req.user.id, song_id]
     );
 
@@ -101,7 +102,7 @@ router.post('/add', verifyToken, async (req, res) => {
 
     // Thêm vào DB
     await pool.query(
-      'INSERT INTO favorite_songs (user_id, song_id) VALUES (?, ?)',
+      'INSERT INTO favorites_songs (user_id, song_id) VALUES (?, ?)',
       [req.user.id, song_id]
     );
 
@@ -118,7 +119,7 @@ router.delete('/remove/:song_id', verifyToken, async (req, res) => {
     const { song_id } = req.params;
 
     const [result] = await pool.query(
-      'DELETE FROM favorite_songs WHERE user_id = ? AND song_id = ?',
+      'DELETE FROM favorites_songs WHERE user_id = ? AND song_id = ?',
       [req.user.id, song_id]
     );
 
@@ -139,7 +140,7 @@ router.get('/check/:song_id', verifyToken, async (req, res) => {
     const { song_id } = req.params;
 
     const [favorite] = await pool.query(
-      'SELECT id FROM favorite_songs WHERE user_id = ? AND song_id = ?',
+      'SELECT song_id FROM favorites_songs WHERE user_id = ? AND song_id = ?',
       [req.user.id, song_id]
     );
 

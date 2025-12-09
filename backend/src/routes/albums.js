@@ -19,7 +19,8 @@ router.get('/by-favorite-artists', verifyToken, async (req, res) => {
         COUNT(DISTINCT s.song_id) as song_count
        FROM user_favorite_artists fa
        JOIN artists a ON fa.artist_id = a.artist_id
-       LEFT JOIN songs s ON a.artist_id = s.artist_id
+      LEFT JOIN song_artists sa ON a.artist_id = sa.artist_id
+      LEFT JOIN songs s ON sa.song_id = s.song_id
        WHERE fa.user_id = ?
        GROUP BY a.artist_id
        HAVING song_count > 0
@@ -65,8 +66,9 @@ router.get('/:albumId/songs', async (req, res) => {
         a.name as artist,
         a.artist_id
        FROM songs s
-       JOIN artists a ON s.artist_id = a.artist_id
-       WHERE s.artist_id = ?
+      LEFT JOIN song_artists sa ON s.song_id = sa.song_id
+      JOIN artists a ON sa.artist_id = a.artist_id
+      WHERE sa.artist_id = ?
        ORDER BY s.title ASC`,
       [albumId]
     );

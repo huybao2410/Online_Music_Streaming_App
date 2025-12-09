@@ -64,7 +64,8 @@ router.get('/admin/all', async (req, res) => {
         a.avatar_url,
         COUNT(DISTINCT s.song_id) as song_count
       FROM artists a
-      LEFT JOIN songs s ON a.artist_id = s.artist_id
+      LEFT JOIN song_artists sa ON sa.artist_id = a.artist_id
+      LEFT JOIN songs s ON sa.song_id = s.song_id
       WHERE 
         a.bio IS NOT NULL AND a.bio <> '' AND
         a.avatar_url IS NOT NULL AND a.avatar_url <> ''
@@ -153,8 +154,9 @@ router.get('/:id', async (req, res) => {
     const [artists] = await pool.query(
       `SELECT a.*, COUNT(DISTINCT s.song_id) as song_count
        FROM artists a
-       LEFT JOIN songs s ON a.artist_id = s.artist_id
-       WHERE a.artist_id = ?
+      LEFT JOIN song_artists sa ON sa.artist_id = a.artist_id
+      LEFT JOIN songs s ON sa.song_id = s.song_id
+      WHERE a.artist_id = ?
        GROUP BY a.artist_id`,
       [req.params.id]
     );

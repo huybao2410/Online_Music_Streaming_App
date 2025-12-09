@@ -1,0 +1,72 @@
+.admin-top-songs {
+  padding: 20px;
+}
+
+.header-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
+}
+
+.btn-save {
+  padding: 10px 20px;
+  background: #6a5af9;
+  border: none;
+  color: #fff;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+.btn-save:hover {
+  opacity: 0.9;
+}
+
+.top-songs-table {
+  width: 100%;
+  border-collapse: collapse;
+  background: white;
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.top-songs-table th {
+  background: linear-gradient(90deg, #1e3aeb, #4f7df5);
+  color: #fff;
+  padding: 12px;
+}
+
+.top-songs-table td {
+  padding: 12px;
+  border-bottom: 1px solid #eee;
+  color: #111;
+}
+
+.cover-img {
+  width: 60px;
+  height: 60px;
+  border-radius: 8px;
+  object-fit: cover;
+}
+
+.pagination {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 18px;
+}
+
+.pagination button {
+  padding: 6px 12px;
+  border: none;
+  background: #ddd;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.pagination button.active {
+  background: #6a5af9;
+  color: white;
+  font-weight: bold;
+}

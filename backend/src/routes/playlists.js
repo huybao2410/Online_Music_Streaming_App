@@ -108,7 +108,8 @@ router.get('/:id', verifyToken, async (req, res) => {
               ps.added_at
        FROM playlist_songs ps
        JOIN songs s ON ps.song_id = s.song_id
-       LEFT JOIN artists a ON s.artist_id = a.artist_id
+      LEFT JOIN song_artists sa ON s.song_id = sa.song_id
+      LEFT JOIN artists a ON sa.artist_id = a.artist_id
        WHERE ps.playlist_id = ?
        ORDER BY ps.added_at DESC`,
       [req.params.id]

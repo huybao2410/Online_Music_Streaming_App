@@ -48,7 +48,7 @@ export default function AddSongToPlaylistModal({
     setIsLoadingSongs(true);
     try {
       const res = await axios.get(
-        "http://localhost:8081/music_API/online_music/song/get_songs.php"
+        "http://localhost:8081/music_API/online_music/song/get_songs_web.php"
       );
 
       if (res.data.status && Array.isArray(res.data.songs)) {

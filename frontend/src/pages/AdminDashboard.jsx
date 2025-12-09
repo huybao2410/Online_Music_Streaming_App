@@ -9,13 +9,16 @@ import GenreManagementContent from "../components/GenreManagementContent";
 import axios from "axios";
 import AdminAlbums from "./AdminAlbums";
 import AdminStatistics from "../components/AdminStatistics";
+import AdminTopSongs from "../components/AdminTopSongs";
+
 import {
   FaTachometerAlt,
   FaMusic,
   FaUsers,
   FaHistory,
   FaUserCircle,
-  FaCompactDisc, // Import icon Album
+  FaCompactDisc,
+  FaFire, // Icon ngọn lửa cho Top Songs
 } from "react-icons/fa";
 import {
   MdDashboard,
@@ -101,7 +104,7 @@ const AdminDashboard = () => {
 
         // Gọi thêm API lấy Albums
         const [songsRes, artistsRes, usersRes, genresRes, albumsRes] = await Promise.all([
-          axios.get("http://localhost:8081/music_API/online_music/song/get_songs.php"),
+          axios.get("http://localhost:8081/music_API/online_music/song/get_songs_web.php"),
           axios.get("http://localhost:8081/music_API/online_music/artist/get_artists.php"),
           axios.get("/api/admin/users", {
             headers: { Authorization: `Bearer ${token}` }
@@ -181,17 +184,17 @@ const AdminDashboard = () => {
               <FaTachometerAlt />
               <span>Dashboard</span>
             </button>
-            {/* <button
-              className={`nav-item ${activeTab === "stats" ? "active" : ""}`}
-              onClick={() => setActiveTab("stats")}
-            >
-              <MdDashboard />
-              <span>Thống kê</span>
-            </button> */}
           </div>
 
           <div className="nav-section">
             <h4 className="nav-section-title">QUẢN LÝ</h4>
+            <button
+  className={`nav-item ${activeTab === "top_songs" ? "active" : ""}`}
+  onClick={() => setActiveTab("top_songs")}
+>
+  <FaFire style={{ color: "#ff5722" }} />
+  <span>Top Songs</span>
+</button>
             <button
               className={`nav-item ${activeTab === "songs" ? "active" : ""}`}
               onClick={() => setActiveTab("songs")}
@@ -226,13 +229,6 @@ const AdminDashboard = () => {
             >
               <FaUsers />
               <span>Người dùng</span>
-            </button>
-            <button
-              className={`nav-item ${activeTab === "playlists" ? "active" : ""}`}
-              onClick={() => setActiveTab("playlists")}
-            >
-              <MdQueueMusic />
-              <span>Playlist</span>
             </button>
           </div>
         </nav>
@@ -369,7 +365,6 @@ const AdminDashboard = () => {
                 </div>
               </div>
 
-
               <div className="tab-content">
                 <h2>📊 Bảng Thống Kê</h2>
               </div>
@@ -394,6 +389,12 @@ const AdminDashboard = () => {
           {activeTab === "songs" && <div className="tab-content"><SongManagementContent setActiveTab={setActiveTab} openArtistAddModal={() => { setActiveTab('artists'); setShowArtistModal(true); }} /></div>}
           {activeTab === "albums" && <div className="tab-content"><AdminAlbums /></div>}
           {activeTab === "artists" && <div className="tab-content"><ArtistManagementContent showModal={showArtistModal} setShowModal={setShowArtistModal} /></div>}
+          {activeTab === "top_songs" && (
+  <div className="tab-content">
+    <AdminTopSongs />
+  </div>
+)}
+
         </div>
       </div>
 

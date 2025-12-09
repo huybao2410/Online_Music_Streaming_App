@@ -7,7 +7,7 @@ import { FaSave, FaSearch, FaLink } from "react-icons/fa";
 
   const PHP_API_URL = "http://localhost:8081/music_API/online_music/album/manage_albums.php";
   const PHP_ARTIST_API = "http://localhost:8081/music_API/online_music/artist/get_artists.php";
-  const PHP_SONG_API = "http://localhost:8081/music_API/online_music/song/get_songs.php";
+  const PHP_SONG_API = "http://localhost:8081/music_API/online_music/song/get_songs_web.php";
 
   export default function AdminAddEditAlbum({ album, onSuccess, onClose }) {
     const isEdit = !!album;
