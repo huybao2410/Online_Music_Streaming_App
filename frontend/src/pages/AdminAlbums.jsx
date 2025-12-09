@@ -600,9 +600,14 @@ function AdminAlbums() {
                   }}
                 >
                   {songList
-                    .filter((s) =>
-                      s.title?.toLowerCase().includes(songSearch.toLowerCase())
-                    )
+                    .filter((s) => {
+  const search = songSearch.toLowerCase();
+  return (
+    s.title?.toLowerCase().includes(search) ||
+    s.artist?.toLowerCase().includes(search)
+  );
+})
+
                     .map((song) => (
                       <label
                         key={song.song_id}

@@ -7,7 +7,7 @@ const PHP_API_URL = "http://localhost:8081/music_API/online_music"; // API PHP
 /** 🟢 Lấy tất cả albums từ PHP backend (Giữ nguyên logic cũ của bạn) */
 export const getAllAlbums = async () => {
   try {
-    const response = await axios.get(`${PHP_API_URL}/album/get_albums.php`);
+    const response = await axios.get(`${PHP_API_URL}/album/get_albums_web.php`);
     console.log("🔥 API trả về albums:", response.data);
 
     if (response.data.status && Array.isArray(response.data.albums)) {

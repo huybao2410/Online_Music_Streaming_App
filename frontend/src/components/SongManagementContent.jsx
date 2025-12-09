@@ -320,12 +320,6 @@ export default function SongManagementContent({ setActiveTab, openArtistAddModal
       return;
     }
 
-    if (!formData.audio && modalMode === "create") {
-      setError("Vui lòng chọn file nhạc");
-      setIsSubmitting(false);
-      return;
-    }
-
     const validArtists = (formData.artists || []).filter(a =>
       (a.artist_id && String(a.artist_id).trim() !== "") ||
       (a.name && a.name.trim() !== "")
@@ -339,9 +333,9 @@ export default function SongManagementContent({ setActiveTab, openArtistAddModal
 
     const uploadData = new FormData();
     uploadData.append("title", formData.title);
-    uploadData.append("album", formData.album || "");
     uploadData.append("genre_id", formData.genre_id || "");
     uploadData.append("cover_url", formData.cover_url || "");
+    uploadData.append("album", formData.album || "");
 
     if (formData.cover) uploadData.append("cover", formData.cover);
     if (formData.audio) uploadData.append("audio", formData.audio);
@@ -350,29 +344,36 @@ export default function SongManagementContent({ setActiveTab, openArtistAddModal
       a.artist_id ? a.artist_id : a.name.trim()
     );
 
-    // *** SỬA LỖI QUAN TRỌNG ***
     uploadData.append("artists", JSON.stringify(artistIdsOrNames));
 
-    const response = await axios.post(
-      `${PHP_API_URL}/song/add_song.php`,
-      uploadData,
-      { headers: { "Content-Type": "multipart/form-data" } }
-    );
+    let url = "";
+    if (modalMode === "create") {
+      url = `${PHP_API_URL}/song/add_song.php`;
+    } else {
+      // EDIT MODE
+      uploadData.append("song_id", currentSong.song_id);
+      url = `${PHP_API_URL}/song/update_song.php`;
+    }
+
+    const response = await axios.post(url, uploadData, {
+      headers: { "Content-Type": "multipart/form-data" }
+    });
 
     if (response.data.status) {
-      setSuccess("Thêm bài hát thành công!");
+      setSuccess(modalMode === "create" ? "Thêm bài hát thành công!" : "Cập nhật bài hát thành công!");
       fetchSongs();
       closeModal();
     } else {
-      setError(response.data.message || "Có lỗi khi thêm bài hát");
+      setError(response.data.message || "Có lỗi");
     }
   } catch (err) {
-    console.error("Error submitting song:", err);
-    setError(err.response?.data?.message || err.message || "Lỗi khi lưu bài hát");
+    console.error("Submit error:", err);
+    setError(err.response?.data?.message || "Lỗi khi lưu bài hát");
   } finally {
     setIsSubmitting(false);
   }
 };
+
 
 
   // ========== Other actions ==========

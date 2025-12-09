@@ -9,25 +9,31 @@ const router = express.Router();
 router.get('/by-favorite-artists', verifyToken, async (req, res) => {
   try {
     const userId = req.user.id;
-    
-    const [albums] = await pool.query(
-      `SELECT DISTINCT 
-        a.artist_id as album_id,
-        a.name as album_name,
-        a.avatar_url as cover_url,
-        a.artist_id,
-        COUNT(DISTINCT s.song_id) as song_count
-       FROM user_favorite_artists fa
-       JOIN artists a ON fa.artist_id = a.artist_id
-      LEFT JOIN song_artists sa ON a.artist_id = sa.artist_id
-      LEFT JOIN songs s ON sa.song_id = s.song_id
-       WHERE fa.user_id = ?
-       GROUP BY a.artist_id
-       HAVING song_count > 0
-       ORDER BY a.name ASC`,
+    // Lấy danh sách artist_id yêu thích
+    const [favoriteArtists] = await pool.query(
+      'SELECT artist_id FROM user_favorite_artists WHERE user_id = ?',
       [userId]
     );
-
+    const artistIds = favoriteArtists.map(a => a.artist_id);
+    if (artistIds.length === 0) {
+      return res.json({ success: true, status: 'success', albums: [] });
+    }
+    // Truy vấn album có bài hát của nghệ sĩ yêu thích
+    const [albums] = await pool.query(
+      `SELECT DISTINCT
+        al.album_id,
+        al.name as album_name,
+        al.cover_url,
+        COUNT(DISTINCT als.song_id) as song_count
+      FROM albums al
+      JOIN album_songs als ON al.album_id = als.album_id
+      JOIN song_artists sa ON als.song_id = sa.song_id
+      WHERE sa.artist_id IN (?)
+      GROUP BY al.album_id
+      HAVING song_count > 0
+      ORDER BY al.name ASC`,
+      [artistIds]
+    );
     // Format cover URLs
     const formattedAlbums = albums.map(album => ({
       ...album,
@@ -35,7 +41,6 @@ router.get('/by-favorite-artists', verifyToken, async (req, res) => {
         ? `http://10.0.2.2:8081/music_API/online_music/${album.cover_url}`
         : 'https://placehold.co/300x300'
     }));
-
     return res.json({
       success: true,
       status: 'success',
