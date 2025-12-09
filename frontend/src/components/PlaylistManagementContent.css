@@ -1,0 +1,63 @@
+.playlist-form {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 12px;
+}
+
+.playlist-form input {
+  flex: 1;
+  padding: 8px;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  font-size: 15px;
+}
+
+.playlist-form button {
+  padding: 8px 20px;
+  background: #2563eb;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.playlist-form button:disabled {
+  background: #a5b4fc;
+  cursor: not-allowed;
+}
+
+.playlist-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 8px;
+}
+
+.playlist-table th, .playlist-table td {
+  padding: 12px 10px;
+  border-bottom: 1px solid #e5e7eb;
+  text-align: left;
+}
+
+.playlist-table th {
+  background: #f3f4f6;
+  font-size: 13px;
+  font-weight: 600;
+  color: #374151;
+  text-transform: uppercase;
+}
+
+.playlist-table tr:hover {
+  background: #f1f5f9;
+}
+
+.playlist-success {
+  color: #16a34a;
+  margin-bottom: 8px;
+}
+
+.playlist-error {
+  color: #ef4444;
+  margin-bottom: 8px;
+}

@@ -1,3 +1,25 @@
+// POST /api/subscriptions/plans (admin)
+exports.addPlan = async (req, res) => {
+  try {
+    const { name, price, duration } = req.body;
+    if (!name || !price || !duration) {
+      return res.status(400).json({ success: false, message: "Thiếu thông tin gói dịch vụ" });
+    }
+    // Kiểm tra trùng tên
+    const [exist] = await pool.query("SELECT id FROM subscription_plans WHERE name = ?", [name]);
+    if (exist.length > 0) {
+      return res.status(400).json({ success: false, message: "Tên gói đã tồn tại" });
+    }
+    await pool.query(
+      "INSERT INTO subscription_plans (name, price, duration) VALUES (?, ?, ?)",
+      [name, price, duration]
+    );
+    res.json({ success: true, message: "Thêm gói dịch vụ thành công" });
+  } catch (err) {
+    console.error("addPlan error:", err);
+    res.status(500).json({ success: false, message: "Server error" });
+  }
+};
 const pool = require("../config/db");
 
 // GET /api/subscriptions/me

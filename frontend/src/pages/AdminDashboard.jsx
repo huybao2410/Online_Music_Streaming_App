@@ -11,6 +11,9 @@ import AdminAlbums from "./AdminAlbums";
 import AdminStatistics from "../components/AdminStatistics";
 import AdminTopSongs from "../components/AdminTopSongs";
 
+import ServicePlanManagement from "../components/ServicePlanManagement";
+import PlaylistManagementContent from "../components/PlaylistManagementContent";
+
 import {
   FaTachometerAlt,
   FaMusic,
@@ -224,6 +227,20 @@ const AdminDashboard = () => {
               <span>Thể loại</span>
             </button>
             <button
+              className={`nav-item ${activeTab === "playlists" ? "active" : ""}`}
+              onClick={() => setActiveTab("playlists")}
+            >
+              <MdQueueMusic style={{ color: "#f59e0b" }} />
+              <span>Playlist</span>
+            </button>
+            <button
+              className={`nav-item ${activeTab === "service_plans" ? "active" : ""}`}
+              onClick={() => setActiveTab("service_plans")}
+            >
+              <FaCompactDisc style={{ color: "#00bcd4" }} />
+              <span>Gói dịch vụ</span>
+            </button>
+            <button
               className={`nav-item ${activeTab === "users" ? "active" : ""}`}
               onClick={() => setActiveTab("users")}
             >
@@ -302,6 +319,7 @@ const AdminDashboard = () => {
               </div>
 
               {/* Stats Cards */}
+
               <div className="stats-cards-grid">
                 {/* Thẻ Album Mới Thêm (Cyan) */}
                 <div className="stat-card-modern cyan">
@@ -363,6 +381,16 @@ const AdminDashboard = () => {
                     <h2 className="card-value">{stats.totalPlaylists}</h2>
                   </div>
                 </div>
+
+                <div className="stat-card-modern teal">
+                  <div className="card-icon">
+                    <FaCompactDisc style={{ color: "#00bcd4" }} size={32} />
+                  </div>
+                  <div className="card-content">
+                    <p className="card-label">GÓI DỊCH VỤ</p>
+                    <h2 className="card-value">{stats.totalServicePlans || 0}</h2>
+                  </div>
+                </div>
               </div>
 
               <div className="tab-content">
@@ -390,10 +418,12 @@ const AdminDashboard = () => {
           {activeTab === "albums" && <div className="tab-content"><AdminAlbums /></div>}
           {activeTab === "artists" && <div className="tab-content"><ArtistManagementContent showModal={showArtistModal} setShowModal={setShowArtistModal} /></div>}
           {activeTab === "top_songs" && (
-  <div className="tab-content">
-    <AdminTopSongs />
-  </div>
-)}
+            <div className="tab-content">
+              <AdminTopSongs />
+            </div>
+          )}
+          {activeTab === "playlists" && <PlaylistManagementContent />}
+          {activeTab === "service_plans" && <ServicePlanManagement />}
 
         </div>
       </div>
