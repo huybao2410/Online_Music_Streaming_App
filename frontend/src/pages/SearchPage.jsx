@@ -136,28 +136,67 @@ export default function SearchPage() {
           </div>
         )}
 
-        {/* SONGS */}
+
         {filteredSongs.length > 0 && (
           <div className="vivora-result-section">
             <h3 className="vivora-section-title"><FaMusic /> Bài hát</h3>
             <div className="vivora-songs-list">
-              {filteredSongs.map((song, idx) => (
-                <div key={song.id} className="vivora-song-row" onClick={() => setCurrentSong(song)}>
-                  <div className="vivora-song-index">{idx + 1}</div>
-                  <div className="vivora-song-main">
-                    <div className="vivora-song-cover"><img src={song.cover_url?.replace("10.0.2.2", "localhost")} alt={song.title} /></div>
-                    <div className="vivora-song-details">
-                      <div className="vivora-song-title">{song.title}</div>
-                      <div className="vivora-song-artist">{song.artist_name}</div>
+              {filteredSongs.map((song, idx) => {
+                // chuẩn hóa URL + fallback
+                const audioUrl = (song.audio_url || song.url || "").replace("10.0.2.2", "localhost");
+                const coverUrl = (song.cover_url || song.cover || "").replace("10.0.2.2", "localhost");
+
+                const formattedSong = {
+                  id: song.id ?? song.song_id,
+                  title: song.title,
+                  artist: song.artist_name || song.artist || "",
+                  cover: coverUrl || "https://placehold.co/70",
+                  url: audioUrl,           // <-- player's expected field
+                  duration: song.duration ?? 0,
+                  genre_name: song.genre_name || ""
+                };
+
+                const handlePlayClick = () => {
+                  if (!formattedSong.url) {
+                    console.warn("No audio URL for song", formattedSong);
+                    alert("Không có file âm thanh để phát cho bài này.");
+                    return;
+                  }
+                  // set playlist to current search results (so player can next/prev)
+                  const formattedPlaylist = filteredSongs.map((s) => ({
+                    id: s.id ?? s.song_id,
+                    title: s.title,
+                    artist: s.artist_name || s.artist || "",
+                    cover: (s.cover_url || s.cover || "").replace("10.0.2.2", "localhost"),
+                    url: (s.audio_url || s.url || "").replace("10.0.2.2", "localhost"),
+                    duration: s.duration ?? 0,
+                  }));
+
+                  setPlaylist(formattedPlaylist);
+                  setCurrentSong(formattedSong);
+                };
+
+                return (
+                  <div key={song.id ?? song.song_id} className="vivora-song-row" onClick={handlePlayClick} role="button" tabIndex={0}>
+                    <div className="vivora-song-index">{idx + 1}</div>
+                    <div className="vivora-song-main">
+                      <div className="vivora-song-cover">
+                        <img src={coverUrl} alt={song.title} />
+                      </div>
+                      <div className="vivora-song-details">
+                        <div className="vivora-song-title">{song.title}</div>
+                        <div className="vivora-song-artist">{song.artist_name}</div>
+                      </div>
                     </div>
+                    <div className="vivora-song-genre">{song.genre_name}</div>
+                    <div className="vivora-song-duration">{formatDuration(song.duration)}</div>
                   </div>
-                  <div className="vivora-song-genre">{song.genre_name}</div>
-                  <div className="vivora-song-duration">{formatDuration(song.duration)}</div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </div>
         )}
+
 
         {totalResults === 0 && (
           <div className="vivora-no-results">

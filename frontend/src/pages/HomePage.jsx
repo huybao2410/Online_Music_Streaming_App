@@ -61,7 +61,7 @@ const HomePage = () => {
         try {
           const favIds = await getFavoriteAlbumIds();
           favSet = new Set(favIds.map((id) => String(id)));
-        } catch {}
+        } catch { }
       }
 
       const merged = allAlbums.map((album) => ({
@@ -127,36 +127,38 @@ const HomePage = () => {
 
   // GENRE
   useEffect(() => {
-  const handle = async (event) => {
-    const genre = event.detail;  // {id, name}
+    const handle = async (event) => {
+      const genre = event.detail; // { genre_id, name }
 
-    setSelectedGenre(genre.name);  
-    setActiveTab("genre");
-    setLoading(true);
+      setSelectedGenre(genre.name);
+      setActiveTab("genre");
+      setLoading(true);
 
-    try {
-      let data;
+      try {
+        let data;
 
-      // 🔥 Nếu id = 0 → tất cả bài hát
-      if (genre.id === 0) {
-        data = await getSongs();
-      } else {
-        // 🔥 Gửi tên thể loại cho API
-        data = await getSongsByGenre(genre.name);
+        // id === 0 => load all
+        if (genre.id === 0) {
+          data = await getSongs();
+        } else {
+          data = await getSongsByGenre(genre.genre_id);
+        }
+
+
+        setGenreSongs(data || []);
+      } catch (err) {
+        console.error("Lỗi load thể loại:", err);
+        setGenreSongs([]);
+      } finally {
+        setLoading(false);
       }
+    };
 
-      setGenreSongs(data || []);
-    } catch (err) {
-      console.error("Lỗi load thể loại:", err);
-      setGenreSongs([]);
-    } finally {
-      setLoading(false);
-    }
-  };
+    window.addEventListener("genreSelected", handle);
+    return () => window.removeEventListener("genreSelected", handle);
 
-  window.addEventListener("genreSelected", handle);
-  return () => window.removeEventListener("genreSelected", handle);
-}, []);
+  }, []);
+
 
   // ARTIST
   useEffect(() => {
@@ -208,7 +210,7 @@ const HomePage = () => {
         ]);
         setArtists(artistData || []);
         setAlbums(albumData || []);
-      } catch {}
+      } catch { }
 
       setLoadingArtists(false);
       setLoadingAlbums(false);
@@ -272,7 +274,7 @@ const HomePage = () => {
               }))
             );
           }
-        } catch {}
+        } catch { }
         setLoading(false);
       };
 
@@ -383,9 +385,8 @@ const HomePage = () => {
 
                   <div className="card-actions">
                     <button
-                      className={`action-btn-circle heart ${
-                        album.is_favorite ? "active" : ""
-                      }`}
+                      className={`action-btn-circle heart ${album.is_favorite ? "active" : ""
+                        }`}
                       onClick={(e) => handleToggleFavorite(e, album)}
                     >
                       {album.is_favorite ? <AiFillHeart /> : <AiOutlineHeart />}
@@ -486,11 +487,11 @@ const HomePage = () => {
           )}
 
           {/* BẢNG XẾP HẠNG */}
-          <section className="top-charts-section" style={{marginBottom: 30}}>
+          <section className="top-charts-section" style={{ marginBottom: 30 }}>
             <div className="section-header">
               <h2>Bảng Xếp Hạng</h2>
             </div>
-            <div className="top-charts-grid" style={{display: 'flex', gap: 24, width: '100%'}}>
+            <div className="top-charts-grid" style={{ display: 'flex', gap: 24, width: '100%' }}>
               {/* Top 50 Bài Hát Thịnh Hành */}
               <TopChartBox
                 title="Top 50 Bài Hát Thịnh Hành"

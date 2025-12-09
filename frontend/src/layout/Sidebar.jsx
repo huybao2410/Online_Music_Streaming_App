@@ -4,6 +4,7 @@ import { BsFillPinAngleFill } from "react-icons/bs";
 import { useNavigate } from "react-router-dom";
 import { HiPlus, HiHeart, HiMusicalNote } from "react-icons/hi2";
 import { FaCompactDisc } from "react-icons/fa";
+// import { BsFillPinAngleFill } from "react-icons/bs";
 import CreatePlaylistModal from "../components/CreatePlaylistModal";
 import { getGenres } from "../services/genreService";
 import "./Sidebar.css";
@@ -213,8 +214,16 @@ const fetchUserPlaylists = async () => {
   };
 
   const handleGenreSelect = (genre) => {
-    window.dispatchEvent(new CustomEvent("genreSelected", { detail: genre }));
-  };
+  window.dispatchEvent(
+    new CustomEvent("genreSelected", {
+      detail: {
+        id: genre.id,
+        genre_id: genre.id,
+        name: genre.name
+      }
+    })
+  );
+};
 
   return (
         <aside className="sidebar">
@@ -251,7 +260,7 @@ const fetchUserPlaylists = async () => {
                   <button onClick={() => navigate("/favorites")} className="library-item">
                     <div className="item-cover liked-songs"><AiFillHeart size={32} /></div>
                     <div className="item-info">
-                      <span className="item-title">Bài Hát Yêu Thích</span>
+                      <span className="item-title">Bài hát yêu thích</span>
                       <span className="item-subtitle" style={{display: 'flex', alignItems: 'center', gap: 6, color: '#b3b3b3', fontSize: 15, marginTop: 2}}>
                         <BsFillPinAngleFill size={15} style={{marginRight: 2, color: '#6ee7b7'}} />
                         Playlist
@@ -273,7 +282,7 @@ const fetchUserPlaylists = async () => {
                       <FaCompactDisc size={28} color="white" />
                     </div>
                     <div className="item-info">
-                      <span className="item-title">Album Yêu Thích</span>
+                      <span className="item-title">Liked Albums</span>
                       <span className="item-subtitle" style={{display: 'flex', alignItems: 'center', gap: 6, color: '#b3b3b3', fontSize: 15, marginTop: 2}}>
                         <BsFillPinAngleFill size={15} style={{marginRight: 2, color: '#6ee7b7'}} />
                         Album

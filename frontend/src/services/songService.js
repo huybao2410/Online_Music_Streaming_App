@@ -110,23 +110,19 @@ export const searchAll = async (query) => {
   
 };
 export const getSongsByGenre = async (genre_id) => {
-  try {
-    const res = await API.get(`/song/get_songs_by_genre.php?genre_id=${genre_id}`);
+  const res = await fetch(
+    `http://localhost:8081/music_API/online_music/song/get_songs_by_genre.php?genre_id=${genre_id}`
+  );
 
-    if (res.data.status === "success" && Array.isArray(res.data.songs)) {
-      return res.data.songs.map(s => ({
-        id: s.song_id,
-        title: s.title,
-        artist: s.artist_name,
-        genre: s.genre_name,
-        cover: s.cover_url?.replace("10.0.2.2", "localhost"),
-        url: s.audio_url?.replace("10.0.2.2", "localhost"),
-        duration: s.duration || 0
-      }));
-    }
-    return [];
-  } catch (err) {
-    console.error("❌ Lỗi khi tải bài hát theo thể loại:", err);
-    return [];
-  }
+  const data = await res.json();
+  if (!data.status) return [];
+
+  return data.songs.map(song => ({
+    id: song.song_id,
+    title: song.title,
+    artist: song.artist,              // chuẩn
+    cover: song.cover?.replace("10.0.2.2", "localhost"),
+    url: song.audio?.replace("10.0.2.2", "localhost"), // FE dùng field url để play
+    duration: song.duration ?? 0,
+  }));
 };
