@@ -11,6 +11,7 @@ import "./Header.css";
 import PremiumExpiredModal from "../components/PremiumExpiredModal";
 import PremiumInfoModal from "../components/PremiumInfoModal";
 import SearchSuggestions from "../components/SearchSuggestions";
+import { suggestions as suggestionsAPI } from "../services/searchService";
 
 export default function Header({ isLoginOpen, setIsLoginOpen }) {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
@@ -25,31 +26,41 @@ export default function Header({ isLoginOpen, setIsLoginOpen }) {
   const [userAvatar, setUserAvatar] = useState(null);
   const [showExpired, setShowExpired] = useState(false);
   const [isPremium, setIsPremium] = useState(localStorage.getItem("is_premium") === "1");
-  
+
   // Search suggestions state
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [suggestions, setSuggestions] = useState(null);
   const [loadingSuggestions, setLoadingSuggestions] = useState(false);
 
+
   // ✅ Kiểm tra trạng thái Premium từ backend
   useEffect(() => {
-    const userId = localStorage.getItem("user_id");
-    if (!userId) return;
+    if (searchQuery.trim().length === 0) {
+      setSuggestions(null);
+      setShowSuggestions(false);
+      return;
+    }
 
-    axios
-      .get(`http://localhost:8081/music_API/online_music/user/check_premium.php?user_id=${userId}`)
-      .then((res) => {
-        if (res.data.status === "success") {
-          localStorage.setItem("is_premium", res.data.is_premium ? "1" : "0");
-          setIsPremium(res.data.is_premium);
-        } else if (res.data.status === "expired") {
-          localStorage.setItem("is_premium", "0");
-          setIsPremium(false);
-          setShowExpired(true);
+    const timer = setTimeout(async () => {
+      setLoadingSuggestions(true);
+      try {
+        const res = await suggestionsAPI(searchQuery.trim(), 5);
+        if (res.success) {
+          setSuggestions(res);
+          setShowSuggestions(true);
+        } else {
+          setSuggestions({ songs: [], artists: [], albums: [] });
         }
-      })
-      .catch(() => console.log("Không thể kiểm tra trạng thái Premium"));
-  }, []);
+      } catch (err) {
+        console.error("Error fetching suggestions:", err);
+        setSuggestions({ songs: [], artists: [], albums: [] });
+      } finally {
+        setLoadingSuggestions(false);
+      }
+    }, 250);
+
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
 
   // ✅ Khi đăng nhập, tải lại avatar
   useEffect(() => {
@@ -109,7 +120,7 @@ export default function Header({ isLoginOpen, setIsLoginOpen }) {
         const response = await axios.get('http://localhost:5000/api/search/suggestions', {
           params: { query: searchQuery.trim(), limit: 5 }
         });
-        
+
         if (response.data.success) {
           setSuggestions(response.data);
           setShowSuggestions(true);
@@ -155,13 +166,13 @@ export default function Header({ isLoginOpen, setIsLoginOpen }) {
   return (
     <header className="header">
       <div className="header-left">
-        <button className="header-btn" onClick={() => navigate("/")}> 
+        <button className="header-btn" onClick={() => navigate("/")}>
           <HiHome size={24} />
         </button>
-          <div className="brand" style={{display: 'flex', alignItems: 'center', gap: '12px'}}>
-            <img src={require('../assets/vivora_logo.jpg')} alt="Vivora Logo" className="vivora-logo" style={{height: 48, width: 'auto'}} />
-            <span className="logo-text" style={{fontSize: '2rem', fontWeight: 'bold', letterSpacing: '2px'}}>VIVORA</span>
-          </div>
+        <div className="brand" style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+          <img src={require('../assets/vivora_logo.jpg')} alt="Vivora Logo" className="vivora-logo" style={{ height: 48, width: 'auto' }} />
+          <span className="logo-text" style={{ fontSize: '2rem', fontWeight: 'bold', letterSpacing: '2px' }}>VIVORA</span>
+        </div>
       </div>
 
       <div className="header-center">
@@ -176,11 +187,14 @@ export default function Header({ isLoginOpen, setIsLoginOpen }) {
             onFocus={() => searchQuery.trim() && setShowSuggestions(true)}
           />
           {showSuggestions && suggestions && (
-            <SearchSuggestions 
+            <SearchSuggestions
               suggestions={suggestions}
-              onSelect={() => {
+              onSelect={(type, item) => {
+                const q = item.title || item.name || "";
                 setShowSuggestions(false);
-                setSearchQuery("");
+                setSearchQuery(q);
+                // navigate to search page (SearchPage will load full results for this query)
+                navigate(`/search?query=${encodeURIComponent(q)}`);
               }}
             />
           )}

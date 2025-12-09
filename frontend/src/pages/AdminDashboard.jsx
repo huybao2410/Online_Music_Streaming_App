@@ -249,7 +249,7 @@ const AdminDashboard = () => {
               <div className="user-avatar-header">
                 {adminAvatar ? (
                   <img
-                    src={adminAvatar}
+                    src="https://images.icon-icons.com/1378/PNG/512/avatardefault_92824.png"
                     alt="Avatar"
                     className="avatar-img"
                   />

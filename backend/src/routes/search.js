@@ -1,223 +1,163 @@
-// backend/src/routes/search.js
-const express = require('express');
-const pool = require('../config/db');
-
+const express = require("express");
 const router = express.Router();
+const pool = require("../config/db");
 
-// Search suggestions endpoint - for autocomplete
-router.get('/suggestions', async (req, res) => {
+// ===============================
+// 🔍 SEARCH ALL (songs + artists + albums)
+// ===============================
+// Search (songs + artists + albums) — returns artists linked to matched songs too
+router.get("/", async (req, res) => {
+  const q = (req.query.query || "").trim();
+  const page = parseInt(req.query.page || "1", 10);
+  const pageSize = parseInt(req.query.pageSize || "50", 10);
+
+  if (!q) {
+    return res.json({
+      success: true,
+      songs: [],
+      artists: [],
+      albums: [],
+      total: 0,
+      page,
+      pageSize,
+    });
+  }
+
+  const like = `%${q}%`;
+  const offset = (page - 1) * pageSize;
+
   try {
-    const { query, limit = 5 } = req.query;
-
-    if (!query || query.trim().length === 0) {
-      return res.json({
-        success: true,
-        songs: [],
-        artists: [],
-        albums: []
-      });
-    }
-
-    const searchTerm = `%${query.trim()}%`;
-    const limitNum = parseInt(limit);
-
-    // Search songs
+    // 1) Songs: match title OR genre name OR artist name (via JOIN)
     const [songs] = await pool.query(
-      `SELECT 
-        s.song_id as id,
+      `
+      SELECT 
+        s.song_id AS id,
         s.title,
         s.audio_url,
         s.cover_url,
         s.duration,
-        a.name as artist_name,
-        a.artist_id as artist_id
+        s.play_count,
+        g.name AS genre_name,
+        GROUP_CONCAT(DISTINCT a.name SEPARATOR ', ') AS artist_name
       FROM songs s
-      LEFT JOIN artists a ON s.artist_id = a.artist_id
-      WHERE s.title LIKE ?
-      ORDER BY s.title ASC
-      LIMIT ?`,
-      [searchTerm, limitNum]
+      LEFT JOIN genres g ON g.genre_id = s.genre_id
+      LEFT JOIN song_artists sa ON sa.song_id = s.song_id
+      LEFT JOIN artists a ON a.artist_id = sa.artist_id
+      WHERE s.title LIKE ? OR g.name LIKE ? OR a.name LIKE ?
+      GROUP BY s.song_id
+      ORDER BY s.play_count DESC, s.created_at DESC
+      LIMIT ? OFFSET ?
+      `,
+      [like, like, like, pageSize, offset]
     );
 
-    // Search artists
+    // 2) Artists:
+    // - artist name matches
+    // - OR artist appears on a song whose title/genre matched
+    // - OR artist is the album's artist and album name matched (cover cases)
     const [artists] = await pool.query(
-      `SELECT 
-        artist_id as id,
-        name,
-        avatar_url
-      FROM artists
-      WHERE name LIKE ?
-      ORDER BY name ASC
-      LIMIT ?`,
-      [searchTerm, limitNum]
-    );
-
-    // Search albums from albums table (giống Flutter)
-    const [albums] = await pool.query(
-      `SELECT 
-        a.album_id as id,
+      `
+      SELECT DISTINCT
+        a.artist_id AS id,
         a.name,
-        a.cover_url,
-        a.description,
-        a.release_date,
-        ar.name as artist_name,
-        ar.artist_id
-      FROM albums a
-      LEFT JOIN artists ar ON a.artist_id = ar.artist_id
-      WHERE a.name LIKE ? OR a.description LIKE ? OR ar.name LIKE ?
-      ORDER BY a.album_id DESC
-      LIMIT ?`,
-      [searchTerm, searchTerm, searchTerm, limitNum]
+        a.avatar_url,
+        a.bio
+      FROM artists a
+      LEFT JOIN song_artists sa ON sa.artist_id = a.artist_id
+      LEFT JOIN songs s ON s.song_id = sa.song_id
+      LEFT JOIN genres g ON g.genre_id = s.genre_id
+      LEFT JOIN album_songs als ON als.song_id = s.song_id
+      LEFT JOIN albums al ON al.album_id = als.album_id
+      WHERE
+        a.name LIKE ?
+        OR s.title LIKE ?
+        OR g.name LIKE ?
+        OR al.name LIKE ?
+      LIMIT 50
+      `,
+      [like, like, like, like]
     );
 
-    return res.json({
-      success: true,
-      songs,
-      artists,
-      albums
-    });
+    // 3) Albums:
+    // - album name matches
+    // - OR contains a matched song
+    // - OR album artist name matches
+    const [albums] = await pool.query(
+      `
+      SELECT DISTINCT
+        al.album_id AS id,
+        al.name,
+        al.cover_url,
+        ar.name AS artist_name
+      FROM albums al
+      LEFT JOIN artists ar ON ar.artist_id = al.artist_id
+      LEFT JOIN album_songs als ON als.album_id = al.album_id
+      LEFT JOIN songs s ON s.song_id = als.song_id
+      LEFT JOIN song_artists sa ON sa.song_id = s.song_id
+      LEFT JOIN artists a2 ON a2.artist_id = sa.artist_id
+      LEFT JOIN genres g ON g.genre_id = s.genre_id
+      WHERE
+        al.name LIKE ?
+        OR s.title LIKE ?
+        OR ar.name LIKE ?
+        OR a2.name LIKE ?
+        OR g.name LIKE ?
+      GROUP BY al.album_id
+      LIMIT 50
+      `,
+      [like, like, like, like, like]
+    );
 
-  } catch (error) {
-    console.error('Error searching:', error);
-    return res.status(500).json({
-      success: false,
-      message: 'Lỗi khi tìm kiếm'
-    });
-  }
-});
-
-// Full search endpoint
-router.get('/', async (req, res) => {
-  try {
-    const { query, type = 'all', page = 1, limit = 20 } = req.query;
-
-    if (!query || query.trim().length === 0) {
-      return res.json({
-        success: true,
-        songs: [],
-        artists: [],
-        albums: [],
-        total: 0
-      });
-    }
-
-    const searchTerm = `%${query.trim()}%`;
-    const offset = (parseInt(page) - 1) * parseInt(limit);
-    const limitNum = parseInt(limit);
-
-    let songs = [], artists = [], albums = [];
-    let totalSongs = 0, totalArtists = 0, totalAlbums = 0;
-
-    if (type === 'all' || type === 'songs') {
-      // Search songs (giống Flutter: tìm theo title, artist, genre)
-      const [songResults] = await pool.query(
-        `SELECT 
-          s.song_id as id,
-          s.title,
-          s.duration,
-          s.audio_url,
-          s.cover_url,
-          a.name as artist_name,
-          a.artist_id as artist_id,
-          g.name as genre_name
-        FROM songs s
-        LEFT JOIN artists a ON s.artist_id = a.artist_id
-        LEFT JOIN genres g ON s.genre_id = g.genre_id
-        WHERE s.title LIKE ? OR a.name LIKE ? OR g.name LIKE ?
-        ORDER BY s.song_id DESC
-        LIMIT ? OFFSET ?`,
-        [searchTerm, searchTerm, searchTerm, limitNum, offset]
-      );
-
-      const [countResult] = await pool.query(
-        `SELECT COUNT(*) as total
-        FROM songs s
-        LEFT JOIN artists a ON s.artist_id = a.artist_id
-        LEFT JOIN genres g ON s.genre_id = g.genre_id
-        WHERE s.title LIKE ? OR a.name LIKE ? OR g.name LIKE ?`,
-        [searchTerm, searchTerm, searchTerm]
-      );
-
-      songs = songResults;
-      totalSongs = countResult[0].total;
-    }
-
-    if (type === 'all' || type === 'artists') {
-      // Search artists
-      const [artistResults] = await pool.query(
-        `SELECT 
-          artist_id as id,
-          name,
-          avatar_url,
-          bio
-        FROM artists
-        WHERE name LIKE ?
-        ORDER BY name ASC
-        LIMIT ? OFFSET ?`,
-        [searchTerm, limitNum, offset]
-      );
-
-      const [countResult] = await pool.query(
-        `SELECT COUNT(*) as total FROM artists WHERE name LIKE ?`,
-        [searchTerm]
-      );
-
-      artists = artistResults;
-      totalArtists = countResult[0].total;
-    }
-
-    if (type === 'all' || type === 'albums') {
-      // Search albums from albums table (giống Flutter)
-      const [albumResults] = await pool.query(
-        `SELECT 
-          a.album_id as id,
-          a.name,
-          a.cover_url,
-          a.description,
-          a.release_date,
-          ar.name as artist_name,
-          ar.artist_id
-        FROM albums a
-        LEFT JOIN artists ar ON a.artist_id = ar.artist_id
-        WHERE a.name LIKE ? OR a.description LIKE ? OR ar.name LIKE ?
-        ORDER BY a.album_id DESC
-        LIMIT ? OFFSET ?`,
-        [searchTerm, searchTerm, searchTerm, limitNum, offset]
-      );
-
-      const [countResult] = await pool.query(
-        `SELECT COUNT(*) as total
-        FROM albums a
-        LEFT JOIN artists ar ON a.artist_id = ar.artist_id
-        WHERE a.name LIKE ? OR a.description LIKE ? OR ar.name LIKE ?`,
-        [searchTerm, searchTerm, searchTerm]
-      );
-
-      albums = albumResults;
-      totalAlbums = countResult[0].total;
-    }
+    const total = (songs?.length || 0) + (artists?.length || 0) + (albums?.length || 0);
 
     return res.json({
       success: true,
-      query: query.trim(),
       songs,
       artists,
       albums,
-      pagination: {
-        page: parseInt(page),
-        limit: limitNum,
-        totalSongs,
-        totalArtists,
-        totalAlbums
-      }
+      total,
+      page,
+      pageSize,
     });
+  } catch (err) {
+    console.error("SEARCH ERROR:", err);
+    return res.status(500).json({ success: false, message: "Server search error" });
+  }
+});
 
-  } catch (error) {
-    console.error('Error in full search:', error);
-    return res.status(500).json({
-      success: false,
-      message: 'Lỗi khi tìm kiếm'
-    });
+// ===============================
+// 🔍 SEARCH SUGGESTIONS
+// ===============================
+router.get("/suggestions", async (req, res) => {
+  try {
+    const query = req.query.query?.trim() || "";
+    const limit = parseInt(req.query.limit) || 5;
+
+    if (!query)
+      return res.json({ success: true, songs: [], artists: [], albums: [] });
+
+    const like = `%${query}%`;
+
+    const [songs] = await pool.query(
+      `SELECT song_id AS id, title, cover_url FROM songs WHERE title LIKE ? LIMIT ?`,
+      [like, limit]
+    );
+
+    const [artists] = await pool.query(
+      `SELECT artist_id AS id, name, avatar_url FROM artists WHERE name LIKE ? LIMIT ?`,
+      [like, limit]
+    );
+
+    const [albums] = await pool.query(
+      `SELECT album_id AS id, name, cover_url FROM albums WHERE name LIKE ? LIMIT ?`,
+      [like, limit]
+    );
+
+    res.json({ success: true, songs, artists, albums });
+
+  } catch (err) {
+    console.error("SUGGESTIONS ERROR:", err);
+    return res.status(500).json({ success: false });
   }
 });
 
