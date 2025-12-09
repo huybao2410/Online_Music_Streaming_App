@@ -13,7 +13,7 @@ const router = express.Router();
 // Upload to PHP API folder: C:/xampp/htdocs/music_API/online_music/artist/artist_avatar
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
-    const uploadDir = path.join('C:', 'xampp', 'htdocs', 'music_API', 'online_music', 'artist', 'artist_avatar');
+    const uploadDir = path.join('C:', 'xampp', 'htdocs', 'music_API', 'online_music', 'artist_avatar');
     if (!fs.existsSync(uploadDir)) {
       fs.mkdirSync(uploadDir, { recursive: true });
     }
@@ -296,13 +296,15 @@ router.put('/:id',
 
       // Handle avatar upload
       if (req.file) {
-        const avatarUrl = `artist/artist_avatar/${req.file.filename}`;
+        const avatarUrl = `http://10.0.2.2:8081/music_API/online_music/artist_avatar/${req.file.filename}`;
         updates.push('avatar_url = ?');
         values.push(avatarUrl);
 
         // Delete old avatar
         if (artists[0].avatar_url) {
-          const oldPath = path.join('C:', 'xampp', 'htdocs', 'music_API', 'online_music', artists[0].avatar_url);
+          // Tách lấy filename từ URL cũ
+          let oldFilename = artists[0].avatar_url.split('/').pop();
+          const oldPath = path.join('C:', 'xampp', 'htdocs', 'music_API', 'online_music', 'artist_avatar', oldFilename);
           if (fs.existsSync(oldPath)) {
             fs.unlinkSync(oldPath);
           }
