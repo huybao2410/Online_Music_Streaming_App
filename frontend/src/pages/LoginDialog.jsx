@@ -49,7 +49,7 @@ export default function LoginDialog({ onClose, onSuccess }) {
 
       // Check premium status after login
       try {
-        const premiumRes = await axios.get(`http://localhost/music_API/online_music/check_premium.php?user_id=${user.id || user.user_id}`);
+        const premiumRes = await axios.get(`http://localhost:8081/music_API/online_music/check_premium.php?user_id=${user.id || user.user_id || user.email}`);
         const isPremium = premiumRes.data?.is_premium || premiumRes.data?.premium;
         localStorage.setItem("is_premium", isPremium ? "1" : "0");
       } catch (premiumErr) {
@@ -191,7 +191,9 @@ export default function LoginDialog({ onClose, onSuccess }) {
                   }
                   // Check premium status after Google login
                   try {
-                    const premiumRes = await axios.get(`http://localhost:8081/music_API/online_music/user/check_premium.php?user_id=${user.id || user.user_id}`);
+                    const premiumRes = await axios.post("http://localhost:8081/music_API/online_music/user/check_premium.php", {
+                      user_id: user.id || user.user_id || user.email
+                    });
                     const isPremium = premiumRes.data?.is_premium || premiumRes.data?.premium;
                     localStorage.setItem("is_premium", isPremium ? "1" : "0");
                   } catch (premiumErr) {

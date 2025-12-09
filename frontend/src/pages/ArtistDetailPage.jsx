@@ -7,6 +7,7 @@ import "./ArtistDetailPage.css";
 const PHP_API_URL = "http://localhost:8081/music_API/online_music";
 const fixUrl = (url) => (url ? url.replace("10.0.2.2", "localhost") : "");
 
+// ====================== COMPONENT ======================== //
 const ArtistDetailPage = () => {
   const { artistId } = useParams();
   const navigate = useNavigate();
@@ -20,29 +21,27 @@ const ArtistDetailPage = () => {
     loadArtistData();
   }, [artistId]);
 
-  // Chuyển giây sang phút:giây
+  // ================= FORMAT DURATION ===================== //
   const formatDuration = (seconds) => {
+    seconds = Number(seconds);
     if (!seconds || isNaN(seconds)) return "--:--";
     const min = Math.floor(seconds / 60);
     const sec = Math.floor(seconds % 60);
     return `${min}:${sec.toString().padStart(2, "0")}`;
   };
 
+  // ================= LOAD ARTIST + SONGS ================= //
   const loadArtistData = async () => {
     try {
       setLoading(true);
 
-      // === 1) Artist Info ===
+      // 💿 GET ARTIST INFO
       const resArtist = await fetch(
         `${PHP_API_URL}/artist/get_artist_by_id.php?id=${artistId}`
       );
       const dataArtist = await resArtist.json();
 
-      console.log("ARTIST:", dataArtist);
-
-      if (!dataArtist.status) {
-        setArtist(null);
-      } else {
+      if (dataArtist.status) {
         setArtist({
           id: dataArtist.artist.artist_id,
           name: dataArtist.artist.name,
@@ -51,41 +50,50 @@ const ArtistDetailPage = () => {
         });
       }
 
-      // === 2) Songs ===
+      // 🎵 GET SONGS BY ARTIST
       const resSongs = await fetch(
         `${PHP_API_URL}/song/get_songs_by_artist.php?id=${artistId}`
       );
       const dataSongs = await resSongs.json();
 
-      console.log("SONGS RAW:", dataSongs);
-
       if (dataSongs.status && Array.isArray(dataSongs.songs)) {
         const normalized = dataSongs.songs.map((s) => ({
           id: s.song_id,
           title: s.title,
+          artist: dataArtist.artist.name,
           cover: fixUrl(s.cover_url),
-          audio: fixUrl(s.audio_url),
+          url: fixUrl(s.audio_url),
           genre: s.genre || "Unknown",
-          duration: formatDuration(s.duration),
+          duration: Number(s.duration) || 0,
         }));
+
         setSongs(normalized);
       } else {
         setSongs([]);
       }
     } catch (err) {
-      console.error("Lỗi load nghệ sĩ:", err);
+      console.error("Load artist failed:", err);
     } finally {
       setLoading(false);
     }
   };
 
-  // === PLAY SONG ===
+  // ===================== PLAY SONG ======================= //
   const playSongHandler = (song) => {
-    console.log("PLAY SONG:", song);
+    const playlistFormatted = songs.map((s) => ({
+      id: s.id,
+      title: s.title,
+      artist: s.artist,
+      cover: s.cover,
+      url: s.url,
+      duration: s.duration,
+    }));
 
-    setPlaylist(songs);  // full list
-    setCurrentSong(song); // pass đúng object bài hát
+    setPlaylist(playlistFormatted);
+    setCurrentSong(playlistFormatted.find((x) => x.id === song.id));
   };
+
+  // ========================= UI ========================== //
 
   if (loading)
     return <div className="artist-detail-page"><p>Đang tải...</p></div>;
@@ -96,54 +104,68 @@ const ArtistDetailPage = () => {
   return (
     <div className="artist-detail-page fade-in">
 
+      {/* BACK BUTTON */}
       <button className="back-button" onClick={() => navigate(-1)}>
         <HiArrowLeft size={24} />
       </button>
 
-      {/* ARTIST HEADER */}
-      <div className="artist-header" style={{display: 'flex', alignItems: 'center', gap: 32, position: 'relative'}}>
+      {/* ================= ARTIST HEADER (UI NHƯ CŨ) ================= */}
+      <div className="artist-header" style={{ display: "flex", gap: 32, alignItems: "center" }}>
+        
         <img
           src={artist.avatar || "https://placehold.co/220x220"}
           alt={artist.name}
-          style={{width: 220, height: 220, borderRadius: 20, objectFit: 'cover', boxShadow: '0 4px 24px #0004'}}
+          className="artist-avatar"
         />
-        <div style={{flex: 1}}>
-          <div style={{fontSize: 18, color: '#b3b3b3', fontWeight: 500, marginBottom: 4}}>Nghệ sĩ · {songs.length} Bài hát</div>
-          <h1 style={{fontSize: 44, fontWeight: 800, color: '#fff', margin: 0}}>{artist.name}</h1>
-          {artist.bio && <p style={{color: '#b3b3b3', fontSize: 16, margin: '12px 0 0 0'}}>{artist.bio}</p>}
+
+        <div className="artist-info-block">
+          <div className="artist-subtitle">
+            Nghệ sĩ · {songs.length} bài hát
+          </div>
+
+          <h1 className="artist-name-title">{artist.name}</h1>
+
+          {artist.bio && (
+            <p className="artist-bio-text">{artist.bio}</p>
+          )}
         </div>
+
       </div>
 
-      {/* SONG LIST */}
-      <div className="song-list" style={{marginTop: 32}}>
-        {/* Header */}
-        <div className="song-list-header" style={{display: 'flex', alignItems: 'center', padding: '8px 16px', fontWeight: 700, color: '#b3b3b3', borderBottom: '1px solid #222'}}>
-          <div style={{width: 40, textAlign: 'center'}}>#</div>
-          <div style={{flex: 2, display: 'flex', alignItems: 'center', gap: 12}}>Tiêu đề</div>
-          <div style={{flex: 1, textAlign: 'left'}}>Thể loại</div>
-          <div style={{width: 80, textAlign: 'right'}}>Thời lượng</div>
+      {/* ================= SONG LIST (UI NHƯ BẢN CŨ) ==================== */}
+      <div className="song-list-container">
+
+        <div className="song-list-header-row">
+          <div>#</div>
+          <div style={{ flex: 2 }}>Tiêu đề</div>
+          <div style={{ flex: 1 }}>Thể loại</div>
+          <div style={{ width: 80, textAlign: "right" }}>Thời lượng</div>
         </div>
-        {/* Song rows */}
-        {songs.map((song, idx) => (
+
+        {songs.map((song, index) => (
           <div
             key={song.id}
-            className="song-row hover-highlight"
+            className="song-row-item"
             onClick={() => playSongHandler(song)}
-            style={{display: 'flex', alignItems: 'center', padding: '8px 16px', borderBottom: '1px solid #222', cursor: 'pointer'}}
           >
-            <div style={{width: 40, textAlign: 'center', fontWeight: 600, color: '#b3b3b3'}}>{idx + 1}</div>
-            <div style={{flex: 2, display: 'flex', alignItems: 'center', gap: 12}}>
+            <div className="song-index">{index + 1}</div>
+
+            <div className="song-title-block">
               <img
                 src={song.cover || "https://placehold.co/80"}
-                alt={song.title}
-                style={{width: 48, height: 48, objectFit: 'cover', borderRadius: 6, boxShadow: '0 2px 8px #0002'}}
+                className="song-cover-img"
               />
-              <span style={{fontWeight: 600, color: '#fff'}}>{song.title}</span>
+              <span className="song-title-text">{song.title}</span>
             </div>
-            <div style={{flex: 1, color: '#fff', fontWeight: 400}}>{song.genre}</div>
-            <div style={{width: 80, textAlign: 'right', color: '#b3b3b3', fontWeight: 400}}>{song.duration}</div>
+
+            <div className="song-genre-text">{song.genre}</div>
+
+            <div className="song-duration-text">
+              {formatDuration(song.duration)}
+            </div>
           </div>
         ))}
+
       </div>
 
     </div>
