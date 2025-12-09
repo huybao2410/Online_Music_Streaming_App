@@ -18,6 +18,7 @@ router.get("/top-songs", async (req, res) => {
         s.audio_url,
         s.play_count,
         s.is_top,
+        s.genre_id,                      
         g.name AS genre_name,
         GROUP_CONCAT(a.name SEPARATOR ', ') AS artist_names
       FROM songs s
@@ -37,6 +38,7 @@ router.get("/top-songs", async (req, res) => {
 });
 
 
+
 router.get("/", async (req, res) => {
   try {
     const [rows] = await pool.query(`
@@ -47,6 +49,7 @@ router.get("/", async (req, res) => {
         s.audio_url,
         s.play_count,
         s.is_top,
+        s.genre_id,                          -- 🟢 THÊM DÒNG NÀY
         g.name AS genre_name,
         GROUP_CONCAT(a.name SEPARATOR ', ') AS artist_names
       FROM songs s
@@ -63,6 +66,7 @@ router.get("/", async (req, res) => {
     return res.status(500).json({ success: false });
   }
 });
+
 
 router.get("/:id", async (req, res) => {
   const id = Number(req.params.id);

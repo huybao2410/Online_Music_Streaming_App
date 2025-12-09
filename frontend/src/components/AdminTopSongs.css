@@ -10,9 +10,9 @@
   margin-bottom: 15px;
 }
 
-.btn-save {
+.btn-save-hot-songs {
   padding: 10px 20px;
-  background: #000; /* đen mạnh */
+  background: #293ccc; /* đen mạnh */
   border: none;
   color: #fff;
   border-radius: 8px;
@@ -35,7 +35,7 @@
 }
 
 .top-songs-table th {
-  background: #000;
+  background: #293ccc;
   color: #fff;
   padding: 12px;
   font-size: 15px;
@@ -85,4 +85,20 @@
   background: #000;
   color: white;
   font-weight: bold;
+}
+.search-input {
+  padding: 10px 14px;
+  border-radius: 8px;
+  border: 1px solid #201f1f;
+  width: 250px;
+  font-size: 14px;
+  margin-right: 10px;
+}
+.filter-select {
+  padding: 10px 12px;
+  border-radius: 8px;
+  border: 1px solid #bbb;
+  background: white;
+  margin-right: 10px;
+  font-size: 14px;
 }

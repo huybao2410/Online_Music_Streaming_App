@@ -48,9 +48,7 @@ const vnpayRoutes = require("./routes/vnpay.routes");
 app.use("/api/vnpay", vnpayRoutes);
 app.use('/api/favorite-albums', favoriteAlbumsRoutes);
 app.get('/api/health', (req, res) => res.json({ message: 'Backend is running' }));
-app.use("/songs", require("./routes/songs"));
 app.use("/top-songs", require("./routes/topSongs"));
-
 // Test endpoint to check songs
 app.get('/api/test/songs', async (req, res) => {
   try {
