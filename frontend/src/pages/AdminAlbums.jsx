@@ -4,11 +4,12 @@ import { FaPlus, FaEdit, FaTrash, FaMusic, FaTimes } from "react-icons/fa";
 import "../components/SongManagementContent.css";
 
 function AdminAlbums() {
-    // Helper: fix local url for preview
-    const fixLocalUrl = (url) => {
-      if (!url) return "";
-      return url.replace("10.0.2.2", "localhost");
-    };
+  const token = localStorage.getItem("token");
+  // Helper: fix local url for preview
+  const fixLocalUrl = (url) => {
+    if (!url) return "";
+    return url.replace("10.0.2.2", "localhost");
+  };
   const [coverPreview, setCoverPreview] = useState("");
   const [albums, setAlbums] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -161,7 +162,11 @@ function AdminAlbums() {
         albumData.release_date = albumData.release_date.split("T")[0];
       }
 
-      await axios.post("/api/admin/albums", albumData);
+      await axios.post(
+        "/api/admin/albums",
+        albumData,
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
 
       setSuccess("Thêm album thành công!");
       closeModal();
@@ -559,7 +564,7 @@ function AdminAlbums() {
                         src={fixLocalUrl(formData.cover_url)}
                         alt="Preview"
                         style={{ width: 80, borderRadius: 8 }}
-                        onError={e => {e.target.onerror=null; e.target.src='https://via.placeholder.com/80x80?text=No+Image';}}
+                        onError={e => { e.target.onerror = null; e.target.src = 'https://via.placeholder.com/80x80?text=No+Image'; }}
                       />
                     ) : (
                       <span style={{ color: "#888" }}>&lt;Preview&gt;</span>
@@ -601,12 +606,12 @@ function AdminAlbums() {
                 >
                   {songList
                     .filter((s) => {
-  const search = songSearch.toLowerCase();
-  return (
-    s.title?.toLowerCase().includes(search) ||
-    s.artist?.toLowerCase().includes(search)
-  );
-})
+                      const search = songSearch.toLowerCase();
+                      return (
+                        s.title?.toLowerCase().includes(search) ||
+                        s.artist?.toLowerCase().includes(search)
+                      );
+                    })
 
                     .map((song) => (
                       <label
