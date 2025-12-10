@@ -14,6 +14,8 @@ import AdminTopSongs from "../components/AdminTopSongs";
 import ServicePlanManagement from "../components/ServicePlanManagement";
 import PlaylistManagementContent from "../components/PlaylistManagementContent";
 
+import OrderManagementContent from "../components/OrderManagementContent";
+
 import {
   FaTachometerAlt,
   FaMusic,
@@ -22,6 +24,7 @@ import {
   FaUserCircle,
   FaCompactDisc,
   FaFire, // Icon ngọn lửa cho Top Songs
+  FaFileInvoiceDollar,
 } from "react-icons/fa";
 import {
   MdDashboard,
@@ -45,7 +48,8 @@ const AdminDashboard = () => {
     totalUsers: 0,
     totalPlaylists: 0,
     totalGenres: 0,
-    totalAlbums: 0
+    totalAlbums: 0,
+    totalServicePlans: 0
   });
   const [adminAvatar, setAdminAvatar] = useState(null);
 
@@ -105,18 +109,18 @@ const AdminDashboard = () => {
       try {
         console.log("Fetching dashboard stats...");
 
-        // Gọi thêm API lấy Albums
-        const [songsRes, artistsRes, usersRes, genresRes, albumsRes] = await Promise.all([
+        // Gọi thêm API lấy Albums và Gói dịch vụ
+        const [songsRes, artistsRes, usersRes, genresRes, albumsRes, servicePlansRes] = await Promise.all([
           axios.get("http://localhost:8081/music_API/online_music/song/get_songs_web.php"),
           axios.get("http://localhost:8081/music_API/online_music/artist/get_artists.php"),
           axios.get("/api/admin/users", {
             headers: { Authorization: `Bearer ${token}` }
           }).catch(() => ({ data: { users: [] } })),
           axios.get("http://localhost:5000/api/genres").catch(() => ({ data: { genres: [] } })),
-          // API lấy album để đếm số lượng (giả sử API trả về total hoặc mảng albums)
           axios.get("/api/admin/albums", {
             headers: { Authorization: `Bearer ${token}` }
-          }).catch(() => ({ data: { total: 0 } }))
+          }).catch(() => ({ data: { total: 0 } })),
+          axios.get("/api/subscriptions/plans").catch(() => ({ data: { plans: [] } }))
         ]);
 
         const totalSongs = songsRes.data?.status && songsRes.data?.songs
@@ -129,9 +133,8 @@ const AdminDashboard = () => {
 
         const totalUsers = usersRes.data?.users?.length || 0;
         const totalGenres = genresRes.data?.genres?.length || 0;
-
-        // Lấy số lượng album
         const totalAlbums = albumsRes.data?.total || albumsRes.data?.albums?.length || 0;
+        const totalServicePlans = servicePlansRes.data?.plans?.length || 0;
 
         setStats({
           totalSongs,
@@ -139,7 +142,8 @@ const AdminDashboard = () => {
           totalUsers,
           totalPlaylists: 0, // Placeholder
           totalGenres,
-          totalAlbums
+          totalAlbums,
+          totalServicePlans
         });
       } catch (error) {
         console.error("Error fetching stats:", error);
@@ -192,60 +196,61 @@ const AdminDashboard = () => {
           <div className="nav-section">
             <h4 className="nav-section-title">QUẢN LÝ</h4>
             <button
-  className={`nav-item ${activeTab === "top_songs" ? "active" : ""}`}
-  onClick={() => setActiveTab("top_songs")}
->
-  <FaFire style={{ color: "#ff5722" }} />
-  <span>Top Songs</span>
-</button>
+              className={`nav-item ${activeTab === "top_songs" ? "active" : ""}`}
+              onClick={() => setActiveTab("top_songs")}
+            >
+              <FaFire style={{ color: "#fff" }} />
+              <span>Top Songs</span>
+            </button>
             <button
               className={`nav-item ${activeTab === "songs" ? "active" : ""}`}
               onClick={() => setActiveTab("songs")}
             >
-              <FaMusic />
+              <FaMusic style={{ color: "#fff" }} />
               <span>Bài hát</span>
             </button>
             <button
               className={`nav-item ${activeTab === "albums" ? "active" : ""}`}
               onClick={() => setActiveTab("albums")}
             >
-              <FaCompactDisc />
+              <FaCompactDisc style={{ color: "#fff" }} />
               <span>Album</span>
             </button>
             <button
               className={`nav-item ${activeTab === "artists" ? "active" : ""}`}
               onClick={() => setActiveTab("artists")}
             >
-              <MdPeopleAlt />
+              <MdPeopleAlt style={{ color: "#fff" }} />
               <span>Nghệ sĩ</span>
             </button>
             <button
               className={`nav-item ${activeTab === "genres" ? "active" : ""}`}
               onClick={() => setActiveTab("genres")}
             >
-              <FaMusic />
+              <FaMusic style={{ color: "#fff" }} />
               <span>Thể loại</span>
             </button>
-            <button
-              className={`nav-item ${activeTab === "playlists" ? "active" : ""}`}
-              onClick={() => setActiveTab("playlists")}
-            >
-              <MdQueueMusic style={{ color: "#f59e0b" }} />
-              <span>Playlist</span>
-            </button>
+            {/* Tab Playlist đã bị ẩn */}
             <button
               className={`nav-item ${activeTab === "service_plans" ? "active" : ""}`}
               onClick={() => setActiveTab("service_plans")}
             >
-              <FaCompactDisc style={{ color: "#00bcd4" }} />
+              <FaCompactDisc style={{ color: "#fff" }} />
               <span>Gói dịch vụ</span>
             </button>
             <button
               className={`nav-item ${activeTab === "users" ? "active" : ""}`}
               onClick={() => setActiveTab("users")}
             >
-              <FaUsers />
+              <FaUsers style={{ color: "#fff" }} />
               <span>Người dùng</span>
+            </button>
+            <button
+              className={`nav-item ${activeTab === "orders" ? "active" : ""}`}
+              onClick={() => setActiveTab("orders")}
+            >
+              <FaFileInvoiceDollar style={{ color: "#fff" }} />
+              <span>Hóa đơn</span>
             </button>
           </div>
         </nav>
@@ -372,15 +377,7 @@ const AdminDashboard = () => {
                   </div>
                 </div>
 
-                <div className="stat-card-modern orange">
-                  <div className="card-icon">
-                    <MdQueueMusic size={32} />
-                  </div>
-                  <div className="card-content">
-                    <p className="card-label">PLAYLIST</p>
-                    <h2 className="card-value">{stats.totalPlaylists}</h2>
-                  </div>
-                </div>
+                {/* Ẩn thẻ Playlist */}
 
                 <div className="stat-card-modern teal">
                   <div className="card-icon">
@@ -424,6 +421,8 @@ const AdminDashboard = () => {
           )}
           {activeTab === "playlists" && <PlaylistManagementContent />}
           {activeTab === "service_plans" && <ServicePlanManagement />}
+
+  {activeTab === "orders" && <OrderManagementContent />}
 
         </div>
       </div>

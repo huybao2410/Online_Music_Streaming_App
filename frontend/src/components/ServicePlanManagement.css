@@ -1,3 +1,6 @@
+.name-subscription-title{
+  color: #000;
+}
 .service-plan-form {
   display: flex;
   gap: 16px;
@@ -36,15 +39,16 @@
 
 .service-plan-table th, .service-plan-table td {
   padding: 12px 10px;
-  border-bottom: 1px solid #e5e7eb;
+  border-bottom: 1px solid #e5e910;
   text-align: left;
+  color: #000;
 }
 
 .service-plan-table th {
-  background: #f3f4f6;
+  background: #3c48eb;
   font-size: 13px;
   font-weight: 600;
-  color: #374151;
+  color: #fff;
   text-transform: uppercase;
 }
 

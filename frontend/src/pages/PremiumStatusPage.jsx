@@ -10,6 +10,7 @@ export default function PremiumStatusPage() {
   const [loading, setLoading] = useState(true);
   const [cancelling, setCancelling] = useState(false);
 
+
   useEffect(() => {
     fetchSubscription();
   }, []);
@@ -36,14 +37,18 @@ export default function PremiumStatusPage() {
 
     setCancelling(true);
     try {
-      const token = localStorage.getItem('token');
+      const userId = subscription?.user_id || localStorage.getItem('user_id');
+      if (!userId) {
+        alert('Không tìm thấy user_id!');
+        setCancelling(false);
+        return;
+      }
       const res = await axios.post(
-        'http://localhost:5000/api/subscriptions/cancel',
-        {},
-        { headers: { Authorization: `Bearer ${token}` } }
+        'http://localhost:5000/api/subscriptions/cancel-subscription',
+        { user_id: userId },
+        { headers: { 'Content-Type': 'application/json' } }
       );
-
-      if (res.data.success) {
+      if (res.data.status === "success") {
         alert("❌ Bạn đã hủy gói Premium thành công.");
         localStorage.setItem("is_premium", "0");
         window.dispatchEvent(new Event("premiumUpdated"));
@@ -143,11 +148,7 @@ export default function PremiumStatusPage() {
             <li>
               <span className="benefit-icon">⬇️</span>
               <span>Tải nhạc nghe offline</span>
-            </li>
-            <li>
-              <span className="benefit-icon">💽</span>
-              <span>Chất lượng cao {subscription.audio_quality || '320kbps'}</span>
-            </li>
+            </li>       
             <li>
               <span className="benefit-icon">⏭️</span>
               <span>Bỏ qua bài hát không giới hạn</span>

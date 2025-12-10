@@ -37,7 +37,7 @@ export default function PremiumInfoModal({ onClose }) {
     setLoading(true);
     try {
       const userId = localStorage.getItem('user_id');
-      const res = await axios.post('http://localhost/music_API/online_music/user/cancel_premium.php', {
+      const res = await axios.post('http://localhost/music_API/online_music/ads/cancel_premium.php', {
         user_id: userId
       });
       if (res.data.status === "success") {
@@ -100,7 +100,6 @@ export default function PremiumInfoModal({ onClose }) {
         <ul>
           <li>🎧 Nghe nhạc không quảng cáo</li>
           <li>⬇️ Tải nhạc nghe offline</li>
-          <li>💽 Chất lượng cao {subscription.audio_quality || '320kbps'}</li>
           <li>⏭️ Bỏ qua bài hát không giới hạn</li>
         </ul>
 

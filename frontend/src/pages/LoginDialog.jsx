@@ -42,6 +42,7 @@ export default function LoginDialog({ onClose, onSuccess }) {
       localStorage.setItem("token", token);
       localStorage.setItem("role", user.role);
       localStorage.setItem("username", user.username || "User");
+      localStorage.setItem("user_id", user.id || user.user_id || "");
 
       if (rememberMe) {
         localStorage.setItem("rememberMe", "true");
@@ -186,6 +187,7 @@ export default function LoginDialog({ onClose, onSuccess }) {
                   localStorage.setItem("role", user.role);
                   localStorage.setItem("username", user.username || user.email);
                   localStorage.setItem("email", user.email);
+                  localStorage.setItem("user_id", user.id || user.user_id || "");
                   if (user.avatar_url) {
                     localStorage.setItem("avatar", user.avatar_url);
                   }
