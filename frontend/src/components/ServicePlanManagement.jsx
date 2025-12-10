@@ -6,6 +6,7 @@ const ServicePlanManagement = () => {
   const [plans, setPlans] = useState([]);
   const [name, setName] = useState("");
   const [price, setPrice] = useState("");
+  const [description, setDescription] = useState("");
   const [duration, setDuration] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -35,27 +36,56 @@ const ServicePlanManagement = () => {
     e.preventDefault();
     setError("");
     setSuccess("");
-    if (!name || !price || !duration) {
+    // check duration nữa
+    if (!name || !price || !description || !duration) {
       setError("Vui lòng nhập đầy đủ thông tin.");
       return;
     }
     try {
       setLoading(true);
-      await axios.post(
+      // gửi duration cùng body
+      const res = await axios.post(
         "/api/subscriptions/plans",
-        { name, price, duration },
+        { name, price, duration, description },
         { headers: { Authorization: `Bearer ${token}` } }
       );
-      setSuccess("Thêm gói dịch vụ thành công!");
+      setSuccess(res.data?.message || "Thêm gói dịch vụ thành công!");
       setName("");
       setPrice("");
       setDuration("");
+      setDescription("");
       fetchPlans();
     } catch (err) {
-      setError("Lỗi khi thêm gói dịch vụ.");
+      console.log("ADD PLAN ERROR:", err.response?.data || err.message);
+      setError(err.response?.data?.message || "Lỗi khi thêm gói dịch vụ.");
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
+
+  // ở trên component, thêm hàm:
+  const handleDeletePlan = async (planId) => {
+    if (!window.confirm("Bạn có chắc chắn muốn xóa gói này? Hành động không thể hoàn tác.")) return;
+
+    setError("");
+    setSuccess("");
+    try {
+      setLoading(true);
+      const res = await axios.delete(`/api/subscriptions/plans/${planId}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setSuccess(res.data?.message || "Xóa gói thành công");
+      // loại bỏ plan khỏi state
+      setPlans(prev => prev.filter(p => p.id !== planId));
+    } catch (err) {
+      console.log("DELETE PLAN ERROR:", err.response?.data || err.message);
+      setError(err.response?.data?.message || "Lỗi khi xóa gói dịch vụ.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+
 
   return (
     <div className="tab-content">
@@ -76,9 +106,15 @@ const ServicePlanManagement = () => {
           />
           <input
             type="number"
-            placeholder="Thời hạn (ngày)"
+            placeholder="Số ngày sử dụng"
             value={duration}
             onChange={e => setDuration(e.target.value)}
+          />
+          <input
+            type="text"
+            placeholder="Mô tả"
+            value={description}
+            onChange={e => setDescription(e.target.value)}
           />
           <button type="submit" disabled={loading}>
             Thêm mới
@@ -88,7 +124,7 @@ const ServicePlanManagement = () => {
         {success && <div className="service-plan-success">{success}</div>}
       </form>
       <div>
-        <h3>Danh sách gói dịch vụ</h3>
+        <h3 className="name-subscription-title">Danh sách gói dịch vụ</h3>
         {loading ? (
           <div>Đang tải...</div>
         ) : (
@@ -97,18 +133,37 @@ const ServicePlanManagement = () => {
               <tr>
                 <th>Tên gói</th>
                 <th>Giá (VNĐ)</th>
-                <th>Thời hạn (ngày)</th>
+                <th>Số ngày sử dụng</th>
+                <th>Mô tả</th>
               </tr>
             </thead>
             <tbody>
               {plans.map((plan, idx) => (
-                <tr key={idx}>
+                <tr key={plan.id || idx}>
                   <td>{plan.name}</td>
                   <td>{plan.price}</td>
                   <td>{plan.duration}</td>
+                  <td>{plan.description}</td>
+                  <td>
+                    <button
+                      onClick={() => handleDeletePlan(plan.id)}
+                      disabled={loading}
+                      style={{
+                        background: "transparent",
+                        border: "1px solid #e53e3e",
+                        color: "#e53e3e",
+                        padding: "6px 8px",
+                        borderRadius: 6,
+                        cursor: "pointer"
+                      }}
+                    >
+                      Xóa
+                    </button>
+                  </td>
                 </tr>
               ))}
             </tbody>
+
           </table>
         )}
       </div>

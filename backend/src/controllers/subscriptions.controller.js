@@ -1,8 +1,9 @@
+const pool = require("../config/db");
 // POST /api/subscriptions/plans (admin)
 exports.addPlan = async (req, res) => {
   try {
-    const { name, price, duration } = req.body;
-    if (!name || !price || !duration) {
+    const { name, price, duration, description } = req.body;
+    if (!name || !price || !duration || !description) {
       return res.status(400).json({ success: false, message: "Thiếu thông tin gói dịch vụ" });
     }
     // Kiểm tra trùng tên
@@ -11,8 +12,8 @@ exports.addPlan = async (req, res) => {
       return res.status(400).json({ success: false, message: "Tên gói đã tồn tại" });
     }
     await pool.query(
-      "INSERT INTO subscription_plans (name, price, duration) VALUES (?, ?, ?)",
-      [name, price, duration]
+      "INSERT INTO subscription_plans (name, price, duration_days, description) VALUES (?, ?, ?, ?)",
+      [name, price, duration, description]
     );
     res.json({ success: true, message: "Thêm gói dịch vụ thành công" });
   } catch (err) {
@@ -20,7 +21,7 @@ exports.addPlan = async (req, res) => {
     res.status(500).json({ success: false, message: "Server error" });
   }
 };
-const pool = require("../config/db");
+
 
 // GET /api/subscriptions/me
 exports.getMySubscription = async (req, res) => {
@@ -68,10 +69,11 @@ exports.getMySubscription = async (req, res) => {
     return res.status(500).json({ success: false, message: "Server error" });
   }
 };
+
 exports.getPlans = async (req, res) => {
   try {
     const [plans] = await pool.query(
-      "SELECT * FROM subscription_plans ORDER BY price ASC"
+      "SELECT id, name, price, duration_days AS duration, description FROM subscription_plans ORDER BY price ASC"
     );
 
     res.json({
@@ -83,3 +85,38 @@ exports.getPlans = async (req, res) => {
     res.status(500).json({ success: false, message: "Server error" });
   }
 };
+
+// DELETE /api/subscriptions/plans/:id
+exports.deletePlan = async (req, res) => {
+  try {
+    const planId = parseInt(req.params.id, 10);
+    if (!planId) {
+      return res.status(400).json({ success: false, message: "Plan id không hợp lệ" });
+    }
+
+    // Tùy việc thiết kế DB: nếu có user_subscriptions tham chiếu tới plan, ta có thể kiểm tra
+    const [refs] = await pool.query(
+      "SELECT id FROM user_subscriptions WHERE subscription_plan_id = ? LIMIT 1",
+      [planId]
+    );
+    if (refs.length > 0) {
+      // Không xóa nếu đang có user đang dùng gói (an toàn hơn)
+      return res.status(400).json({
+        success: false,
+        message: "Không thể xóa gói vì đang có người dùng sử dụng gói này"
+      });
+    }
+
+    const [result] = await pool.query("DELETE FROM subscription_plans WHERE id = ?", [planId]);
+
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ success: false, message: "Không tìm thấy gói cần xóa" });
+    }
+
+    return res.json({ success: true, message: "Xóa gói dịch vụ thành công" });
+  } catch (err) {
+    console.error("deletePlan error:", err);
+    return res.status(500).json({ success: false, message: "Server error" });
+  }
+};
+
