@@ -15,6 +15,7 @@ import ServicePlanManagement from "../components/ServicePlanManagement";
 import PlaylistManagementContent from "../components/PlaylistManagementContent";
 
 import OrderManagementContent from "../components/OrderManagementContent";
+import FavoriteManagementContent from "../components/FavoriteManagementContent";
 
 import {
   FaTachometerAlt,
@@ -25,6 +26,7 @@ import {
   FaCompactDisc,
   FaFire, // Icon ngọn lửa cho Top Songs
   FaFileInvoiceDollar,
+  FaHeart,
 } from "react-icons/fa";
 import {
   MdDashboard,
@@ -234,6 +236,13 @@ const AdminDashboard = () => {
 
             {/* Tab Playlist đã bị ẩn */}
             <button
+              className={`nav-item ${activeTab === "favorites" ? "active" : ""}`}
+              onClick={() => setActiveTab("favorites")}
+            >
+              <FaHeart style={{ color: "#fff" }} />
+              <span>Lượt thích</span>
+            </button>
+            <button
               className={`nav-item ${activeTab === "service_plans" ? "active" : ""}`}
               onClick={() => setActiveTab("service_plans")}
             >
@@ -424,7 +433,7 @@ const AdminDashboard = () => {
           {activeTab === "playlists" && <PlaylistManagementContent />}
           {activeTab === "service_plans" && <ServicePlanManagement />}
 
-          {activeTab === "orders" && <OrderManagementContent />}
+  {activeTab === "orders" && <OrderManagementContent />}
 
         </div>
       </div>
