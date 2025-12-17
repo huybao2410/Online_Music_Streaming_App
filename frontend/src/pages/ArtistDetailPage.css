@@ -150,3 +150,19 @@
   text-align: center;
   margin-top: 40px;
 }
+
+.follow-btn {
+  margin-top: 12px;
+  padding: 8px 16px;
+  border-radius: 999px;
+  border: 1px solid #ccc;
+  background: #1a1a1a;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.follow-btn.followed {
+  background: #ef4444;
+  color: white;
+  border: none;
+}

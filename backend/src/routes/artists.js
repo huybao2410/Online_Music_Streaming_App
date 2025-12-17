@@ -6,8 +6,9 @@ const { verifyToken } = require('../middlewares/auth');
 const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
-
 const router = express.Router();
+
+const artistController = require("../controllers/artist.controller");
 
 // Configure multer for artist avatar upload
 // Upload to PHP API folder: C:/xampp/htdocs/music_API/online_music/artist/artist_avatar
@@ -24,6 +25,8 @@ const storage = multer.diskStorage({
     cb(null, 'artist-' + uniqueSuffix + path.extname(file.originalname));
   }
 });
+
+router.get("/:id/songs", artistController.getSongsByArtist);
 
 const upload = multer({
   storage: storage,

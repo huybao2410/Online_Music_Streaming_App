@@ -23,7 +23,7 @@ const searchRoutes = require('./routes/search');
 const listeningHistoryRoutes = require('./routes/listening-history');
 const favoriteSongsRoutes = require('./routes/favorite-songs');
 const favoriteAlbumsRoutes = require('./routes/favorite-albums');
-
+const artistFollowRoutes = require("./routes/artistFollow.routes");
 const app = express();
 
 app.use(cors({ origin: process.env.CORS_ORIGIN || 'http://localhost:3000', credentials: true }));
@@ -36,7 +36,6 @@ app.use('/api/auth', authRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/playlists', playlistRoutes);
 app.use('/api/users', userRoutes);
-app.use('/api/artists', artistRoutes);
 app.use('/api/songs', songRoutes);
 app.use('/api/genres', genreRoutes);
 app.use('/api/favorite-artists', favoriteArtistsRoutes);
@@ -56,6 +55,8 @@ app.use('/api/favorite-albums', favoriteAlbumsRoutes);
 app.get('/api/health', (req, res) => res.json({ message: 'Backend is running' }));
 app.use("/top-songs", require("./routes/topSongs"));
 app.use("/api/admin/favorites", adminFavoriteRoutes);
+app.use("/api/artists", artistFollowRoutes);
+app.use("/api/artists", artistRoutes);
 // Test endpoint to check songs
 app.get('/api/test/songs', async (req, res) => {
   try {
