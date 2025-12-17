@@ -4,11 +4,12 @@ import { FaPlus, FaEdit, FaTrash, FaMusic, FaTimes } from "react-icons/fa";
 import "../components/SongManagementContent.css";
 
 function AdminAlbums() {
-    // Helper: fix local url for preview
-    const fixLocalUrl = (url) => {
-      if (!url) return "";
-      return url.replace("10.0.2.2", "localhost");
-    };
+  const token = localStorage.getItem("token"); // <<<<< MUST HAVE
+  // Helper: fix local url for preview
+  const fixLocalUrl = (url) => {
+    if (!url) return "";
+    return url.replace("10.0.2.2", "localhost");
+  };
   const [coverPreview, setCoverPreview] = useState("");
   const [albums, setAlbums] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -153,54 +154,73 @@ function AdminAlbums() {
   const addAlbum = async (data) => {
     try {
       const albumData = {
-        ...data,
-        song_ids: Array.isArray(data.song_ids) ? data.song_ids : []
+        name: data.name,
+        artist_id: Number(data.artist_id),
+        description: data.description || "",
+        cover_url: data.cover_url || null,
+        release_date: data.release_date || null,
+        song_ids: (data.song_ids || []).map(id => Number(id)),
       };
 
-      if (albumData.release_date?.includes("T")) {
-        albumData.release_date = albumData.release_date.split("T")[0];
-      }
-
-      await axios.post("/api/admin/albums", albumData);
+      const res = await axios.post("/api/admin/albums", albumData, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
 
       setSuccess("Thêm album thành công!");
       closeModal();
       fetchAlbums();
-    } catch {
-      setError("Có lỗi xảy ra khi thêm album");
+    } catch (err) {
+      console.log("ADD ALBUM ERROR:", err.response?.data || err);
+      setError(err.response?.data?.message || "Có lỗi xảy ra khi thêm album");
     }
   };
+
+
 
   // ---------- EDIT ----------
   const editAlbum = async (data, albumId) => {
     try {
       const albumData = {
-        ...data,
-        song_ids: Array.isArray(data.song_ids) ? data.song_ids : []
+        name: data.name,
+        artist_id: Number(data.artist_id),
+        description: data.description || "",
+        cover_url: data.cover_url || null,
+        release_date: data.release_date || null,
+        song_ids: (data.song_ids || []).map(id => Number(id))
       };
 
-      if (albumData.release_date?.includes("T")) {
-        albumData.release_date = albumData.release_date.split("T")[0];
-      }
-
-      await axios.put(`/api/admin/albums/${albumId}`, albumData);
+      await axios.put(`/api/admin/albums/${albumId}`, albumData, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
 
       setSuccess("Cập nhật album thành công!");
       closeModal();
       fetchAlbums();
-    } catch {
-      setError("Có lỗi xảy ra khi chỉnh sửa album");
+    } catch (err) {
+      console.log("EDIT ALBUM ERROR:", err.response?.data || err);
+      setError(err.response?.data?.message || "Có lỗi khi cập nhật album");
     }
   };
+
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
     setSuccess("");
 
-    if (modalMode === "create") await addAlbum(formData);
-    else if (modalMode === "edit") await editAlbum(formData, currentAlbum.album_id);
+    try {
+      if (modalMode === "create") {
+        await addAlbum(formData);
+      } else {
+        await editAlbum(formData, currentAlbum.album_id);
+      }
+    } catch (err) {
+      console.error("HANDLE SUBMIT ERROR:", err);
+      setError("Có lỗi xảy ra!");
+    }
   };
+
+
 
   const handleDelete = async (albumId) => {
     if (!window.confirm("Bạn có chắc chắn muốn xóa album này?")) return;
@@ -559,7 +579,7 @@ function AdminAlbums() {
                         src={fixLocalUrl(formData.cover_url)}
                         alt="Preview"
                         style={{ width: 80, borderRadius: 8 }}
-                        onError={e => {e.target.onerror=null; e.target.src='https://via.placeholder.com/80x80?text=No+Image';}}
+                        onError={e => { e.target.onerror = null; e.target.src = 'https://via.placeholder.com/80x80?text=No+Image'; }}
                       />
                     ) : (
                       <span style={{ color: "#888" }}>&lt;Preview&gt;</span>
@@ -601,12 +621,12 @@ function AdminAlbums() {
                 >
                   {songList
                     .filter((s) => {
-  const search = songSearch.toLowerCase();
-  return (
-    s.title?.toLowerCase().includes(search) ||
-    s.artist?.toLowerCase().includes(search)
-  );
-})
+                      const search = songSearch.toLowerCase();
+                      return (
+                        s.title?.toLowerCase().includes(search) ||
+                        s.artist?.toLowerCase().includes(search)
+                      );
+                    })
 
                     .map((song) => (
                       <label

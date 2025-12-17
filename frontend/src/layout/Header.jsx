@@ -171,7 +171,7 @@ export default function Header({ isLoginOpen, setIsLoginOpen }) {
         </button>
         <div className="brand" style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
           <img src={require('../assets/vivora_logo.jpg')} alt="Vivora Logo" className="vivora-logo" style={{ height: 48, width: 'auto' }} />
-          <span className="logo-text" style={{ fontSize: '2rem', fontWeight: 'bold', letterSpacing: '2px' }}>VIVORA</span>
+          <span className="logo-text" style={{ fontSize: '2rem', fontWeight: 'bold', letterSpacing: '2px',  color: "#fff" }}>VIVORA</span>
         </div>
       </div>
 

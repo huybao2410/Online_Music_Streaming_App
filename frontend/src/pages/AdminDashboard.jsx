@@ -202,6 +202,7 @@ const AdminDashboard = () => {
               <FaFire style={{ color: "#fff" }} />
               <span>Top Songs</span>
             </button>
+
             <button
               className={`nav-item ${activeTab === "songs" ? "active" : ""}`}
               onClick={() => setActiveTab("songs")}
@@ -230,6 +231,7 @@ const AdminDashboard = () => {
               <FaMusic style={{ color: "#fff" }} />
               <span>Thể loại</span>
             </button>
+
             {/* Tab Playlist đã bị ẩn */}
             <button
               className={`nav-item ${activeTab === "service_plans" ? "active" : ""}`}
@@ -422,7 +424,7 @@ const AdminDashboard = () => {
           {activeTab === "playlists" && <PlaylistManagementContent />}
           {activeTab === "service_plans" && <ServicePlanManagement />}
 
-  {activeTab === "orders" && <OrderManagementContent />}
+          {activeTab === "orders" && <OrderManagementContent />}
 
         </div>
       </div>
