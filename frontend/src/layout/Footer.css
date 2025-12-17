@@ -59,7 +59,7 @@
   width: 45px;
   height: 45px;
   border-radius: 50%;
-  background: linear-gradient(135deg, #1ed760, #1db954);
+  background: linear-gradient(135deg, #fff, #eaeaea);
   color: black;
   display: flex;
   align-items: center;
@@ -72,12 +72,13 @@
 
 .main-play-btn:hover {
   transform: scale(1.1);
-  box-shadow: 0 0 12px rgba(30, 215, 96, 0.6);
+  box-shadow: 0 0 12px rgba(255, 255, 255, 0.6); /* ✅ trắng */
 }
+
 
 .main-play-btn.pause {
   background: linear-gradient(135deg, #0a0a0a, #1f1f1f);
-  color: #1ed760;
+  color: #fff;
 }
 
 /* ==================== 🎚 THANH TIẾN ĐỘ ==================== */
@@ -101,12 +102,12 @@
 
 .progress {
   height: 100%;
-  background: linear-gradient(90deg, #1ed760, #1db954);
+  background: linear-gradient(90deg, #fff, #fff);
   transition: width 0.2s linear;
 }
 
 .progress-bar:hover .progress {
-  background: #1ed760;
+  background: #eaeaea;
 }
 
 .time {
@@ -118,12 +119,12 @@
 
 /* Shuffle & Replay nút */
 .control-btn.active {
-  color: #1ed760;
+  color: #fff;
   transform: scale(1.1);
 }
 
 .control-btn.active:hover {
-  color: #00ff88;
+  color: #fff;
   transform: scale(1.15);
 }
 
@@ -335,13 +336,12 @@
 
 .volume-bar {
   height: 100%;
-  background: linear-gradient(90deg, #1ed760, #1db954);
+  background: #fff;          /* ✅ trắng */
   border-radius: 5px;
-  transition: width 0.2s linear, background 0.2s ease;
 }
 
 .volume-control:hover .volume-bar {
-  background: linear-gradient(90deg, #1fff80, #1ed760);
+  background: #eaeaea;       /* trắng xám nhẹ */
 }
 
 
@@ -400,4 +400,107 @@
   .track-actions {
     gap: 12px;
   }
+}
+/* ==================== FIX RANGE SLIDER (XOÁ XANH LÁ) ==================== */
+input[type="range"] {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 6px;
+  background: transparent;
+  cursor: pointer;
+}
+
+/* Track (thanh nền) */
+input[type="range"]::-webkit-slider-runnable-track {
+  height: 6px;
+  background: #3a3a3a;       /* nền xám */
+  border-radius: 5px;
+}
+
+/* Thumb (nút kéo) */
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 14px;
+  height: 14px;
+  background: #fff;          /* ✅ TRẮNG */
+  border-radius: 50%;
+  margin-top: -4px;
+  box-shadow: 0 0 4px rgba(0,0,0,0.4);
+}
+
+/* Phần đã kéo (fill) – Chrome */
+input[type="range"]::-webkit-slider-thumb:active {
+  background: #eaeaea;
+}
+
+/* Firefox */
+input[type="range"]::-moz-range-track {
+  height: 6px;
+  background: #3a3a3a;
+  border-radius: 5px;
+}
+
+input[type="range"]::-moz-range-thumb {
+  width: 14px;
+  height: 14px;
+  background: #fff;
+  border-radius: 50%;
+  border: none;
+}
+/* ==================== FIX PROGRESS BAR ==================== */
+.progress-bar,
+.progress-bar:hover {
+  background: #3a3a3a !important;
+}
+
+.progress {
+  background: #fff !important;
+}
+
+.progress-bar:hover .progress {
+  background: #eaeaea !important;
+}
+/* ==================== FIX VOLUME BAR ==================== */
+.volume-control,
+.volume-control:hover {
+  background: #3a3a3a !important;
+}
+
+.volume-bar {
+  background: #fff !important;
+}
+
+.volume-control:hover .volume-bar {
+  background: #eaeaea !important;
+}
+/* ==================== FIX ALL BUTTON HOVER ==================== */
+.control-btn:hover,
+.control-btn.active,
+.control-btn:focus,
+.control-btn:active {
+  color: #fff !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+/* Volume icon */
+.volume-btn:hover,
+.volume-btn:active {
+  color: #fff !important;
+}
+
+/* Action buttons (heart, plus) */
+.action-btn:hover,
+.action-btn:active {
+  color: #fff !important;
+  background: rgba(255,255,255,0.1) !important;
+}
+/* ==================== FIX MAIN PLAY BUTTON ==================== */
+.main-play-btn:hover,
+.main-play-btn:active {
+  background: #fff !important;
+  color: #000 !important;
+  box-shadow: 0 0 12px rgba(255,255,255,0.5) !important;
 }

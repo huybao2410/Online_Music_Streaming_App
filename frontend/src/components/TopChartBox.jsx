@@ -60,7 +60,7 @@ export default function TopChartBox({ title, apiUrl, color }) {
       <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12}}>
         <h3 style={{fontSize: 20, fontWeight: 700, color: '#fff', margin: 0}}>{title}</h3>
         <button
-          style={{background: '#1ed760', color: '#222', border: 'none', borderRadius: 20, padding: '6px 18px', fontWeight: 700, cursor: 'pointer'}}
+          style={{background: '#fff', color: '#222', border: 'none', borderRadius: 20, padding: '6px 18px', fontWeight: 700, cursor: 'pointer'}}
           onClick={handlePlayAll}
         >Phát</button>
       </div>
@@ -90,7 +90,7 @@ export default function TopChartBox({ title, apiUrl, color }) {
                 {song.label && <div style={{color: '#b3b3b3', fontSize: 11}}>{song.label}</div>}
               </div>
               <button
-                style={{background: 'none', border: 'none', color: '#1ed760', fontSize: 18, cursor: 'pointer'}}
+                style={{background: 'none', border: 'none', color: '#fff', fontSize: 18, cursor: 'pointer'}}
                 onClick={() => handlePlaySong(idx)}
               >
                 <FaPlay />

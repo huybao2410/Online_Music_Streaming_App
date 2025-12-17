@@ -166,13 +166,35 @@ export default function Header({ isLoginOpen, setIsLoginOpen }) {
   return (
     <header className="header">
       <div className="header-left">
-        <button className="header-btn" onClick={() => navigate("/")}>
-          <HiHome size={24} />
-        </button>
-        <div className="brand" style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-          <img src={require('../assets/vivora_logo.jpg')} alt="Vivora Logo" className="vivora-logo" style={{ height: 48, width: 'auto' }} />
-          <span className="logo-text" style={{ fontSize: '2rem', fontWeight: 'bold', letterSpacing: '2px',  color: "#fff" }}>VIVORA</span>
-        </div>
+        
+        <div
+  className="brand"
+  onClick={() => navigate("/")}
+  style={{
+    display: 'flex',
+    alignItems: 'center',
+    gap: '12px',
+    cursor: 'pointer'
+  }}
+>
+  <img
+    src={require('../assets/vivora_logo.jpg')}
+    alt="Vivora Logo"
+    className="vivora-logo"
+    style={{ height: 48, width: 'auto' }}
+  />
+  <span
+    style={{
+      fontSize: '2rem',
+      fontWeight: 'bold',
+      letterSpacing: '2px',
+      color: '#fff'
+    }}
+  >
+    VIVORA
+  </span>
+</div>
+
       </div>
 
       <div className="header-center">
