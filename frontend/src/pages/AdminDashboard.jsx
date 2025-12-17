@@ -17,6 +17,7 @@ import PlaylistManagementContent from "../components/PlaylistManagementContent";
 import OrderManagementContent from "../components/OrderManagementContent";
 import FavoriteManagementContent from "../components/FavoriteManagementContent";
 
+
 import {
   FaTachometerAlt,
   FaMusic,
@@ -430,10 +431,15 @@ const AdminDashboard = () => {
               <AdminTopSongs />
             </div>
           )}
+          {activeTab === "favorites" && (
+            <div className="tab-content">
+              <FavoriteManagementContent />
+            </div>
+          )}
+
           {activeTab === "playlists" && <PlaylistManagementContent />}
           {activeTab === "service_plans" && <ServicePlanManagement />}
-
-  {activeTab === "orders" && <OrderManagementContent />}
+          {activeTab === "orders" && <OrderManagementContent />}
 
         </div>
       </div>

@@ -1,3 +1,4 @@
+const adminFavoriteRoutes = require("./routes/adminFavorite.routes");
 const express = require('express');
 const cors = require('cors');
 const path = require('path');
@@ -22,14 +23,15 @@ const searchRoutes = require('./routes/search');
 const listeningHistoryRoutes = require('./routes/listening-history');
 const favoriteSongsRoutes = require('./routes/favorite-songs');
 const favoriteAlbumsRoutes = require('./routes/favorite-albums');
+
 const app = express();
 
 app.use(cors({ origin: process.env.CORS_ORIGIN || 'http://localhost:3000', credentials: true }));
 app.use(express.json());
 
+
 // Serve static files (uploaded images)
 app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
-
 app.use('/api/auth', authRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/playlists', playlistRoutes);
@@ -53,7 +55,7 @@ app.use("/api/vnpay", vnpayRoutes);
 app.use('/api/favorite-albums', favoriteAlbumsRoutes);
 app.get('/api/health', (req, res) => res.json({ message: 'Backend is running' }));
 app.use("/top-songs", require("./routes/topSongs"));
-
+app.use("/api/admin/favorites", adminFavoriteRoutes);
 // Test endpoint to check songs
 app.get('/api/test/songs', async (req, res) => {
   try {

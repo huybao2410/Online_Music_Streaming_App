@@ -1,124 +1,231 @@
-import React, { useState } from "react";
-import { FaHeart, FaSearch, FaUser, FaMusic, FaCompactDisc, FaTimes } from "react-icons/fa";
-import "./FavoriteManagementContent.css";
+import React, { useEffect, useState } from "react";
+import axios from "axios";
+import {
+  FaMusic,
+  FaCompactDisc,
+  FaUser,
+  FaPlay,
+} from "react-icons/fa";
 
-// Dữ liệu mẫu
-const sampleFavorites = [
-  { id: 1, type: "song", name: "Ai biết", user: "user1", date: "2025-12-17" },
-  { id: 2, type: "artist", name: "Negav", user: "user2", date: "2025-12-17" },
-  { id: 3, type: "album", name: "Best Hits", user: "user3", date: "2025-12-17" },
-  { id: 4, type: "song", name: "Năm Tháng Ấy", user: "user4", date: "2025-12-17" },
-  { id: 5, type: "artist", name: "GreenD", user: "user5", date: "2025-12-17" },
-  { id: 6, type: "album", name: "Chill Vibes", user: "user6", date: "2025-12-17" },
-];
+import {
+  Chart as ChartJS,
+  CategoryScale,
+  LinearScale,
+  BarElement,
+  Tooltip,
+  Legend,
+} from "chart.js";
 
-const typeLabel = {
-  song: { label: "Bài hát", icon: <FaMusic className="favorite-type-icon" /> },
-  artist: { label: "Nghệ sĩ", icon: <FaUser className="favorite-type-icon" /> },
-  album: { label: "Album", icon: <FaCompactDisc className="favorite-type-icon" /> },
-};
+import { Bar } from "react-chartjs-2";
 
+/* ================= CHART SETUP ================= */
+ChartJS.register(
+  CategoryScale,
+  LinearScale,
+  BarElement,
+  Tooltip,
+  Legend
+);
+
+/* ================= MAIN COMPONENT ================= */
 export default function FavoriteManagementContent() {
-  const [searchTerm, setSearchTerm] = useState("");
-  const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 5;
-  // Alert state demo
-  const [error, setError] = useState("");
-  const [success, setSuccess] = useState("");
+  const token = localStorage.getItem("token");
+  const [data, setData] = useState(null);
+  const [loading, setLoading] = useState(true);
 
-  // Filtered data
-  const filteredFavorites = sampleFavorites.filter(fav =>
-    fav.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    fav.user.toLowerCase().includes(searchTerm.toLowerCase())
-  );
-  const totalPages = Math.ceil(filteredFavorites.length / itemsPerPage);
-  const startIndex = (currentPage - 1) * itemsPerPage;
-  const currentFavorites = filteredFavorites.slice(startIndex, startIndex + itemsPerPage);
+  useEffect(() => {
+    fetchSummary();
+    // eslint-disable-next-line
+  }, []);
 
-  const goToPage = (page) => {
-    if (page >= 1 && page <= totalPages) setCurrentPage(page);
+  const fetchSummary = async () => {
+    try {
+      const res = await axios.get(
+        "/api/admin/favorites/summary",
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+      setData(res.data);
+    } catch (err) {
+      console.error("Load favorite dashboard error:", err);
+    } finally {
+      setLoading(false);
+    }
   };
 
+  if (loading) return <p>Đang tải thống kê...</p>;
+  if (!data) return <p>Không có dữ liệu</p>;
+
   return (
-    <div className="favorite-management-content">
-      {/* Header */}
-      <div className="content-header">
-        <div>
-          <h2><FaHeart style={{ color: "#e11d48", marginRight: 8 }} /> Quản lý lượt thích</h2>
-          <p className="subtitle">Quản lý các lượt yêu thích bài hát, nghệ sĩ, album trong hệ thống</p>
-        </div>
+    <div style={styles.dashboard}>
+      {/* ================= SUMMARY ================= */}
+      <div style={styles.summaryGrid}>
+        <SummaryBox icon={<FaPlay />} label="Tổng lượt nghe" value={data.total.songPlays} />
+        <SummaryBox icon={<FaMusic />} label="Lượt thích bài hát" value={data.total.songLikes} />
+        <SummaryBox icon={<FaCompactDisc />} label="Lượt thích album" value={data.total.albumLikes} />
+        <SummaryBox icon={<FaUser />} label="Lượt thích nghệ sĩ" value={data.total.artistLikes} />
       </div>
 
-      {/* Alerts */}
-      {error && <div className="alert alert-error">{error} <button onClick={() => setError("")}><FaTimes /></button></div>}
-      {success && <div className="alert alert-success">{success} <button onClick={() => setSuccess("")}><FaTimes /></button></div>}
-
-      {/* Filters */}
-      <div className="filters-bar">
-        <div className="search-box">
-          <FaSearch className="search-icon" />
-          <input
-            type="text"
-            placeholder="Tìm kiếm tên, người dùng..."
-            value={searchTerm}
-            onChange={e => { setSearchTerm(e.target.value); setCurrentPage(1); }}
-          />
-        </div>
-        <div className="stats">
-          Tổng: <strong>{filteredFavorites.length}</strong> lượt thích
-        </div>
+      {/* ================= TOP LIST ================= */}
+      <div style={styles.topGrid}>
+        <TopList title="🎵 Bài hát nghe nhiều nhất" items={data.topSongs} valueKey="play_count" />
+        <TopList title="💿 Album được thích nhiều" items={data.topAlbums} valueKey="likes" />
+        <TopList title="🎤 Nghệ sĩ được thích nhiều" items={data.topArtists} valueKey="likes" />
       </div>
 
-      {/* Table */}
-      <div className="table-container">
-        <table className="data-table">
-          <thead>
-            <tr>
-              <th>ID</th>
-              <th>Loại</th>
-              <th>Tên</th>
-              <th>Người dùng</th>
-              <th>Ngày thích</th>
-              <th>Hành động</th>
-            </tr>
-          </thead>
-          <tbody>
-            {currentFavorites.length === 0 ? (
-              <tr><td colSpan={6} style={{ textAlign: "center", color: "#6b7280" }}>Không có dữ liệu</td></tr>
-            ) : currentFavorites.map(fav => (
-              <tr key={fav.id}>
-                <td>{fav.id}</td>
-                <td className="favorite-type">
-                  {typeLabel[fav.type]?.icon} {typeLabel[fav.type]?.label}
-                </td>
-                <td>{fav.name}</td>
-                <td>{fav.user}</td>
-                <td>{fav.date}</td>
-                <td>
-                  <button className="favorite-action-btn">Xem</button>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+      {/* ================= CHART: TOP SONGS ================= */}
+      {/* ================= CHART: TOP SONGS ================= */}
+      <div style={styles.chartCard}>
+        <h3 style={styles.chartTitle}>Top bài hát theo lượt nghe</h3>
+        <Bar
+          data={{
+            labels: data.topSongs.map((s) => s.name),
+            datasets: [
+              {
+                label: "Lượt nghe",
+                data: data.topSongs.map((s) => s.play_count),
+                backgroundColor: data.topSongs.map(
+                  (_, i) => `hsl(${i * 60}, 70%, 55%)`
+                ),
+              },
+            ],
+          }}
+          options={{
+            responsive: true,
+            plugins: {
+              legend: { display: false },
+            },
+            scales: {
+              y: {
+                beginAtZero: true,
+              },
+            },
+          }}
+        />
       </div>
 
-      {/* Pagination */}
-      {totalPages > 1 && (
-        <div className="pagination">
-          <button className="page-btn" onClick={() => goToPage(currentPage - 1)} disabled={currentPage === 1}>« Trước</button>
-          {[...Array(totalPages)].map((_, i) => (
-            <button
-              key={i + 1}
-              className={`page-btn ${currentPage === i + 1 ? "active" : ""}`}
-              onClick={() => goToPage(i + 1)}
-            >
-              {i + 1}
-            </button>
-          ))}
-          <button className="page-btn" onClick={() => goToPage(currentPage + 1)} disabled={currentPage === totalPages}>Sau »</button>
-        </div>
-      )}
     </div>
   );
 }
+
+/* ================= SUB COMPONENTS ================= */
+
+function SummaryBox({ icon, label, value }) {
+  return (
+    <div style={styles.summaryBox}
+      onMouseEnter={(e) => e.currentTarget.style.transform = "translateY(-3px)"}
+      onMouseLeave={(e) => e.currentTarget.style.transform = "translateY(0)"}
+    >
+      <div style={styles.summaryIcon}>{icon}</div>
+      <div>
+        <div style={styles.summaryLabel}>{label}</div>
+        <div style={styles.summaryValue}>{value}</div>
+      </div>
+    </div>
+  );
+}
+
+function TopList({ title, items, valueKey }) {
+  return (
+    <div style={styles.topCard}>
+      <h3 style={styles.topTitle}>{title}</h3>
+      <ul style={styles.topList}>
+        {items.map((item, i) => (
+          <li key={item.id} style={styles.topItem}>
+            <span>{i + 1}. {item.name}</span>
+            <strong>{item[valueKey]}</strong>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
+/* ================= STYLES ================= */
+
+const styles = {
+  dashboard: {
+    padding: 24,
+  },
+
+  summaryGrid: {
+    display: "grid",
+    gridTemplateColumns: "repeat(4, 1fr)",
+    gap: 16,
+    marginBottom: 32,
+  },
+
+  summaryBox: {
+    background: "#ffffff",
+    color: "#111827",
+    padding: 16,
+    borderRadius: 14,
+    display: "flex",
+    alignItems: "center",
+    gap: 16,
+    boxShadow: "0 6px 20px rgba(0,0,0,0.08)",
+    transition: "all 0.2s ease",
+    cursor: "pointer",
+  },
+
+
+  summaryIcon: {
+    fontSize: 28,
+    color: "#2563eb",
+  },
+
+  summaryLabel: {
+    fontSize: 14,
+    opacity: 0.85,
+  },
+
+  summaryValue: {
+    fontSize: 22,
+    fontWeight: "bold",
+  },
+
+  chartCard: {
+    background: "#ffffff",
+    padding: 20,
+    borderRadius: 12,
+    marginBottom: 32,
+  },
+
+  chartTitle: {
+    marginBottom: 16,
+    fontWeight: "bold",
+  },
+
+  topGrid: {
+    display: "grid",
+    gridTemplateColumns: "repeat(3, 1fr)",
+    gap: 16,
+    marginBottom: 32,
+  },
+
+  topCard: {
+    background: "#ffffff",
+    color: "#111827",
+    padding: 16,
+    borderRadius: 14,
+    boxShadow: "0 6px 20px rgba(0,0,0,0.08)",
+  },
+
+  topTitle: {
+    marginBottom: 12,
+  },
+
+  topList: {
+    listStyle: "none",
+    padding: 0,
+    margin: 0,
+  },
+
+  topItem: {
+    display: "flex",
+    justifyContent: "space-between",
+    padding: "8px 0",
+    borderBottom: "1px solid #e5e7eb",
+  },
+};
