@@ -56,7 +56,7 @@ const ArtistDetailPage = () => {
     const fixedSongs = data.map(song => ({
       id: song.id,
       title: song.title,
-      artist: song.artist,        // ✅ TỪ BACKEND
+      artist: song.artist,       
       genre: song.genre,
       duration: song.duration,
       url: fixMediaUrl(song.audio_url),
