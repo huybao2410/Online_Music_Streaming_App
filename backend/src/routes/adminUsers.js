@@ -61,6 +61,23 @@ router.get('/statistics', verifyToken, isAdmin, async (req, res) => {
       GROUP BY plan_name
     `);
 
+    // ⭐ 6. TOP 5 BÀI HÁT NGHE NHIỀU NHẤT
+    const [top_songs] = await pool.query(`
+      SELECT 
+        s.song_id,
+        s.title,
+        GROUP_CONCAT(a.name SEPARATOR ', ') AS artist,
+        s.play_count,
+        s.cover_url,
+        s.audio_url
+      FROM songs s
+      LEFT JOIN song_artists sa ON sa.song_id = s.song_id
+      LEFT JOIN artists a ON a.artist_id = sa.artist_id
+      GROUP BY s.song_id
+      ORDER BY s.play_count DESC
+      LIMIT 5
+    `);
+
     return res.json({
       success: true,
       kpi: {
@@ -73,7 +90,8 @@ router.get('/statistics', verifyToken, isAdmin, async (req, res) => {
         new_users: new_users_chart,
         new_premium: new_premium_chart,
         revenue: revenue_chart,
-        revenue_by_plan: revenue_by_plan
+        revenue_by_plan: revenue_by_plan,
+        top_songs: top_songs
       }
     });
 
@@ -83,7 +101,7 @@ router.get('/statistics', verifyToken, isAdmin, async (req, res) => {
   }
 });
 
-// Get all users with pagination and search
+// Get all users with pagination an`d search
 router.get('/users', verifyToken, isAdmin, async (req, res) => {
   try {
     console.log('Admin users route hit, user:', req.user);

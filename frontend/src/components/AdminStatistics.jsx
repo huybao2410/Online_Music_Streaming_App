@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { Line, Bar, Doughnut, Pie } from "react-chartjs-2";
+import { fixMediaUrl } from "../utils/media";
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -15,10 +16,10 @@ import {
   Filler
 } from "chart.js";
 import "./AdminStatistics.css";
-import { FaUsers, FaCrown, FaMoneyBillWave, FaChartLine, FaMusic } from "react-icons/fa";
+import { FaUsers, FaCrown, FaMoneyBillWave, FaChartLine, FaMusic, FaPlay} from "react-icons/fa";
 
 ChartJS.register(
-  CategoryScale, LinearScale, PointElement, LineElement, BarElement, 
+  CategoryScale, LinearScale, PointElement, LineElement, BarElement,
   Title, Tooltip, Legend, ArcElement, Filler
 );
 
@@ -45,6 +46,11 @@ const AdminStatistics = () => {
     fetchStats();
   }, [token]);
 
+  const handlePlaySong = (song) => {
+    window.open(fixMediaUrl(song.audio_url), "_blank");
+  };
+
+
   if (loading) return <div className="stats-loading"><div className="spinner"></div></div>;
   if (!data) return <div className="stats-error">Không có dữ liệu thống kê.</div>;
 
@@ -54,20 +60,20 @@ const AdminStatistics = () => {
   const newUsersArr = Array.isArray(charts.new_users) ? charts.new_users : [];
   const newPremiumArr = Array.isArray(charts.new_premium) ? charts.new_premium : [];
   const revenueByPlanArr = Array.isArray(charts.revenue_by_plan) ? charts.revenue_by_plan : [];
-  const topSongsArr = Array.isArray(data.top_songs) ? data.top_songs : [];
+  const topSongsArr = Array.isArray(charts.top_songs) ? charts.top_songs : [];
 
   // --- Dữ liệu biểu đồ ---
   // Helper tạo mảng ngày 7 ngày gần nhất để label luôn đủ
   const getLast7Days = () => {
-     const dates = [];
-     for (let i=6; i>=0; i--) {
-        const d = new Date();
-        d.setDate(d.getDate() - i);
-        dates.push(d.toLocaleDateString('vi-VN'));
-     }
-     return dates;
+    const dates = [];
+    for (let i = 6; i >= 0; i--) {
+      const d = new Date();
+      d.setDate(d.getDate() - i);
+      dates.push(d.toLocaleDateString('vi-VN'));
+    }
+    return dates;
   };
-  
+
   const labels7Days = getLast7Days();
 
   // Map dữ liệu API vào label 7 ngày (để tránh chart bị lệch nếu ngày nào đó ko có data)
@@ -166,37 +172,40 @@ const AdminStatistics = () => {
           <div className="chart-canvas-wrapper"><Line data={revenueChartData} options={commonOptions} /></div>
         </div>
         <div className="chart-box side-chart">
-           <div className="chart-header"><h4>Gói đăng ký</h4></div>
-           <div className="chart-canvas-wrapper-circle"><Pie data={revenueByPlanData} options={commonOptions} /></div>
+          <div className="chart-header"><h4>Gói đăng ký</h4></div>
+          <div className="chart-canvas-wrapper-circle"><Pie data={revenueByPlanData} options={commonOptions} /></div>
         </div>
       </div>
 
       <div className="charts-row-equal">
         <div className="chart-box">
-           <div className="chart-header"><h4>Tăng trưởng người dùng</h4></div>
+          <div className="chart-header"><h4>Tăng trưởng người dùng</h4></div>
           <Bar data={userGrowthData} options={commonOptions} />
         </div>
-        
+
         {/* --- PHẦN MỚI: TOP BÀI HÁT --- */}
         <div className="chart-box top-songs-box">
-           <div className="chart-header"><h4><FaMusic /> Top 5 Bài Hát Hot</h4></div>
-           <div className="top-songs-list">
-              {topSongsArr.length === 0 ? (
-                <p style={{color:'#999', textAlign:'center'}}>Chưa có dữ liệu nghe nhạc</p>
-              ) : (
-                topSongsArr.map((song, idx) => (
-                  <div key={song.song_id} className="top-song-item">
-                    <div className="song-rank">{idx + 1}</div>
-                    <img src={song.cover_url || 'https://placehold.co/40x40'} alt={song.title} className="song-thumb" />
-                    <div className="song-info">
-                      <div className="song-name">{song.title}</div>
-                      <div className="song-artist">{song.artist_name}</div>
-                    </div>
-                    <div className="song-plays">{song.plays} lượt nghe</div>
+          <div className="chart-header"><h4><FaMusic /> Top 5 bài hát được nghe nhiều nhất</h4></div>
+          <div className="top-songs-list">
+            {topSongsArr.length === 0 ? (
+              <p style={{ color: '#999', textAlign: 'center' }}>Chưa có dữ liệu nghe nhạc</p>
+            ) : (
+              topSongsArr.map((song, idx) => (
+                <div key={song.song_id} className="top-song-item">
+                  <div className="song-rank">{idx + 1}</div>
+                  <img src={fixMediaUrl(song.cover_url) || 'https://placehold.co/40x40'} alt={song.title} className="song-thumb" />
+                  <div className="song-info">
+                    <div className="song-name">{song.title}</div>
+                    <div className="song-artist">{song.artist_name}</div>
                   </div>
-                ))
-              )}
-           </div>
+                  <button className="btn-play" onClick={() => handlePlaySong(song)} title="Phát bài hát">
+                    <FaPlay />
+                  </button>
+                  <div className="song-plays">{song.play_count} lượt nghe</div>
+                </div>
+              ))
+            )}
+          </div>
         </div>
       </div>
     </div>

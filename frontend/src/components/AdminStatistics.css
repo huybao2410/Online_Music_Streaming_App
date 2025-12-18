@@ -1,5 +1,10 @@
 /* AdminStatistics.css */
 
+.btn-play{
+  color: #0369a1;
+  margin-right: 10px;
+}
+
 .admin-stats-container {
   padding: 10px;
   font-family: 'Poppins', sans-serif;
