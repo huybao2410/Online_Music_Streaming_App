@@ -7,6 +7,7 @@
 
 .fade-in {
   animation: fadeIn 0.4s ease-in-out;
+  background-color: transparent;
 }
 
 @keyframes fadeIn {
@@ -43,7 +44,7 @@
 .artist-avatar {
   width: 220px;
   height: 220px;
-  border-radius: 20px;
+  border-radius: 108px;
   object-fit: cover;
   box-shadow: 0 4px 25px rgba(0, 0, 0, 0.4);
 }
@@ -147,7 +148,7 @@
 .artist-detail-page p {
   font-size: 18px;
   color: #b3b3b3;
-  text-align: center;
+  text-align: justify;
   margin-top: 40px;
 }
 

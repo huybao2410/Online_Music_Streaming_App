@@ -71,9 +71,9 @@
 .playlist-cover {
   width: 100%;
   aspect-ratio: 1;             /* Luôn vuông */
-  border-radius: 12px;
+  border-radius: 95px;
   overflow: hidden;
-  background: rgba(255, 255, 255, 0.08);
+  background: transparent;
 
   display: flex;
   align-items: center;
