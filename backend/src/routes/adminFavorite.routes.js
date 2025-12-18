@@ -1,10 +1,13 @@
 const express = require("express");
 const router = express.Router();
 
-const artistFollowController = require("../controllers/artistFollow.controller");
-const authMiddleware = require("../middlewares/auth.middleware");
+const authAdmin = require("../middlewares/authAdmin");
+const {
+  getAdminFavorites,
+  getAdminFavoriteSummary,
+} = require("../controllers/adminFavorite.controller");
 
-router.get("/:artistId/follow", authMiddleware, artistFollowController.checkFollow);
-router.post("/:artistId/follow", authMiddleware, artistFollowController.toggleFollow);
+router.get("/", authAdmin, getAdminFavorites);
+router.get("/summary", authAdmin, getAdminFavoriteSummary);
 
 module.exports = router;
