@@ -66,24 +66,43 @@ export default function PlaylistDetail() {
       /* FIX cover playlist */
       data.cover_url = fixUrl(data.cover_url);
 
-      /* FIX danh sách bài hát */
-      const fixedSongs = (data.songs || []).map((s, index) => {
+
+      // Gộp các bài hát trùng song_id, gộp nghệ sĩ thành chuỗi (giống FavoriteSongs)
+      const songMap = {};
+      (data.songs || []).forEach((s, index) => {
         let nid = s.song_id ?? s.id ?? `song-${id}-${index}`;
         nid = String(nid);
-
-        return {
-          ...s,
-          _nid: nid,
-          title: s.title || "Untitled",
-          artist_name: s.artist_name || s.artist || "Unknown",
-          album: s.album || "-",
-          cover_url: fixUrl(s.cover_url),
-          audio_url: fixUrl(s.audio_url),
-          duration: Number(s.duration) || 0,
-          added_at: s.added_at || null
-        };
+        if (!songMap[nid]) {
+          songMap[nid] = {
+            ...s,
+            _nid: nid,
+            title: s.title || "Untitled",
+            artist_name: s.artist_name || s.artist || "Unknown",
+            album: s.album ? [s.album] : [],
+            cover_url: fixUrl(s.cover_url),
+            audio_url: fixUrl(s.audio_url),
+            duration: Number(s.duration) || 0,
+            added_at: s.added_at || null,
+            _artistArr: s.artist_name ? [s.artist_name] : (s.artist ? [s.artist] : [])
+          };
+        } else {
+          // Gộp nghệ sĩ nếu chưa có
+          const artistVal = s.artist_name || s.artist;
+          if (artistVal && !songMap[nid]._artistArr.includes(artistVal)) {
+            songMap[nid]._artistArr.push(artistVal);
+          }
+          // Gộp album nếu chưa có
+          if (s.album && !songMap[nid].album.includes(s.album)) {
+            songMap[nid].album.push(s.album);
+          }
+        }
       });
-
+      // Chuyển về mảng, gộp nghệ sĩ thành chuỗi
+      const fixedSongs = Object.values(songMap).map(song => ({
+        ...song,
+        artist_name: song._artistArr.join(", ") || song.artist_name,
+        album: song.album.filter(Boolean).join(", ")
+      }));
       data.songs = fixedSongs;
       setPlaylist(data);
 
