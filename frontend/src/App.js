@@ -71,6 +71,54 @@ function UserRoute({ children }) {
 }
 
 function App() {
+  // Quản lý session tab
+  useEffect(() => {
+    // Gán tabId cho mỗi tab (sessionStorage chỉ tồn tại trên từng tab)
+    if (!sessionStorage.getItem('tabId')) {
+      sessionStorage.setItem('tabId', Math.random().toString(36).substr(2, 9));
+    }
+    // Đánh dấu tab đang mở
+    const tabId = sessionStorage.getItem('tabId');
+
+    // Hàm cập nhật openTabs an toàn
+    const addTab = () => {
+      let openTabs = JSON.parse(localStorage.getItem('openTabs') || '[]');
+      if (!openTabs.includes(tabId)) {
+        openTabs.push(tabId);
+        localStorage.setItem('openTabs', JSON.stringify(openTabs));
+      }
+      if (openTabs.length > 3) {
+        alert('Bạn đang mở quá nhiều tab ứng dụng. Vui lòng đóng bớt để tránh lỗi đồng bộ.');
+      }
+    };
+    const removeTab = () => {
+      let tabs = JSON.parse(localStorage.getItem('openTabs') || '[]');
+      tabs = tabs.filter(id => id !== tabId);
+      localStorage.setItem('openTabs', JSON.stringify(tabs));
+    };
+    addTab();
+    window.addEventListener('beforeunload', removeTab);
+
+    // Đồng bộ đăng xuất giữa các tab
+    const onStorage = (e) => {
+      if (e.key === 'logout') {
+        // Xử lý logout ở tab hiện tại (ví dụ: xóa token, reload)
+        localStorage.removeItem('token');
+        localStorage.removeItem('role');
+        localStorage.removeItem('username');
+        localStorage.removeItem('user_id');
+        window.location.href = '/login';
+      }
+    };
+    window.addEventListener('storage', onStorage);
+
+    return () => {
+      window.removeEventListener('beforeunload', removeTab);
+      window.removeEventListener('storage', onStorage);
+      removeTab();
+    };
+  }, []);
+
   return (
     <Router>
       <Routes>

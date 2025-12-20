@@ -54,6 +54,7 @@ const OrderManagementContent = () => {
               <th>Số tiền</th>
               <th>Ngày giao dịch</th>
               <th>Trạng thái</th>
+              <th>Phương thức</th>
               <th>Hành động</th>
             </tr>
           </thead>
@@ -78,12 +79,40 @@ const OrderManagementContent = () => {
                   <td>{order.email}</td>
                   <td>{order.plan_name}</td>
                   <td>{order.amount?.toLocaleString('vi-VN', { style: 'currency', currency: 'VND' })}</td>
-                  <td>{order.transaction_date ? new Date(order.transaction_date).toLocaleString('vi-VN') : ''}</td>
+                  <td>{
+                    order.transaction_date
+                      ? (() => {
+                          let d = order.transaction_date;
+                          // Nếu là số, chuyển sang string
+                          if (typeof d === 'number') d = d.toString();
+                          // Nếu là chuỗi số kiểu yyyymmddhhmmss (VNPay), convert
+                          if (/^\d{14}$/.test(d)) {
+                            // yyyyMMddHHmmss => yyyy-MM-ddTHH:mm:ss
+                            d = `${d.slice(0,4)}-${d.slice(4,6)}-${d.slice(6,8)}T${d.slice(8,10)}:${d.slice(10,12)}:${d.slice(12,14)}`;
+                          }
+                          const dateObj = new Date(d);
+                          return isNaN(dateObj) ? '' : dateObj.toLocaleString('vi-VN');
+                        })()
+                      : ''
+                  }</td>
                   <td>
-                    <span className={`status-badge ${order.payment_status === 'completed' ? 'active' : 'inactive'}`}>
-                      {order.payment_status === 'completed' ? 'Thành công' : 'Thất bại'}
+                    <span
+                      className={`status-badge ${
+                        order.payment_status === 'completed'
+                          ? 'active'
+                          : order.payment_status === 'pending'
+                          ? 'pending'
+                          : 'inactive'
+                      }`}
+                    >
+                      {order.payment_status === 'completed'
+                        ? 'Thành công'
+                        : order.payment_status === 'pending'
+                        ? 'Đang xử lý'
+                        : 'Thất bại'}
                     </span>
                   </td>
+                  <td>{order.payment_gateway || ''}</td>
                   <td className="action-cell">
                     <button className="action-btn delete" title="Xóa hóa đơn">
                       <FaTrash />

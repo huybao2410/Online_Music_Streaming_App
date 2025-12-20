@@ -3,6 +3,7 @@ import React, { useState, useEffect, useContext } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { HiHeart, HiOutlineHeart, HiArrowLeft } from "react-icons/hi2";
 import { PlayerContext } from "../context/PLayerContext";
+import AdOverlay from "../components/AdOverlay";
 import "./AlbumDetailPage.css";
 
 const PHP_API_URL = "http://localhost:8081/music_API/online_music";
@@ -13,7 +14,7 @@ const fixUrl = (url) => (url ? url.replace("10.0.2.2", "localhost") : "");
 const AlbumDetailPage = () => {
   const { albumId } = useParams();
   const navigate = useNavigate();
-  const { setPlaylist, setCurrentSong } = useContext(PlayerContext);
+  const { setPlaylist, setCurrentSong, showAd, setShowAd } = useContext(PlayerContext);
 
   const [songs, setSongs] = useState([]);
   const [albumInfo, setAlbumInfo] = useState(null);
@@ -54,7 +55,8 @@ const AlbumDetailPage = () => {
       const normalized = data.songs.map((s) => ({
         id: s.song_id,
         title: s.title,
-        artist: s.artist,
+        artist: s.artist || (s.artists && s.artists.join(', ')) || '',
+        genre: s.genre || (s.genres && s.genres.join(', ')) || '',
         url: fixUrl(s.audio_url || s.audio || s.url),
         cover: fixUrl(s.cover_url || s.cover),
         duration: s.duration || 0,
@@ -79,8 +81,13 @@ const AlbumDetailPage = () => {
   // ❤️ Toggle favorite
   const handleToggleFavorite = async () => {
     const token = localStorage.getItem("token");
+    const userId = localStorage.getItem("user_id");
     if (!token) {
       alert("Bạn cần đăng nhập để sử dụng tính năng này.");
+      return;
+    }
+    if (!userId || !albumId) {
+      alert("Thiếu user_id hoặc album_id");
       return;
     }
     setFavoriteLoading(true);
@@ -94,6 +101,7 @@ const AlbumDetailPage = () => {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
+        body: JSON.stringify({ user_id: userId, album_id: albumId })
       });
       const result = await res.json();
       if (result.status) {
@@ -140,6 +148,7 @@ const AlbumDetailPage = () => {
 
   return (
     <div className="album-detail-page fade-in">
+      {showAd && <AdOverlay onClose={() => setShowAd(false)} />}
       {/* Nút quay lại */}
       <button className="back-button" onClick={() => navigate(-1)}>
         <HiArrowLeft size={24} />
@@ -206,6 +215,7 @@ const AlbumDetailPage = () => {
           <div style={{width: 40, textAlign: 'center'}}>#</div>
           <div style={{flex: 2, display: 'flex', alignItems: 'center', gap: 12}}>Tiêu đề</div>
           <div style={{flex: 1, textAlign: 'left'}}>Nghệ sĩ</div>
+          <div style={{flex: 1, textAlign: 'left'}}>Thể loại</div>
           <div style={{width: 60, textAlign: 'right'}}>⏱</div>
         </div>
         {/* Song rows */}
@@ -214,8 +224,7 @@ const AlbumDetailPage = () => {
             key={song.id}
             className="song-row hover-highlight"
             onClick={() => handlePlaySong(song, idx)}
-            style={{display: 'flex', alignItems: 'center', padding: '8px 16px', borderBottom: '1px solid #222', cursor: 'pointer'}}
-          >
+            style={{display: 'flex', alignItems: 'center', padding: '8px 16px', borderBottom: '1px solid #222', cursor: 'pointer'}}>
             <div style={{width: 40, textAlign: 'center', fontWeight: 600, color: '#b3b3b3'}}>{idx + 1}</div>
             <div style={{flex: 2, display: 'flex', alignItems: 'center', gap: 12}}>
               <img
@@ -227,6 +236,7 @@ const AlbumDetailPage = () => {
               <span style={{fontWeight: 600, color: '#fff'}}>{song.title}</span>
             </div>
             <div style={{flex: 1, color: '#fff', fontWeight: 400}}>{song.artist}</div>
+            <div style={{flex: 1, color: '#fff', fontWeight: 400}}>{song.genre}</div>
             <div style={{width: 60, textAlign: 'right', color: '#b3b3b3', fontVariantNumeric: 'tabular-nums'}}>{formatDuration(song.duration)}</div>
           </div>
         ))}

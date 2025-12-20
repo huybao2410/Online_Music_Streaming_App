@@ -37,6 +37,7 @@ export default function MainLayout() {
     };
   }, []);
 
+  const role = localStorage.getItem("role");
   return (
     <div className="app-shell">
       <Header isLoginOpen={isLoginOpen} setIsLoginOpen={setIsLoginOpen} />
@@ -46,7 +47,8 @@ export default function MainLayout() {
           <Outlet />
         </div>
       </div>
-      <Footer />
+      {/* Chỉ render Footer nếu không phải admin */}
+      {role !== "admin" && <Footer />}
 
       {isLoginOpen && (
         <LoginDialog

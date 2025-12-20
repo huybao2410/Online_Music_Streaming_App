@@ -1,3 +1,10 @@
+/* Fix heart icon size in footer */
+.like-btn svg {
+  font-size: 2rem !important;
+  width: 2rem;
+  height: 2rem;
+  display: block;
+}
 /* Xóa ghi đè kích thước icon trái tim, dùng inline style ở JSX */
 /* ==================== 🎵 FOOTER CHUNG ==================== */
 .footer {
