@@ -12,10 +12,10 @@ import {
 import axios from "axios";
 import "./SongManagementContent.css";
 
-const PHP_API_URL = "http://localhost:8081/music_API/online_music";
 const NODE_API_URL = "http://localhost:5000/api";
 
 export default function SongManagementContent({ setActiveTab, openArtistAddModal }) {
+  const [providers, setProviders] = useState([]);
   const [songs, setSongs] = useState([]);
   const [artists, setArtists] = useState([]);
   const [genres, setGenres] = useState([]);
@@ -36,12 +36,11 @@ export default function SongManagementContent({ setActiveTab, openArtistAddModal
   // Form data - artists is an array of { artist_id, name }
   const [formData, setFormData] = useState({
     title: "",
-    artists: [{ artist_id: "", name: "" }], // <- multiple artists support
+    artists: [{ artist_id: "", name: "" }],
     genre_id: "",
-    cover_url: "",
+    provider_id: "",   // ✅ THÊM
     cover: null,
-    audio: null,
-    album: "",
+    audio: null
   });
 
   // Preview states
@@ -60,75 +59,47 @@ export default function SongManagementContent({ setActiveTab, openArtistAddModal
   const [genreSearchTerm, setGenreSearchTerm] = useState("");
   const [filteredGenres, setFilteredGenres] = useState([]);
 
+  const fixMediaUrl = (url) => {
+    if (!url) return "";
+
+    // Android emulator → Web
+    if (url.includes("10.0.2.2:8081")) {
+      return url.replace("10.0.2.2:8081", "localhost:8081");
+    }
+
+    return url;
+  };
+
+  const fetchProviders = async () => {
+    try {
+      const res = await axios.get(`${NODE_API_URL}/providers`);
+      if (res.data.success) {
+        setProviders(res.data.providers);
+      }
+    } catch (err) {
+      console.error("Fetch providers error", err);
+    }
+  };
+
   useEffect(() => {
     fetchSongs();
     fetchArtists();
     fetchGenres();
-    // eslint-disable-next-line
-  }, [currentPage, searchTerm, filterArtist, filterGenre]);
-
+    fetchProviders();
+  }, []);
   // ========== Fetch functions ==========
   const fetchSongs = async () => {
     try {
       setLoading(true);
-      setError("");
+      const res = await axios.get(`${NODE_API_URL}/songs`);
 
-      const response = await axios.get(`${PHP_API_URL}/song/get_songs_web.php`);
-      if (response.data.status && Array.isArray(response.data.songs)) {
-        const formattedSongs = response.data.songs.map((song) => {
-          return {
-            song_id: song.song_id || song.id,
-            title: song.title || "Không rõ tên",
-            // Note: PHP API may return artist as string (single) or artist_ids (array) — keep both if present
-            artist_name: song.artist || song.artist_name || "",
-            artist_id: song.artist_id ?? null,
-            artist_ids: song.artist_ids ?? null, // optional
-            album: song.album || "",
-            genre: song.genre || "",
-            duration: Number(song.duration) || 0,
-            cover_url: fixLocalUrl(song.cover),
-            audio_url: fixLocalUrl(song.audio || song.url),
-            play_count: song.play_count || 0,
-          };
-        });
-
-        // client-side filters & search
-        let filtered = formattedSongs;
-        if (searchTerm) {
-          const q = searchTerm.toLowerCase();
-          filtered = filtered.filter((s) =>
-            (s.title || "").toLowerCase().includes(q) ||
-            (s.artist_name || "").toLowerCase().includes(q)
-          );
-        }
-
-        if (filterArtist) {
-          filtered = filtered.filter((s) => {
-            // support both artist_id (single) and artist_ids (array)
-            if (!s) return false;
-            if (s.artist_ids && Array.isArray(s.artist_ids)) {
-              return s.artist_ids.map(String).includes(String(filterArtist));
-            }
-            return String(s.artist_id) === String(filterArtist);
-          });
-        }
-
-        if (filterGenre) {
-          filtered = filtered.filter((s) => String(s.genre).toLowerCase() === String(filterGenre).toLowerCase());
-        }
-
-        setTotalSongs(filtered.length);
-        const start = (currentPage - 1) * songsPerPage;
-        const pageItems = filtered.slice(start, start + songsPerPage);
-        setSongs(pageItems);
-      } else {
-        setError("API không trả về dữ liệu hợp lệ");
-        setSongs([]);
+      if (res.data.success) {
+        setSongs(res.data.songs);
+        setTotalSongs(res.data.songs.length);
       }
     } catch (err) {
-      console.error("Error fetching songs:", err);
-      setError("Không thể tải danh sách bài hát. Kiểm tra PHP API.");
-      setSongs([]);
+      console.error(err);
+      setError("Không thể tải bài hát từ server NodeJS");
     } finally {
       setLoading(false);
     }
@@ -162,12 +133,6 @@ export default function SongManagementContent({ setActiveTab, openArtistAddModal
     }
   };
 
-  // Helper fix URL
-  const fixLocalUrl = (url) => {
-    if (!url) return "";
-    return String(url).replace("10.0.2.2", "localhost");
-  };
-
   // ========== Modal open/close ==========
   const openModal = (mode, song = null) => {
     setModalMode(mode);
@@ -195,6 +160,7 @@ export default function SongManagementContent({ setActiveTab, openArtistAddModal
         cover_url: song.cover_url || "",
         cover: null,
         audio: null,
+        provider_id: "",
         album: song.album || "",
       });
 
@@ -211,6 +177,7 @@ export default function SongManagementContent({ setActiveTab, openArtistAddModal
         cover_url: "",
         cover: null,
         audio: null,
+        provider_id: "",
         album: "",
       });
       setCoverPreview(null);
@@ -233,6 +200,7 @@ export default function SongManagementContent({ setActiveTab, openArtistAddModal
       cover_url: "",
       cover: null,
       audio: null,
+      rovider_id: "",
       album: "",
     });
     setCoverPreview(null);
@@ -308,71 +276,73 @@ export default function SongManagementContent({ setActiveTab, openArtistAddModal
 
   // ========== Submit (create) ==========
   const handleSubmit = async (e) => {
-  e.preventDefault();
-  setError("");
-  setSuccess("");
-  setIsSubmitting(true);
+    e.preventDefault();
+    setIsSubmitting(true);
+    setError("");
+    setSuccess("");
 
-  try {
-    if (!formData.title) {
-      setError("Vui lòng nhập tên bài hát");
+    try {
+      const token = localStorage.getItem("token");
+      if (!token) {
+        setError("Bạn chưa đăng nhập");
+        return;
+      }
+
+      const data = new FormData();
+      data.append("title", formData.title);
+      data.append("genre_id", formData.genre_id);
+      data.append("provider_id", formData.provider_id);
+      data.append(
+        "artists",
+        JSON.stringify(formData.artists.map(a => a.artist_id))
+      );
+
+      if (formData.cover) data.append("cover", formData.cover);
+      if (formData.audio) data.append("audio", formData.audio);
+
+      let res;
+
+      if (modalMode === "create") {
+        res = await axios.post(`${NODE_API_URL}/songs`, data, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "multipart/form-data"
+          }
+        });
+      } else {
+        res = await axios.put(
+          `${NODE_API_URL}/songs/${currentSong.song_id}`,
+          data,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+              "Content-Type": "multipart/form-data"
+            }
+          }
+        );
+      }
+
+      if (res.data.success) {
+        setSuccess(
+          modalMode === "create"
+            ? "Thêm bài hát thành công"
+            : "Cập nhật bài hát thành công"
+        );
+        fetchSongs();
+        closeModal();
+      }
+    } catch (err) {
+      console.error(err);
+      setError(err.response?.data?.message || "Lỗi server");
+    } finally {
       setIsSubmitting(false);
-      return;
     }
+  };
 
-    const validArtists = (formData.artists || []).filter(a =>
-      (a.artist_id && String(a.artist_id).trim() !== "") ||
-      (a.name && a.name.trim() !== "")
-    );
 
-    if (validArtists.length === 0) {
-      setError("Vui lòng chọn ít nhất một nghệ sĩ");
-      setIsSubmitting(false);
-      return;
-    }
 
-    const uploadData = new FormData();
-    uploadData.append("title", formData.title);
-    uploadData.append("genre_id", formData.genre_id || "");
-    uploadData.append("cover_url", formData.cover_url || "");
-    uploadData.append("album", formData.album || "");
 
-    if (formData.cover) uploadData.append("cover", formData.cover);
-    if (formData.audio) uploadData.append("audio", formData.audio);
 
-    const artistIdsOrNames = validArtists.map(a =>
-      a.artist_id ? a.artist_id : a.name.trim()
-    );
-
-    uploadData.append("artists", JSON.stringify(artistIdsOrNames));
-
-    let url = "";
-    if (modalMode === "create") {
-      url = `${PHP_API_URL}/song/add_song.php`;
-    } else {
-      // EDIT MODE
-      uploadData.append("song_id", currentSong.song_id);
-      url = `${PHP_API_URL}/song/update_song.php`;
-    }
-
-    const response = await axios.post(url, uploadData, {
-      headers: { "Content-Type": "multipart/form-data" }
-    });
-
-    if (response.data.status) {
-      setSuccess(modalMode === "create" ? "Thêm bài hát thành công!" : "Cập nhật bài hát thành công!");
-      fetchSongs();
-      closeModal();
-    } else {
-      setError(response.data.message || "Có lỗi");
-    }
-  } catch (err) {
-    console.error("Submit error:", err);
-    setError(err.response?.data?.message || "Lỗi khi lưu bài hát");
-  } finally {
-    setIsSubmitting(false);
-  }
-};
 
 
 
@@ -539,43 +509,86 @@ export default function SongManagementContent({ setActiveTab, openArtistAddModal
                   <th>Tên bài hát</th>
                   <th>Nghệ sĩ</th>
                   <th>Thể loại</th>
+                  <th>Nhà cung cấp</th>
                   <th>Thời lượng</th>
                   <th>Hành động</th>
                 </tr>
               </thead>
+
               <tbody>
-                {songs.map((song) => (
+                {songs.map(song => (
                   <tr key={song.song_id}>
+                    {/* ID */}
                     <td>{song.song_id}</td>
+
+                    {/* COVER */}
                     <td>
                       {song.cover_url ? (
-                        <img src={song.cover_url} alt={song.title} className="cover-thumb" />
+                        <img
+                          src={fixMediaUrl(song.cover_url)}
+                          alt={song.title}
+                          className="cover-thumb"
+                        />
                       ) : (
-                        <div className="no-cover"><FaMusic /></div>
+                        <div className="no-cover">
+                          <FaMusic />
+                        </div>
                       )}
                     </td>
+
+                    {/* TITLE */}
                     <td className="song-title">{song.title}</td>
+
+                    {/* ARTISTS */}
                     <td>
-                      {/* hiển thị nhiều nghệ sĩ nếu có */}
-                      {song.artist_ids && Array.isArray(song.artist_ids) && song.artist_ids.length > 0
+                      {song.artist_ids && song.artist_ids.length > 0
                         ? song.artist_ids.map((aid, i) => {
-                            const found = artists.find(a => String(a.artist_id) === String(aid));
-                            return <span key={i}>{found ? found.name : aid}{i < song.artist_ids.length - 1 ? ', ' : ''}</span>;
-                          })
-                        : (song.artist_name || "Chưa có")
-                      }
+                          const artist = artists.find(
+                            a => String(a.artist_id) === String(aid)
+                          );
+                          return (
+                            <span key={aid}>
+                              {artist?.name || "Không rõ"}
+                              {i < song.artist_ids.length - 1 ? ", " : ""}
+                            </span>
+                          );
+                        })
+                        : "—"}
                     </td>
-                    <td>{song.genre || "-"}</td>
+
+                    {/* GENRE */}
+                    <td>{song.genre || "—"}</td>
+
+                    {/* PROVIDER */}
+                    <td>{song.provider_name || "—"}</td>
+
+                    {/* DURATION */}
                     <td>{formatDuration(song.duration)}</td>
+
+                    {/* ACTIONS */}
                     <td>
                       <div className="action-btns">
-                        <button className="btn-icon play" onClick={() => handlePlaySong(song)} title="Phát bài hát">
+                        <button
+                          className="btn-icon play"
+                          title="Phát"
+                          onClick={() => window.open(fixMediaUrl(song.audio_url), "_blank")}
+                        >
                           <FaPlay />
                         </button>
-                        <button className="btn-icon edit" onClick={() => openModal("edit", song)} title="Sửa">
+
+                        <button
+                          className="btn-icon edit"
+                          title="Sửa"
+                          onClick={() => openModal("edit", song)}
+                        >
                           <FaEdit />
                         </button>
-                        <button className="btn-icon delete" onClick={() => handleDelete(song.song_id)} title="Xóa">
+
+                        <button
+                          className="btn-icon delete"
+                          title="Xóa"
+                          onClick={() => handleDelete(song.song_id)}
+                        >
                           <FaTrash />
                         </button>
                       </div>
@@ -584,6 +597,7 @@ export default function SongManagementContent({ setActiveTab, openArtistAddModal
                 ))}
               </tbody>
             </table>
+
           </div>
 
           <div className="pagination">
@@ -621,7 +635,7 @@ export default function SongManagementContent({ setActiveTab, openArtistAddModal
               <form id="song-form" onSubmit={handleSubmit} className="modal-form">
                 <div className="form-group">
                   <label>Tên bài hát <span className="required">*</span></label>
-                  <input type="text" name="title" value={formData.title} onChange={handleInputChange} required />
+                  <input type="text" name="title"  placeholder="Nhập tên bài hát..." value={formData.title} onChange={handleInputChange} required />
                 </div>
 
                 {/* MULTI ARTISTS */}
@@ -668,32 +682,47 @@ export default function SongManagementContent({ setActiveTab, openArtistAddModal
                 <div className="form-row">
                   <div className="form-group">
                     <label>Thể loại <span className="required">*</span></label>
-                    <input type="text" id="genre-search" placeholder="Nhập tên thể loại..." value={genreSearchTerm} onChange={e => setGenreSearchTerm(e.target.value)} />
-                    {filteredGenres.length > 0 && (
-                      <div className="search-dropdown">
-                        {filteredGenres.map(g => (
-                          <div key={g.genre_id} className="dropdown-item" onClick={() => { handleInputChange({ target: { name: 'genre_id', value: g.genre_id } }); setGenreSearchTerm(g.name); setFilteredGenres([]); }}>
-                            {g.name}
-                          </div>
-                        ))}
-                      </div>
-                    )}
+
+                    <select
+                      name="genre_id"
+                      value={formData.genre_id}
+                      onChange={handleInputChange}
+                      required
+                    >
+                      <option value="">-- Chọn thể loại --</option>
+                      {genres.map(g => (
+                        <option key={g.genre_id} value={g.genre_id}>
+                          {g.name}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+
+
+                <div className="form-group">
+                  <div className="form-group">
+                    <label>Nhà cung cấp <span className="required">*</span></label>
+
+                    <select
+                      name="provider_id"
+                      value={formData.provider_id}
+                      onChange={handleInputChange}
+                      required
+                    >
+                      <option value="">-- Chọn nhà cung cấp --</option>
+                      {providers.map(p => (
+                        <option key={p.provider_id} value={p.provider_id}>
+                          {p.name}
+                        </option>
+                      ))}
+                    </select>
+
                   </div>
 
-                  {/* <div className="form-group">
-                    <label>Album</label>
-                    <input type="text" name="album" value={formData.album} onChange={handleInputChange} />
-                  </div> */}
                 </div>
-
                 <div className="form-group">
-                  <label>URL ảnh bìa</label>
-                  <input type="url" name="cover_url" value={formData.cover_url || ""} onChange={handleInputChange} placeholder="https://example.com/image.jpg" />
-                  <small className="form-hint">Nhập URL ảnh hoặc tải file bên dưới</small>
-                </div>
-
-                <div className="form-group">
-                  <label>Hoặc tải file ảnh bìa</label>
+                  <label>Tải file ảnh bìa</label>
                   {coverPreview && (
                     <div className="image-preview">
                       <img src={coverPreview} alt="Cover preview" />

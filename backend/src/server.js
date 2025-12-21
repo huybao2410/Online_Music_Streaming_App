@@ -10,7 +10,6 @@ const adminRoutes = require('./routes/adminUsers');
 const playlistRoutes = require('./routes/playlists');
 const userRoutes = require('./routes/users');
 const artistRoutes = require('./routes/artists');
-const songRoutes = require('./routes/songs');
 const genreRoutes = require('./routes/genres');
 const favoriteArtistsRoutes = require('./routes/favoriteArtists');
 const subscriptionsRoutes = require('./routes/subscriptions');
@@ -24,6 +23,8 @@ const listeningHistoryRoutes = require('./routes/listening-history');
 const favoriteSongsRoutes = require('./routes/favorite-songs');
 const favoriteAlbumsRoutes = require('./routes/favorite-albums');
 const artistFollowRoutes = require("./routes/artistFollow.routes");
+const songsRoutes = require("./routes/songs.routes");
+const providerRoutes = require("./routes/providers");
 const app = express();
 
 app.use(cors({ origin: process.env.CORS_ORIGIN || 'http://localhost:3000', credentials: true }));
@@ -31,12 +32,13 @@ app.use(express.json());
 
 
 // Serve static files (uploaded images)
+app.use("/api/providers", providerRoutes);
+app.use("/api/songs", songsRoutes);
 app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
 app.use('/api/auth', authRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/playlists', playlistRoutes);
 app.use('/api/users', userRoutes);
-app.use('/api/songs', songRoutes);
 app.use('/api/genres', genreRoutes);
 app.use('/api/favorite-artists', favoriteArtistsRoutes);
 app.use('/api/subscriptions', subscriptionsRoutes);
@@ -57,6 +59,8 @@ app.use("/top-songs", require("./routes/topSongs"));
 app.use("/api/admin/favorites", adminFavoriteRoutes);
 app.use("/api/artists", artistFollowRoutes);
 app.use("/api/artists", artistRoutes);
+
+
 // Test endpoint to check songs
 app.get('/api/test/songs', async (req, res) => {
   try {
