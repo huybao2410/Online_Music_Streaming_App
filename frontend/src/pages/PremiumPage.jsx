@@ -141,7 +141,6 @@ export default function PremiumPage() {
   const benefits = [
     { icon: <MdBlock size={32} />, title: 'Nghe nhạc không quảng cáo', description: 'Trải nghiệm âm nhạc liền mạch' },
     { icon: <MdCloudDownload size={32} />, title: 'Tải nhạc', description: 'Nghe offline mọi lúc' },
-    { icon: <MdMusicNote size={32} />, title: 'Không giới hạn', description: 'Toàn bộ thư viện' },
   ];
 
   if (loading) return (

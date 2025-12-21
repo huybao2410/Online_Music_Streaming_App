@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Dec 20, 2025 at 12:14 PM
+-- Generation Time: Dec 21, 2025 at 02:35 PM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -52,6 +52,7 @@ CREATE DEFINER=`root`@`localhost` PROCEDURE `AddSongToPlaylist` (IN `p_user_id` 
         -- Nếu hợp lệ, thêm bài hát vào playlist (nếu chưa có)
         INSERT IGNORE INTO playlist_songs (playlist_id, song_id)
         VALUES (p_playlist_id, p_song_id);
+
         SELECT 'success' AS status, 'Đã thêm bài hát vào playlist' AS message;
     END IF;
 END$$
@@ -318,6 +319,26 @@ CREATE DEFINER=`root`@`localhost` PROCEDURE `get_top_songs` ()   BEGIN
     ORDER BY s.song_id DESC;
 END$$
 
+CREATE DEFINER=`root`@`localhost` PROCEDURE `RemoveSongFromPlaylist` (IN `p_user_id` INT, IN `p_playlist_id` INT, IN `p_song_id` INT)   BEGIN
+    DECLARE v_count INT DEFAULT 0;
+
+    -- Kiểm tra playlist có thuộc về user này không
+    SELECT COUNT(*) INTO v_count
+    FROM playlists
+    WHERE playlist_id = p_playlist_id AND user_id = p_user_id;
+
+    IF v_count = 0 THEN
+        -- Nếu không tìm thấy playlist hoặc không thuộc về user
+        SELECT 'error' AS status, 'Playlist không tồn tại hoặc không thuộc về user này' AS message;
+    ELSE
+        -- Nếu có quyền, xóa bài hát
+        DELETE FROM playlist_songs
+        WHERE playlist_id = p_playlist_id AND song_id = p_song_id;
+
+        SELECT 'success' AS status, 'Đã xóa bài hát khỏi playlist' AS message;
+    END IF;
+END$$
+
 CREATE DEFINER=`root`@`localhost` PROCEDURE `RemoveSongsFromPlaylist` (IN `p_user_id` INT, IN `p_playlist_id` INT, IN `p_song_ids` TEXT)   BEGIN
     DECLARE v_count INT DEFAULT 0;
     DECLARE sql_query TEXT;
@@ -417,16 +438,17 @@ CREATE TABLE `ads_songs` (
   `is_active` tinyint(1) DEFAULT 1,
   `priority` int(11) DEFAULT 0,
   `created_at` timestamp NULL DEFAULT current_timestamp(),
-  `updated_at` timestamp NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
+  `updated_at` timestamp NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+  `song_id` int(11) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 --
 -- Dumping data for table `ads_songs`
 --
 
-INSERT INTO `ads_songs` (`ad_id`, `title`, `brand_name`, `audio_url`, `cover_url`, `duration`, `is_active`, `priority`, `created_at`, `updated_at`) VALUES
-(1, 'NÂNG CẤP TÀI KHOẢN PREMIUM', 'ChillChill', 'http://10.0.2.2:8081/music_API/online_music/ads/ads_sounds/ads_sounds_1.mp3', 'http://10.0.2.2:8081/music_API/online_music/ads/ads_cover/ads_cover_1.jpg', 0, 1, 1, '2025-11-10 19:26:12', '2025-11-10 21:44:58'),
-(2, 'NÂNG CẤP TÀI KHOẢN PREMIUM', 'Chill Chill', 'http://10.0.2.2:8081/music_API/online_music/ads/ads_sounds/ads_sounds_2.mp3', 'http://10.0.2.2:8081/music_API/online_music/ads/ads_cover/ads_cover_1.jpg', 0, 1, 2, '2025-11-10 20:42:38', '2025-11-10 21:45:07');
+INSERT INTO `ads_songs` (`ad_id`, `title`, `brand_name`, `audio_url`, `cover_url`, `duration`, `is_active`, `priority`, `created_at`, `updated_at`, `song_id`) VALUES
+(1, 'NÂNG CẤP TÀI KHOẢN PREMIUM', 'ChillChill', 'http://10.0.2.2:8081/music_API/online_music/ads/ads_sounds/ads_sounds_1.mp3', 'http://10.0.2.2:8081/music_API/online_music/ads/ads_cover/ads_cover_1.jpg', 0, 1, 1, '2025-11-10 19:26:12', '2025-11-10 21:44:58', NULL),
+(2, 'NÂNG CẤP TÀI KHOẢN PREMIUM', 'Chill Chill', 'http://10.0.2.2:8081/music_API/online_music/ads/ads_sounds/ads_sounds_2.mp3', 'http://10.0.2.2:8081/music_API/online_music/ads/ads_cover/ads_cover_1.jpg', 0, 1, 2, '2025-11-10 20:42:38', '2025-11-10 21:45:07', NULL);
 
 -- --------------------------------------------------------
 
@@ -456,7 +478,8 @@ INSERT INTO `albums` (`album_id`, `name`, `artist_id`, `description`, `cover_url
 (6, 'Jack - J97', 14, 'Album', 'http://10.0.2.2:8081/music_API/online_music/album/album_cover/album_1762896202.jpg', '2025-11-12', '2025-11-11 21:23:22', '2025-11-11 21:23:22'),
 (9, 'Ed Sheeran', 2, 'Album', 'http://10.0.2.2:8081/music_API/online_music/album/album_cover/album_1762907616.jpg', '2025-11-12', '2025-11-12 00:33:36', '2025-11-12 00:33:36'),
 (12, 'Đen', 12, 'Album', 'http://10.0.2.2:8081/music_API/online_music/album/album_cover/album_1763164837.jpeg', '2025-11-15', '2025-11-15 00:00:37', '2025-11-15 00:00:37'),
-(19, 'The NewOne', 4, 'ưqeqwewqe', 'https://image-cdn.nct.vn/song/2025/10/22/B/m/W/i/1761146738378_300.jpg', '2025-12-09', '2025-12-09 06:43:58', '2025-12-09 06:43:58');
+(13, 'GreenD', 118, 'Album', 'http://10.0.2.2:8081/music_API/online_music/album/album_cover/album_1763164839_.jpeg', '2025-11-29', '2025-11-29 04:56:28', '2025-11-29 05:15:02'),
+(14, 'Taylor Swifft', 1, 'Album', 'https://upload.wikimedia.org/wikipedia/vi/1/1f/Taylor_Swift_-_Taylor_Swift.png', '2025-11-29', '2025-11-29 05:25:02', '2025-11-29 05:25:02');
 
 -- --------------------------------------------------------
 
@@ -488,8 +511,8 @@ INSERT INTO `album_songs` (`album_id`, `song_id`, `track_number`, `added_at`) VA
 (9, 2, 5, '2025-11-12 00:33:36'),
 (9, 3, 3, '2025-11-12 00:33:36'),
 (12, 40, 1, '2025-11-15 00:00:37'),
-(19, 1, 1, '2025-12-09 06:43:58'),
-(19, 3, 2, '2025-12-09 06:43:58');
+(13, 89, 1, '2025-11-29 04:56:28'),
+(14, 1, 3, '2025-11-29 05:25:02');
 
 -- --------------------------------------------------------
 
@@ -559,13 +582,15 @@ INSERT INTO `artists` (`artist_id`, `name`, `bio`, `avatar_url`, `created_at`, `
 (129, 'DREAMeR', 'Ca sĩ', 'http://10.0.2.2:8081/music_API/online_music/artist_avatar/dreamer.jpeg', '2025-12-05 09:35:05', '2025-12-05 09:35:05'),
 (130, 'Low G', 'Ca sĩ', 'http://10.0.2.2:8081/music_API/online_music/artist_avatar/low_g.jpeg', '2025-12-05 09:36:19', '2025-12-05 09:36:19'),
 (131, 'JustaTee', 'Ca sĩ', 'http://10.0.2.2:8081/music_API/online_music/artist_avatar/justatee.jpeg', '2025-12-05 09:36:44', '2025-12-05 09:36:44'),
-(132, 'Binz', 'Ca sĩ', 'artist/artist_avatar/artist-1765262842489-472539137.jpg', '2025-12-05 09:38:21', '2025-12-09 06:47:22'),
+(132, 'Binz', 'Ca sĩ', 'http://10.0.2.2:8081/music_API/online_music/artist_avatar/binz.jpeg', '2025-12-05 09:38:21', '2025-12-05 09:38:21'),
 (133, 'Hngle', 'Ca sĩ', 'http://10.0.2.2:8081/music_API/online_music/artist_avatar/hngle.jpeg', '2025-12-05 09:39:27', '2025-12-05 09:39:27'),
-(134, 'Ari', 'Ca sĩ', 'artist/artist_avatar/artist-1765256595921-411755963.png', '2025-12-05 09:39:53', '2025-12-09 05:03:15'),
+(134, 'Ari', 'Ca sĩ', 'http://10.0.2.2:8081/music_API/online_music/artist_avatar/ari.jpeg', '2025-12-05 09:39:53', '2025-12-05 09:39:53'),
 (135, 'Michita, 愛海', 'Ca sĩ Nhật Bổn', 'http://10.0.2.2:8081/music_API/online_music/artist_avatar/michita.jpeg', '2025-12-05 10:05:53', '2025-12-05 10:05:53'),
 (136, 'K-ICM', 'Ca sĩ', 'http://10.0.2.2:8081/music_API/online_music/artist_avatar/k_icm.jpeg', '2025-12-05 10:18:11', '2025-12-05 10:18:11'),
 (137, 'RyoT', 'Nghệ sĩ', 'http://10.0.2.2:8081/music_API/online_music/artist_avatar/ryot.jpeg', '2025-12-05 10:20:57', '2025-12-05 10:20:57'),
-(138, 'Kiều Phong', 'Ca sĩ', 'http://10.0.2.2:8081/music_API/online_music/artist_avatar/kieu_phong.jpeg', '2025-12-05 10:21:49', '2025-12-05 10:21:49');
+(138, 'Kiều Phong', 'Ca sĩ', 'http://10.0.2.2:8081/music_API/online_music/artist_avatar/kieu_phong.jpeg', '2025-12-05 10:21:49', '2025-12-05 10:21:49'),
+(144, 'HIEUTHUHAI', 'Nghệ sĩ Việt Nam', 'http://10.0.2.2:8081/music_API/online_music/artist_avatar/artist-1765283293096-303261879.jpg', '2025-12-09 12:28:13', '2025-12-09 12:28:13'),
+(145, 'B Ray', 'Rapper Việt Nam', 'http://10.0.2.2:8081/music_API/online_music/artist_avatar/artist-1765331022687-535559764.jpg', '2025-12-10 01:43:42', '2025-12-10 01:43:42');
 
 -- --------------------------------------------------------
 
@@ -592,7 +617,8 @@ CREATE TABLE `downloaded_songs` (
 INSERT INTO `downloaded_songs` (`id`, `user_id`, `song_id`, `title`, `artist`, `cover_url`, `duration`, `local_path`, `downloaded_at`) VALUES
 (1, 46, 19, 'Chắc Ai Đó Sẽ Về', 'Sơn Tùng M-TP', 'http://10.0.2.2:8081/music_API/online_music/cover/son_chac_ai_do_se_ve.jpeg', 0, '/data/user/0/com.example.music_app/app_flutter/MusicApp/downloads/19_Chắc_Ai_Đó_Sẽ_Về.mp3', '2025-12-05 12:35:22'),
 (2, 46, 29, 'Ngày Này Năm Ấy', 'Việt Anh', 'http://10.0.2.2:8081/music_API/online_music/cover/viet_anh_ngay_nay_nam_ay.jpeg', 0, '/data/user/0/com.example.music_app/app_flutter/MusicApp/downloads/29_Ngày_Này_Năm_Ấy.mp3', '2025-12-05 12:45:54'),
-(3, 46, 25, 'In Love', 'JustaTee, Low G', 'http://10.0.2.2:8081/music_API/online_music/cover/low_g_justatee_in_love.jpeg', 0, '/data/user/0/com.example.music_app/app_flutter/MusicApp/downloads/25_In_Love.mp3', '2025-12-05 13:04:06');
+(3, 46, 25, 'In Love', 'JustaTee, Low G', 'http://10.0.2.2:8081/music_API/online_music/cover/low_g_justatee_in_love.jpeg', 0, '/data/user/0/com.example.music_app/app_flutter/MusicApp/downloads/25_In_Love.mp3', '2025-12-05 13:04:06'),
+(4, 50, 89, 'Năm Tháng Ấy', 'GreenD', 'http://10.0.2.2:8081/music_API/online_music/cover/greend_nam_thang_y_cover_1764374806.jpg', 0, '/data/user/0/com.example.music_app/app_flutter/MusicApp/downloads/89_Năm_Tháng_Ấy.mp3', '2025-12-20 03:05:41');
 
 -- --------------------------------------------------------
 
@@ -611,20 +637,13 @@ CREATE TABLE `favorites_songs` (
 --
 
 INSERT INTO `favorites_songs` (`user_id`, `song_id`, `added_at`) VALUES
-(32, 3, '2025-11-19 23:44:22'),
-(32, 18, '2025-11-17 11:31:30'),
-(32, 19, '2025-11-17 11:09:07'),
-(32, 26, '2025-11-19 23:51:48'),
-(32, 35, '2025-11-17 11:36:53'),
-(32, 44, '2025-11-19 03:30:44'),
-(32, 64, '2025-11-17 14:31:01'),
 (46, 25, '2025-12-05 13:03:37'),
 (46, 64, '2025-12-05 12:19:37'),
 (46, 77, '2025-12-05 12:35:58'),
 (48, 30, '2025-12-05 14:26:47'),
-(49, 1, '2025-12-09 05:17:45'),
-(49, 2, '2025-12-09 05:17:44'),
-(49, 16, '2025-12-09 05:16:56');
+(48, 40, '2025-12-09 07:59:18'),
+(48, 45, '2025-12-09 10:16:03'),
+(48, 89, '2025-12-09 09:55:49');
 
 -- --------------------------------------------------------
 
@@ -646,9 +665,8 @@ CREATE TABLE `favorite_albums` (
 INSERT INTO `favorite_albums` (`id`, `user_id`, `album_id`, `created_at`) VALUES
 (1, 46, 3, '2025-12-02 22:30:34'),
 (2, 46, 6, '2025-12-05 12:37:22'),
-(5, 49, 12, '2025-12-19 17:59:05'),
-(6, 49, 5, '2025-12-20 11:10:07'),
-(7, 49, 3, '2025-12-20 11:10:08');
+(3, 46, 13, '2025-12-05 12:37:52'),
+(4, 48, 14, '2025-12-09 11:16:51');
 
 -- --------------------------------------------------------
 
@@ -695,7 +713,6 @@ INSERT INTO `genres` (`genre_id`, `name`, `description`, `created_at`) VALUES
 (25, 'V-Pop', 'Nhạc Pop Việt Nam – hiện đại, đa dạng phong cách, phản ánh văn hóa và đời sống Việt.', '2025-11-08 21:08:20'),
 (26, 'Bolero', 'Dòng nhạc trữ tình Việt Nam, giai điệu chậm, sâu lắng và giàu cảm xúc.', '2025-11-08 21:08:20'),
 (27, 'Folk', 'Nhạc dân gian, phản ánh văn hóa truyền thống của từng vùng miền.', '2025-11-08 21:08:20'),
-(28, 'Chill', 'Nhạc nhẹ nhàng, thư giãn, thích hợp khi làm việc hoặc nghỉ ngơi.', '2025-11-08 21:08:20'),
 (29, 'Instrumental', 'Nhạc không lời, tập trung vào giai điệu và nhạc cụ.', '2025-11-08 21:08:20'),
 (30, 'Children', 'Nhạc thiếu nhi, vui tươi, trong sáng, dành cho trẻ em.', '2025-11-08 21:08:20');
 
@@ -717,66 +734,6 @@ CREATE TABLE `listening_history` (
 --
 
 INSERT INTO `listening_history` (`id`, `user_id`, `song_id`, `listened_at`) VALUES
-(151, 32, 24, '2025-11-16 16:48:24'),
-(154, 32, 2, '2025-11-16 16:54:45'),
-(155, 32, 3, '2025-11-16 16:54:46'),
-(159, 32, 35, '2025-11-16 16:54:57'),
-(162, 32, 71, '2025-11-17 04:23:05'),
-(163, 32, 64, '2025-11-17 04:23:14'),
-(168, 32, 44, '2025-11-17 04:53:35'),
-(169, 32, 45, '2025-11-17 04:57:53'),
-(172, 32, 35, '2025-11-17 05:22:53'),
-(174, 32, 72, '2025-11-17 10:02:06'),
-(175, 32, 45, '2025-11-17 10:03:16'),
-(176, 32, 26, '2025-11-17 10:04:03'),
-(177, 32, 3, '2025-11-17 10:04:04'),
-(180, 32, 1, '2025-11-17 11:01:38'),
-(183, 32, 30, '2025-11-17 11:09:01'),
-(184, 32, 19, '2025-11-17 11:09:05'),
-(186, 32, 18, '2025-11-17 11:30:41'),
-(189, 32, 35, '2025-11-17 11:36:52'),
-(190, 32, 25, '2025-11-17 11:38:49'),
-(191, 32, 3, '2025-11-17 11:39:23'),
-(192, 32, 72, '2025-11-17 12:30:49'),
-(193, 32, 35, '2025-11-17 12:49:27'),
-(194, 32, 64, '2025-11-17 13:16:08'),
-(195, 32, 64, '2025-11-17 14:24:23'),
-(196, 32, 35, '2025-11-17 14:24:32'),
-(198, 32, 64, '2025-11-17 23:18:52'),
-(202, 32, 24, '2025-11-18 15:10:56'),
-(203, 32, 45, '2025-11-18 16:31:02'),
-(204, 32, 18, '2025-11-18 17:00:11'),
-(205, 32, 64, '2025-11-18 17:14:32'),
-(208, 32, 35, '2025-11-19 03:15:06'),
-(210, 32, 64, '2025-11-19 03:29:29'),
-(211, 32, 44, '2025-11-19 03:29:40'),
-(219, 32, 22, '2025-11-19 23:38:41'),
-(220, 32, 3, '2025-11-19 23:38:47'),
-(221, 32, 26, '2025-11-19 23:51:34'),
-(223, 32, 18, '2025-11-19 23:52:38'),
-(224, 32, 19, '2025-11-19 23:52:42'),
-(226, 32, 44, '2025-11-19 23:52:56'),
-(231, 32, 35, '2025-11-20 17:13:37'),
-(233, 32, 29, '2025-11-20 17:45:00'),
-(234, 32, 64, '2025-11-20 17:45:17'),
-(236, 32, 25, '2025-11-20 17:47:02'),
-(238, 32, 26, '2025-11-20 17:50:04'),
-(239, 32, 30, '2025-11-20 17:54:21'),
-(240, 32, 22, '2025-11-20 17:54:31'),
-(241, 32, 2, '2025-11-20 17:54:34'),
-(242, 32, 24, '2025-11-20 18:23:48'),
-(248, 32, 45, '2025-11-20 18:39:21'),
-(250, 32, 35, '2025-11-20 23:07:33'),
-(257, 32, 19, '2025-11-20 23:10:03'),
-(261, 32, 30, '2025-11-20 23:16:30'),
-(262, 32, 64, '2025-11-20 23:23:42'),
-(265, 32, 26, '2025-11-20 23:32:30'),
-(266, 32, 3, '2025-11-20 23:32:31'),
-(267, 32, 44, '2025-11-20 23:32:33'),
-(269, 32, 35, '2025-11-21 03:11:35'),
-(272, 32, 44, '2025-11-21 12:16:43'),
-(273, 32, 35, '2025-11-21 12:16:58'),
-(274, 32, 88, '2025-11-23 03:49:06'),
 (276, 46, 35, '2025-11-27 00:28:13'),
 (277, 46, 89, '2025-11-29 00:10:05'),
 (278, 46, 71, '2025-11-29 00:10:44'),
@@ -809,13 +766,47 @@ INSERT INTO `listening_history` (`id`, `user_id`, `song_id`, `listened_at`) VALU
 (314, 48, 24, '2025-12-05 13:36:10'),
 (315, 48, 26, '2025-12-05 13:36:17'),
 (316, 48, 25, '2025-12-05 13:36:23'),
+(317, 48, 28, '2025-12-05 13:36:25'),
 (318, 48, 22, '2025-12-05 13:36:53'),
 (319, 48, 35, '2025-12-05 13:41:40'),
 (320, 46, 26, '2025-12-09 02:48:56'),
 (321, 48, 35, '2025-12-09 03:08:43'),
 (322, 48, 18, '2025-12-09 03:08:51'),
 (323, 48, 77, '2025-12-09 03:18:07'),
-(324, 48, 89, '2025-12-09 03:18:17');
+(324, 48, 89, '2025-12-09 03:18:17'),
+(325, 48, 26, '2025-12-09 04:44:13'),
+(326, 48, 25, '2025-12-09 04:44:19'),
+(327, 48, 30, '2025-12-09 04:44:22'),
+(328, 48, 16, '2025-12-09 07:23:58'),
+(329, 48, 40, '2025-12-09 07:59:15'),
+(330, 48, 89, '2025-12-09 09:55:44'),
+(331, 48, 93, '2025-12-09 11:25:37'),
+(333, 48, 16, '2025-12-09 11:34:33'),
+(334, 48, 95, '2025-12-09 11:49:15'),
+(335, 48, 89, '2025-12-10 00:46:13'),
+(340, 50, 64, '2025-12-20 02:53:25'),
+(341, 50, 18, '2025-12-20 02:53:43'),
+(342, 46, 88, '2025-12-20 04:19:14'),
+(343, 46, 89, '2025-12-20 04:19:16'),
+(344, 46, 45, '2025-12-20 04:19:26');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `music_providers`
+--
+
+CREATE TABLE `music_providers` (
+  `provider_id` int(11) NOT NULL,
+  `name` varchar(150) NOT NULL,
+  `contact_email` varchar(150) DEFAULT NULL,
+  `contact_phone` varchar(50) DEFAULT NULL,
+  `website` varchar(255) DEFAULT NULL,
+  `address` text DEFAULT NULL,
+  `status` enum('active','inactive') DEFAULT 'active',
+  `created_at` timestamp NULL DEFAULT current_timestamp(),
+  `updated_at` timestamp NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- --------------------------------------------------------
 
@@ -837,17 +828,8 @@ CREATE TABLE `playlists` (
 --
 
 INSERT INTO `playlists` (`playlist_id`, `user_id`, `name`, `is_public`, `created_at`, `updated_at`) VALUES
-(4, 32, 'chill guy 9', 0, '2025-11-17 05:05:15', '2025-11-17 05:23:30'),
-(5, 32, 'chill guy 2', 0, '2025-11-17 05:05:58', '2025-11-17 05:05:58'),
-(6, 32, 'chill guy 3', 0, '2025-11-17 12:32:02', '2025-11-17 12:32:02'),
-(7, 32, 'chill guy 4', 0, '2025-11-17 12:35:10', '2025-11-17 12:35:10'),
-(9, 32, 'chil guy 22', 0, '2025-11-17 13:15:54', '2025-11-17 13:27:25'),
-(35, 32, 'cgg', 0, '2025-11-19 03:45:30', '2025-11-19 03:45:30'),
-(36, 32, 'abc', 0, '2025-11-20 17:00:58', '2025-11-20 17:00:58'),
-(37, 32, 'kkk', 0, '2025-11-20 17:30:05', '2025-11-20 17:30:05'),
 (48, 46, 'chill 1', 0, '2025-12-02 22:16:41', '2025-12-02 22:16:41'),
-(51, 49, '123', 1, '2025-12-09 04:10:34', '2025-12-09 04:10:34'),
-(52, 49, '132214', 1, '2025-12-09 05:11:27', '2025-12-09 05:11:27');
+(52, 50, 'hung khoi', 0, '2025-12-20 02:54:41', '2025-12-20 02:55:22');
 
 -- --------------------------------------------------------
 
@@ -866,28 +848,6 @@ CREATE TABLE `playlist_songs` (
 --
 
 INSERT INTO `playlist_songs` (`playlist_id`, `song_id`, `added_at`) VALUES
-(4, 1, '2025-12-03 05:08:07'),
-(4, 64, '2025-11-17 05:23:01'),
-(5, 35, '2025-11-17 10:02:47'),
-(5, 64, '2025-11-17 10:02:56'),
-(5, 72, '2025-11-17 05:22:25'),
-(6, 35, '2025-11-17 12:55:06'),
-(6, 64, '2025-11-17 12:54:40'),
-(7, 35, '2025-11-17 12:49:33'),
-(7, 64, '2025-11-17 12:50:12'),
-(9, 64, '2025-11-17 13:16:02'),
-(9, 68, '2025-11-17 13:27:55'),
-(9, 69, '2025-11-17 13:27:54'),
-(9, 70, '2025-11-17 13:27:53'),
-(9, 71, '2025-11-17 13:27:46'),
-(35, 26, '2025-11-20 17:00:49'),
-(35, 64, '2025-11-19 03:45:53'),
-(36, 35, '2025-11-20 17:18:33'),
-(36, 64, '2025-11-20 17:19:16'),
-(37, 18, '2025-11-20 23:40:30'),
-(37, 30, '2025-11-20 23:40:20'),
-(37, 35, '2025-11-20 23:40:22'),
-(37, 64, '2025-11-20 17:37:27'),
 (48, 16, '2025-12-05 12:37:41'),
 (48, 18, '2025-12-02 22:29:50'),
 (48, 26, '2025-12-05 12:37:13'),
@@ -896,14 +856,10 @@ INSERT INTO `playlist_songs` (`playlist_id`, `song_id`, `added_at`) VALUES
 (48, 35, '2025-12-02 22:17:53'),
 (48, 40, '2025-12-05 12:36:19'),
 (48, 64, '2025-12-02 22:17:55'),
-(51, 2, '2025-12-09 05:11:24'),
-(51, 3, '2025-12-09 05:11:31'),
-(51, 30, '2025-12-19 17:58:45'),
-(52, 3, '2025-12-09 05:11:35'),
-(52, 30, '2025-12-19 17:58:44'),
-(52, 35, '2025-12-20 10:16:51'),
-(52, 94, '2025-12-19 17:49:36'),
-(52, 95, '2025-12-20 10:16:34');
+(52, 29, '2025-12-20 02:57:58'),
+(52, 40, '2025-12-20 02:57:59'),
+(52, 59, '2025-12-20 02:57:57'),
+(52, 98, '2025-12-20 02:55:59');
 
 -- --------------------------------------------------------
 
@@ -922,49 +878,53 @@ CREATE TABLE `songs` (
   `play_count` bigint(20) DEFAULT 0,
   `created_at` timestamp NULL DEFAULT current_timestamp(),
   `updated_at` timestamp NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
-  `is_top` tinyint(1) DEFAULT 0
+  `is_top` tinyint(1) DEFAULT 0,
+  `provider_id` int(11) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 --
 -- Dumping data for table `songs`
 --
 
-INSERT INTO `songs` (`song_id`, `title`, `genre_id`, `duration`, `audio_url`, `cover_url`, `release_date`, `play_count`, `created_at`, `updated_at`, `is_top`) VALUES
-(1, 'Love Story', 1, 230, 'http://10.0.2.2:8081/music_API/online_music/audio/love_story.mp3', 'http://localhost:8081/music_API/online_music/cover/taylor_swift_love_story.jpg', NULL, 4, '2025-11-08 21:08:26', '2025-12-09 06:46:51', 0),
-(2, 'Shape of You', 1, 240, 'http://10.0.2.2:8081/music_API/online_music/audio/shape_of_you.mp3', 'http://10.0.2.2:8081/music_API/online_music/cover/ed_sheeran_shape_of_you.jpg', NULL, 16, '2025-11-08 21:08:26', '2025-12-05 12:37:30', 0),
-(3, 'Perfect', 1, 263, 'http://10.0.2.2:8081/music_API/online_music/audio/perfect.mp3', 'http://10.0.2.2:8081/music_API/online_music/cover/ed_sheeran_perfect.jpg', NULL, 16, '2025-11-08 21:08:26', '2025-12-05 09:41:55', 0),
-(16, 'Nếu Anh Đi', 25, 245, 'http://10.0.2.2:8081/music_API/online_music/audio/neu_anh_di.mp3', 'http://10.0.2.2:8081/music_API/online_music/cover/my_tam_neu_anh_di.jpg', NULL, 5, '2025-11-08 21:08:26', '2025-12-05 10:25:49', 0),
-(18, 'Tình Phai', 25, 0, 'http://10.0.2.2:8081/music_API/online_music/audio/tinh_phai.mp3', 'http://10.0.2.2:8081/music_API/online_music/cover/kieu_phong_ryot_tinh_phai.jpeg', NULL, 26, '2025-11-08 22:20:26', '2025-12-09 03:08:51', 0),
-(19, 'Chắc Ai Đó Sẽ Về', 25, 0, 'http://10.0.2.2:8081/music_API/online_music/audio/chac_ai_do_se_ve.mp3', 'http://10.0.2.2:8081/music_API/online_music/cover/son_chac_ai_do_se_ve.jpeg', NULL, 10, '2025-11-08 22:29:14', '2025-12-05 12:35:25', 0),
-(22, 'Không Buông', 25, 0, 'http://10.0.2.2:8081/music_API/online_music/audio/khong_buong.mp3', 'http://10.0.2.2:8081/music_API/online_music/cover/hngle_ari_khong_buong.jpeg', NULL, 14, '2025-11-10 14:21:55', '2025-12-05 14:15:59', 1),
-(24, 'Em', 25, 0, 'http://10.0.2.2:8081/music_API/online_music/audio/em.mp3', 'http://10.0.2.2:8081/music_API/online_music/cover/binz_em.jpeg', '2025-11-10', 23, '2025-11-10 15:08:38', '2025-12-05 14:15:48', 1),
-(25, 'In Love', 25, 0, 'http://10.0.2.2:8081/music_API/online_music/audio/in_love.mp3', 'http://10.0.2.2:8081/music_API/online_music/cover/low_g_justatee_in_love.jpeg', NULL, 19, '2025-11-10 15:12:21', '2025-12-05 14:15:46', 1),
-(26, 'Quyền Yếu Đuối', 25, 0, 'http://10.0.2.2:8081/music_API/online_music/audio/quyen_yeu_duoi.mp3', 'http://10.0.2.2:8081/music_API/online_music/cover/miina_rin9_dreamer_quyen_yeu_duoi.jpeg', NULL, 22, '2025-11-10 15:14:00', '2025-12-09 02:48:56', 1),
-(29, 'Ngày Này Năm Ấy', 25, 0, 'http://10.0.2.2:8081/music_API/online_music/audio/ngay_nay_nam_ay.mp3', 'http://10.0.2.2:8081/music_API/online_music/cover/viet_anh_ngay_nay_nam_ay.jpeg', NULL, 25, '2025-11-10 15:49:13', '2025-12-05 14:16:27', 1),
-(30, 'NGƯỜI NHƯ ANH XỨNG ĐÁNG CÔ ĐƠN', 25, 0, 'http://10.0.2.2:8081/music_API/online_music/audio/nguoi_nhu_anh_xung_dang_co_don.mp3', 'http://10.0.2.2:8081/music_API/online_music/cover/anh_trai_say_hi_vu_cat_tuong_karik_nguoi_nhu_anh_xung_dang_co_don.jpeg', NULL, 84, '2025-11-10 15:54:00', '2025-12-05 14:26:42', 1),
-(35, 'Em Gì Ơi', 25, 0, 'http://10.0.2.2:8081/music_API/online_music/audio/em_gi_oi.mp3', 'http://10.0.2.2:8081/music_API/online_music/cover/jack_j97_em_gi_oi.jpeg', NULL, 51, '2025-11-11 21:21:20', '2025-12-09 03:08:43', 0),
-(40, 'Gieo Quẻ', 25, 0, 'http://10.0.2.2:8081/music_API/online_music/audio/gieo_que.mp3', 'http://10.0.2.2:8081/music_API/online_music/cover/hoang_thuy_linh_en_gieo_que.jpeg', NULL, 10, '2025-11-12 00:08:34', '2025-12-05 06:07:18', 0),
-(44, 'Beat It', 1, 0, 'http://10.0.2.2:8081/music_API/online_music/audio/beat_it.mp3', 'https://upload.wikimedia.org/wikipedia/vi/6/65/Michael_Jackson_-_Beat_It_cover.jpg', NULL, 10, '2025-11-16 17:19:54', '2025-12-05 06:07:18', 0),
-(45, 'Waka Waka', 1, 0, 'http://10.0.2.2:8081/music_API/online_music/audio/waka_waka.mp3', 'http://10.0.2.2:8081/music_API/online_music/cover/_waka_waka.jpeg', NULL, 8, '2025-11-16 17:38:30', '2025-12-05 06:07:18', 0),
-(54, 'Jar Of Love', 1, 0, 'http://10.0.2.2:8081/music_API/online_music/audio/jar_of_love.mp3', 'http://10.0.2.2:8081/music_API/online_music/cover/_jar_of_love.jpeg', NULL, 0, '2025-11-16 18:09:42', '2025-12-05 06:07:18', 0),
-(59, 'Lemon', 15, 0, 'http://10.0.2.2:8081/music_API/online_music/audio/lemon.mp3', 'http://10.0.2.2:8081/music_API/online_music/cover/_lemon.jpeg', NULL, 0, '2025-11-16 18:21:50', '2025-12-05 06:07:18', 0),
-(60, 'Shinunoga E-Wa', 15, 0, 'http://10.0.2.2:8081/music_API/online_music/audio/shinunoga_e_wa.mp3', 'http://10.0.2.2:8081/music_API/online_music/cover/_shinunoga_e_wa.jpeg', NULL, 0, '2025-11-16 18:22:31', '2025-12-05 06:07:18', 0),
-(61, 'Yoru Ni Kakeru / 夜に駆ける', 15, 0, 'http://10.0.2.2:8081/music_API/online_music/audio/yoru_ni_kakeru_夜に駆ける.mp3', 'http://10.0.2.2:8081/music_API/online_music/cover/_yoru_ni_kakeru.jpeg', NULL, 0, '2025-11-16 18:23:08', '2025-12-05 06:07:18', 0),
-(62, 'Idol / アイドル', 15, 0, 'http://10.0.2.2:8081/music_API/online_music/audio/idoi_アイドル.mp3', 'http://10.0.2.2:8081/music_API/online_music/cover/_idoi.jpeg', NULL, 0, '2025-11-16 18:23:50', '2025-12-05 06:07:18', 0),
-(63, 'まつり', 15, 0, 'http://10.0.2.2:8081/music_API/online_music/audio/まつり.mp3', 'http://10.0.2.2:8081/music_API/online_music/cover/_.jpeg', NULL, 0, '2025-11-16 18:24:57', '2025-12-05 06:07:18', 0),
-(64, 'Cry For Me', 15, 0, 'http://10.0.2.2:8081/music_API/online_music/audio/cry_for_me.mp3', 'http://10.0.2.2:8081/music_API/online_music/cover/_cry_for_me.jpeg', NULL, 35, '2025-11-16 18:29:32', '2025-12-05 12:19:44', 0),
-(65, 'Fiction', 14, 0, 'http://10.0.2.2:8081/music_API/online_music/audio/fiction.mp3', 'http://10.0.2.2:8081/music_API/online_music/cover/_fiction.jpeg', NULL, 0, '2025-11-16 18:38:22', '2025-12-05 06:07:18', 0),
-(67, 'The Boys', 14, 0, 'http://10.0.2.2:8081/music_API/online_music/audio/the_boys.mp3', 'http://10.0.2.2:8081/music_API/online_music/cover/_the_boys.jpeg', NULL, 0, '2025-11-16 18:40:02', '2025-12-05 06:07:18', 0),
-(68, 'Fantastic Baby', 14, 0, 'http://10.0.2.2:8081/music_API/online_music/audio/fantastic_baby.mp3', 'http://10.0.2.2:8081/music_API/online_music/cover/_fantastic_baby.jpeg', NULL, 0, '2025-11-16 18:40:42', '2025-12-05 06:07:18', 0),
-(69, 'Island', 14, 0, 'http://10.0.2.2:8081/music_API/online_music/audio/island.mp3', 'http://10.0.2.2:8081/music_API/online_music/cover/_island.jpeg', NULL, 0, '2025-11-16 18:41:28', '2025-12-05 06:07:18', 0),
-(70, 'FAKE LOVE', 14, 0, 'http://10.0.2.2:8081/music_API/online_music/audio/fake_love.mp3', 'http://10.0.2.2:8081/music_API/online_music/cover/_fake_love.jpeg', NULL, 0, '2025-11-16 18:42:01', '2025-12-05 06:07:18', 0),
-(71, 'Gangnam Style', 14, 0, 'http://10.0.2.2:8081/music_API/online_music/audio/gangnam_style.mp3', 'http://10.0.2.2:8081/music_API/online_music/cover/_gangnam_style.jpeg', NULL, 2, '2025-11-16 18:42:33', '2025-12-05 06:07:18', 0),
-(72, 'Nobody', 14, 0, 'http://10.0.2.2:8081/music_API/online_music/audio/nobody.mp3', 'http://10.0.2.2:8081/music_API/online_music/cover/_nobody.jpeg', NULL, 3, '2025-11-16 18:43:18', '2025-12-05 06:07:18', 0),
-(77, 'Em Của Ngày Hôm Qua', 25, 0, 'http://10.0.2.2:8081/music_API/online_music/audio/em_cua_ngay_hom_qua.mp3', 'https://upload.wikimedia.org/wikipedia/vi/5/5d/Em_c%E1%BB%A7a_ng%C3%A0y_h%C3%B4m_qua.png', NULL, 3, '2025-11-23 03:20:30', '2025-12-09 03:18:07', 0),
-(88, 'Vực Thẩm Của Bình Yên', 25, 0, 'http://10.0.2.2:8081/music_API/online_music/audio/vuc_tham_cua_binh_yen.mp3', 'https://th.bing.com/th/id/OIP.7c1u1TSEKaZqKAOx8rezbwHaHa?w=154&h=180&c=7&r=0&o=7&dpr=1.3&pid=1.7&rm=3', NULL, 22, '2025-11-23 03:47:36', '2025-12-09 07:25:17', 0),
-(89, 'Năm Tháng Ấy', 25, 151, 'http://10.0.2.2:8081/music_API/online_music/audio/greend_nam_thang_y_1764374805.mp3', 'https://th.bing.com/th/id/OIP.Jxcyu8aKpD8AvvJxSTmUbQHaEK?w=314&h=180&c=7&r=0&o=7&dpr=1.3&pid=1.7&rm=3', NULL, 6, '2025-11-29 00:06:46', '2025-12-09 07:25:52', 0),
-(94, 'Chẳng phải', 20, 239, 'http://10.0.2.2:8081/music_API/online_music/audio/buitruonglinh_chang_phai_1765262357.mp3', 'https://image-cdn.nct.vn/song/2025/10/22/B/m/W/i/1761146738378_300.jpg', NULL, 0, '2025-12-09 06:39:17', '2025-12-09 06:39:17', 0),
-(95, 'Ai biết', 28, 239, 'http://10.0.2.2:8081/music_API/online_music/audio/negav_ai_biet_1765266635.mp3', 'http://10.0.2.2:8081/music_API/online_music/cover/negav_ai_biet_cover_1765266635.jpg', NULL, 0, '2025-12-09 07:50:35', '2025-12-09 07:50:35', 0);
+INSERT INTO `songs` (`song_id`, `title`, `genre_id`, `duration`, `audio_url`, `cover_url`, `release_date`, `play_count`, `created_at`, `updated_at`, `is_top`, `provider_id`) VALUES
+(1, 'Love Story', 1, 230, 'http://10.0.2.2:8081/music_API/online_music/audio/love_story.mp3', 'http://10.0.2.2:8081/music_API/online_music/cover/taylor_swift_love_story.jpg', NULL, 4, '2025-11-08 21:08:26', '2025-12-05 13:14:00', 0, NULL),
+(2, 'Shape of You', 1, 240, 'http://10.0.2.2:8081/music_API/online_music/audio/shape_of_you.mp3', 'http://10.0.2.2:8081/music_API/online_music/cover/ed_sheeran_shape_of_you.jpg', NULL, 16, '2025-11-08 21:08:26', '2025-12-05 12:37:30', 0, NULL),
+(3, 'Perfect', 1, 263, 'http://10.0.2.2:8081/music_API/online_music/audio/perfect.mp3', 'http://10.0.2.2:8081/music_API/online_music/cover/ed_sheeran_perfect.jpg', NULL, 16, '2025-11-08 21:08:26', '2025-12-05 09:41:55', 0, NULL),
+(16, 'Nếu Anh Đi', 25, 245, 'http://10.0.2.2:8081/music_API/online_music/audio/neu_anh_di.mp3', 'http://10.0.2.2:8081/music_API/online_music/cover/my_tam_neu_anh_di.jpg', NULL, 7, '2025-11-08 21:08:26', '2025-12-09 11:34:33', 0, NULL),
+(18, 'Tình Phai', 25, 0, 'http://10.0.2.2:8081/music_API/online_music/audio/tinh_phai.mp3', 'http://10.0.2.2:8081/music_API/online_music/cover/kieu_phong_ryot_tinh_phai.jpeg', NULL, 28, '2025-11-08 22:20:26', '2025-12-20 02:53:43', 0, NULL),
+(19, 'Chắc Ai Đó Sẽ Về', 25, 0, 'http://10.0.2.2:8081/music_API/online_music/audio/chac_ai_do_se_ve.mp3', 'http://10.0.2.2:8081/music_API/online_music/cover/son_chac_ai_do_se_ve.jpeg', NULL, 12, '2025-11-08 22:29:14', '2025-12-17 04:32:15', 0, NULL),
+(22, 'Không Buông', 25, 0, 'http://10.0.2.2:8081/music_API/online_music/audio/khong_buong.mp3', 'http://10.0.2.2:8081/music_API/online_music/cover/hngle_ari_khong_buong.jpeg', NULL, 14, '2025-11-10 14:21:55', '2025-12-20 03:15:43', 1, NULL),
+(24, 'Em', 25, 0, 'http://10.0.2.2:8081/music_API/online_music/audio/em.mp3', 'http://10.0.2.2:8081/music_API/online_music/cover/binz_em.jpeg', '2025-11-10', 24, '2025-11-10 15:08:38', '2025-12-17 04:23:51', 0, NULL),
+(25, 'In Love', 25, 0, 'http://10.0.2.2:8081/music_API/online_music/audio/in_love.mp3', 'http://10.0.2.2:8081/music_API/online_music/cover/low_g_justatee_in_love.jpeg', NULL, 20, '2025-11-10 15:12:21', '2025-12-09 07:13:01', 0, NULL),
+(26, 'Quyền Yếu Đuối', 25, 0, 'http://10.0.2.2:8081/music_API/online_music/audio/quyen_yeu_duoi.mp3', 'http://10.0.2.2:8081/music_API/online_music/cover/miina_rin9_dreamer_quyen_yeu_duoi.jpeg', NULL, 24, '2025-11-10 15:14:00', '2025-12-20 03:15:43', 1, NULL),
+(28, 'Người Đầu Tiên', 25, 0, 'http://10.0.2.2:8081/music_API/online_music/audio/nguoi_dau_tien.mp3', 'http://10.0.2.2:8081/music_API/online_music/cover/buitruonglinh_nguoi_dau_tien.jpeg', NULL, 20, '2025-11-10 15:33:22', '2025-12-20 03:15:43', 1, NULL),
+(29, 'Ngày Này Năm Ấy', 25, 0, 'http://10.0.2.2:8081/music_API/online_music/audio/ngay_nay_nam_ay.mp3', 'http://10.0.2.2:8081/music_API/online_music/cover/viet_anh_ngay_nay_nam_ay.jpeg', NULL, 25, '2025-11-10 15:49:13', '2025-12-20 03:15:43', 1, NULL),
+(30, 'NGƯỜI NHƯ ANH XỨNG ĐÁNG CÔ ĐƠN', 25, 0, 'http://10.0.2.2:8081/music_API/online_music/audio/nguoi_nhu_anh_xung_dang_co_don.mp3', 'http://10.0.2.2:8081/music_API/online_music/cover/anh_trai_say_hi_vu_cat_tuong_karik_nguoi_nhu_anh_xung_dang_co_don.jpeg', NULL, 87, '2025-11-10 15:54:00', '2025-12-20 03:15:43', 1, NULL),
+(35, 'Em Gì Ơi', 25, 0, 'http://10.0.2.2:8081/music_API/online_music/audio/em_gi_oi.mp3', 'http://10.0.2.2:8081/music_API/online_music/cover/jack_j97_em_gi_oi.jpeg', NULL, 51, '2025-11-11 21:21:20', '2025-12-09 03:08:43', 0, NULL),
+(40, 'Gieo Quẻ', 25, 0, 'http://10.0.2.2:8081/music_API/online_music/audio/gieo_que.mp3', 'http://10.0.2.2:8081/music_API/online_music/cover/hoang_thuy_linh_en_gieo_que.jpeg', NULL, 11, '2025-11-12 00:08:34', '2025-12-09 07:59:15', 0, NULL),
+(44, 'Beat It', 1, 0, 'http://10.0.2.2:8081/music_API/online_music/audio/beat_it.mp3', 'https://upload.wikimedia.org/wikipedia/vi/6/65/Michael_Jackson_-_Beat_It_cover.jpg', NULL, 10, '2025-11-16 17:19:54', '2025-12-05 06:07:18', 0, NULL),
+(45, 'Waka Waka', 1, 0, 'http://10.0.2.2:8081/music_API/online_music/audio/waka_waka.mp3', 'http://10.0.2.2:8081/music_API/online_music/cover/_waka_waka.jpeg', NULL, 9, '2025-11-16 17:38:30', '2025-12-20 04:19:26', 0, NULL),
+(54, 'Jar Of Love', 1, 0, 'http://10.0.2.2:8081/music_API/online_music/audio/jar_of_love.mp3', 'http://10.0.2.2:8081/music_API/online_music/cover/_jar_of_love.jpeg', NULL, 0, '2025-11-16 18:09:42', '2025-12-20 03:15:43', 1, NULL),
+(59, 'Lemon', 15, 0, 'http://10.0.2.2:8081/music_API/online_music/audio/lemon.mp3', 'http://10.0.2.2:8081/music_API/online_music/cover/_lemon.jpeg', NULL, 0, '2025-11-16 18:21:50', '2025-12-20 03:15:43', 1, NULL),
+(60, 'Shinunoga E-Wa', 15, 0, 'http://10.0.2.2:8081/music_API/online_music/audio/shinunoga_e_wa.mp3', 'http://10.0.2.2:8081/music_API/online_music/cover/_shinunoga_e_wa.jpeg', NULL, 0, '2025-11-16 18:22:31', '2025-12-05 06:07:18', 0, NULL),
+(61, 'Yoru Ni Kakeru / 夜に駆ける', 15, 0, 'http://10.0.2.2:8081/music_API/online_music/audio/yoru_ni_kakeru_夜に駆ける.mp3', 'http://10.0.2.2:8081/music_API/online_music/cover/_yoru_ni_kakeru.jpeg', NULL, 0, '2025-11-16 18:23:08', '2025-12-05 06:07:18', 0, NULL),
+(62, 'Idol / アイドル', 15, 0, 'http://10.0.2.2:8081/music_API/online_music/audio/idoi_アイドル.mp3', 'http://10.0.2.2:8081/music_API/online_music/cover/_idoi.jpeg', NULL, 0, '2025-11-16 18:23:50', '2025-12-05 06:07:18', 0, NULL),
+(63, 'まつり', 15, 0, 'http://10.0.2.2:8081/music_API/online_music/audio/まつり.mp3', 'http://10.0.2.2:8081/music_API/online_music/cover/_.jpeg', NULL, 0, '2025-11-16 18:24:57', '2025-12-05 06:07:18', 0, NULL),
+(64, 'Cry For Me', 15, 0, 'http://10.0.2.2:8081/music_API/online_music/audio/cry_for_me.mp3', 'http://10.0.2.2:8081/music_API/online_music/cover/_cry_for_me.jpeg', NULL, 36, '2025-11-16 18:29:32', '2025-12-20 02:53:25', 0, NULL),
+(65, 'Fiction', 14, 0, 'http://10.0.2.2:8081/music_API/online_music/audio/fiction.mp3', 'http://10.0.2.2:8081/music_API/online_music/cover/_fiction.jpeg', NULL, 0, '2025-11-16 18:38:22', '2025-12-05 06:07:18', 0, NULL),
+(67, 'The Boys', 14, 0, 'http://10.0.2.2:8081/music_API/online_music/audio/the_boys.mp3', 'http://10.0.2.2:8081/music_API/online_music/cover/_the_boys.jpeg', NULL, 0, '2025-11-16 18:40:02', '2025-12-05 06:07:18', 0, NULL),
+(68, 'Fantastic Baby', 14, 0, 'http://10.0.2.2:8081/music_API/online_music/audio/fantastic_baby.mp3', 'http://10.0.2.2:8081/music_API/online_music/cover/_fantastic_baby.jpeg', NULL, 0, '2025-11-16 18:40:42', '2025-12-05 06:07:18', 0, NULL),
+(69, 'Island', 14, 0, 'http://10.0.2.2:8081/music_API/online_music/audio/island.mp3', 'http://10.0.2.2:8081/music_API/online_music/cover/_island.jpeg', NULL, 0, '2025-11-16 18:41:28', '2025-12-05 06:07:18', 0, NULL),
+(70, 'FAKE LOVE', 14, 0, 'http://10.0.2.2:8081/music_API/online_music/audio/fake_love.mp3', 'http://10.0.2.2:8081/music_API/online_music/cover/_fake_love.jpeg', NULL, 0, '2025-11-16 18:42:01', '2025-12-05 06:07:18', 0, NULL),
+(71, 'Gangnam Style', 14, 0, 'http://10.0.2.2:8081/music_API/online_music/audio/gangnam_style.mp3', 'http://10.0.2.2:8081/music_API/online_music/cover/_gangnam_style.jpeg', NULL, 2, '2025-11-16 18:42:33', '2025-12-05 06:07:18', 0, NULL),
+(72, 'Nobody', 14, 0, 'http://10.0.2.2:8081/music_API/online_music/audio/nobody.mp3', 'http://10.0.2.2:8081/music_API/online_music/cover/_nobody.jpeg', NULL, 3, '2025-11-16 18:43:18', '2025-12-05 06:07:18', 0, NULL),
+(77, 'Em Của Ngày Hôm Qua', 25, 0, 'http://10.0.2.2:8081/music_API/online_music/audio/em_cua_ngay_hom_qua.mp3', 'https://upload.wikimedia.org/wikipedia/vi/5/5d/Em_c%E1%BB%A7a_ng%C3%A0y_h%C3%B4m_qua.png', NULL, 3, '2025-11-23 03:20:30', '2025-12-09 03:18:07', 0, NULL),
+(88, 'Vực Thẩm Của Bình Yên', 25, 0, 'http://10.0.2.2:8081/music_API/online_music/audio/vuc_tham_cua_binh_yen.mp3', 'http://10.0.2.2:8081/music_API/online_music/cover/_vuc_tham_cua_binh_yen.jpeg', NULL, 23, '2025-11-23 03:47:36', '2025-12-20 04:19:14', 1, NULL),
+(89, 'Năm Tháng Ấy', 25, 151, 'http://10.0.2.2:8081/music_API/online_music/audio/greend_nam_thang_y_1764374805.mp3', 'http://10.0.2.2:8081/music_API/online_music/cover/greend_nam_thang_y_cover_1764374806.jpg', NULL, 10, '2025-11-29 00:06:46', '2025-12-20 04:19:16', 1, NULL),
+(93, 'Âm Thầm Bên Em', 25, 233, 'http://10.0.2.2:8081/music_API/online_music/audio/son_tung_m_tp_m_tham_ben_em_1765279506.mp3', 'https://photo-resize-zmp3.zadn.vn/w600_r1x1_jpeg/cover/a/3/1/c/a31cdf3a266dfa3fcbc586613c70ed52.jpg', NULL, 1, '2025-12-09 11:25:06', '2025-12-09 11:25:37', 0, NULL),
+(95, 'Nơi Này Có Anh', 25, 208, 'http://10.0.2.2:8081/music_API/online_music/audio/son_tung_m_tp_noi_nay_co_anh_1765280925.mp3', 'http://10.0.2.2:8081/music_API/online_music/cover/son_tung_m_tp_noi_nay_co_anh_cover_1765280925.jpg', NULL, 2, '2025-12-09 11:48:45', '2025-12-09 11:50:50', 0, NULL),
+(97, 'Thói Quen', 25, 180, 'http://10.0.2.2:8081/music_API/online_music/audio/b_ray_thoi_quen_1765332455.mp3', 'http://10.0.2.2:8081/music_API/online_music/cover/b_ray_thoi_quen_cover_1765332455.jpg', NULL, 1, '2025-12-10 02:07:35', '2025-12-17 04:36:37', 0, NULL),
+(98, 'Song Sắt', 25, 212, 'http://10.0.2.2:8081/music_API/online_music/audio/b_ray_song_sat_1765332504.mp3', 'http://10.0.2.2:8081/music_API/online_music/cover/b_ray_song_sat_cover_1765332504.jpg', NULL, 0, '2025-12-10 02:08:24', '2025-12-20 03:15:43', 1, NULL);
 
 -- --------------------------------------------------------
 
@@ -983,8 +943,12 @@ CREATE TABLE `song_artists` (
 --
 
 INSERT INTO `song_artists` (`id`, `song_id`, `artist_id`) VALUES
+(5, 89, 118),
+(6, 88, 14),
 (8, 77, 11),
 (9, 72, 102),
+(12, 28, 120),
+(13, 28, 119),
 (14, 30, 125),
 (15, 30, 122),
 (16, 30, 123),
@@ -1024,14 +988,11 @@ INSERT INTO `song_artists` (`id`, `song_id`, `artist_id`) VALUES
 (53, 16, 15),
 (54, 3, 2),
 (55, 2, 2),
-(58, 94, 120),
-(59, 94, 123),
-(60, 1, 1),
-(61, 1, 123),
-(62, 88, 14),
-(63, 89, 118),
-(64, 95, 123),
-(65, 95, 120);
+(56, 1, 1),
+(57, 93, 11),
+(59, 95, 11),
+(62, 97, 145),
+(63, 98, 145);
 
 -- --------------------------------------------------------
 
@@ -1053,7 +1014,7 @@ CREATE TABLE `subscription_plans` (
   `renewal_discount` decimal(5,2) DEFAULT 0.00,
   `created_at` timestamp NULL DEFAULT current_timestamp(),
   `updated_at` timestamp NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ;
 
 --
 -- Dumping data for table `subscription_plans`
@@ -1062,7 +1023,8 @@ CREATE TABLE `subscription_plans` (
 INSERT INTO `subscription_plans` (`id`, `name`, `description`, `price`, `currency`, `audio_quality`, `ad_free`, `duration_days`, `trial_period_days`, `is_renewable`, `renewal_discount`, `created_at`, `updated_at`) VALUES
 (1, '1 tháng', 'Nghe nhạc không quảng cáo, tải offline', 49000.00, 'VND', 'high', 1, 30, 0, 1, 0.00, '2025-11-11 12:17:07', '2025-11-11 12:17:07'),
 (2, '3 tháng', 'Gói 3 tháng ưu đãi', 129000.00, 'VND', 'high', 1, 90, 0, 1, 0.00, '2025-11-11 12:17:07', '2025-11-11 12:17:07'),
-(3, '1 năm', 'Gói 1 năm tiết kiệm', 499000.00, 'VND', 'high', 1, 365, 0, 1, 0.00, '2025-11-11 12:17:07', '2025-11-11 12:17:07');
+(3, '1 năm', 'Gói 1 năm tiết kiệm', 499000.00, 'VND', 'high', 1, 365, 0, 1, 0.00, '2025-11-11 12:17:07', '2025-11-11 12:17:07'),
+(8, '10 năm', 'abc', 500000.00, 'USD', 'standard', 0, 9000, 0, 1, 0.00, '2025-12-20 03:28:49', '2025-12-20 03:28:49');
 
 -- --------------------------------------------------------
 
@@ -1090,13 +1052,10 @@ INSERT INTO `transactions` (`id`, `user_id`, `plan_id`, `plan_name`, `amount`, `
 ('1764818759513', 46, 1, '1 tháng', 49000, 'pending', 'VNPay', '20251204102559', '2025-12-04 10:25:59'),
 ('1764821857395', 46, 1, '1 tháng', 49000, 'completed', 'VNPay', '20251204111819', '2025-12-04 11:17:37'),
 ('1764939034799', 48, 1, '1 tháng', 49000, 'pending', 'VNPay', '20251205195034', '2025-12-05 19:50:34'),
-('POnlineMusicWeb_1764713522221_319', 32, 3, '1 năm', 499000, 'completed', 'VNPay', '20251203051224', '2025-12-03 05:12:02'),
-('POnlineMusicWeb_1765262967060_321', 49, 3, '1 năm', 499000, 'pending', 'VNPay', NULL, '2025-12-09 13:49:27'),
-('POnlineMusicWeb_1765330964291_545', 50, 3, '1 năm', 499000, 'completed', 'VNPay', '20251210084314', '2025-12-10 08:42:44'),
-('POnlineMusicWeb_1766221965574_896', 51, 3, '1 năm', 499000, 'pending', 'VNPay', NULL, '2025-12-20 16:12:45'),
-('POnlineMusicWeb_1766222471176_774', 51, 3, '1 năm', 499000, 'pending', 'VNPay', NULL, '2025-12-20 16:21:11'),
-('POnlineMusicWeb_1766222514831_813', 51, 3, '1 năm', 499000, 'pending', 'VNPay', NULL, '2025-12-20 16:21:54'),
-('POnlineMusicWeb_1766224697993_991', 49, 1, '1 tháng', 49000, 'pending', 'VNPay', NULL, '2025-12-20 16:58:17');
+('1766199799452', 50, 1, '1 tháng', 49000, 'completed', 'VNPay', '20251220100409', '2025-12-20 10:03:19'),
+('POnlineMusicWeb_1765284240459_44', 48, 1, '1 tháng', 49000, 'completed', 'VNPay', '20251209194432', '2025-12-09 19:44:00'),
+('POnlineMusicWeb_1765721473642_837', 48, 1, '1 tháng', 49000, 'pending', 'VNPay', NULL, '2025-12-14 21:11:13'),
+('POnlineMusicWeb_1766045677529_476', 48, 2, '3 tháng', 129000, 'completed', 'VNPay', '20251218151523', '2025-12-18 15:14:37');
 
 -- --------------------------------------------------------
 
@@ -1123,13 +1082,11 @@ CREATE TABLE `users` (
 --
 
 INSERT INTO `users` (`id`, `username`, `email`, `phone_number`, `password_hash`, `avatar_url`, `date_of_birth`, `role`, `status`, `created_at`, `updated_at`) VALUES
-(32, 'Thanh Đình', 'thanhdinh1806.tphcm@gmail.com', NULL, '#', 'https://lh3.googleusercontent.com/a/ACg8ocLB1hb9PlcCAsBXVLL5121WlKlpe8hulQkAyto4nEYhPJjpcQ=s96-c', NULL, 'user', 'active', '2025-11-16 16:47:58', '2025-11-16 16:47:58'),
 (46, 'Thanh Đình Nguyễn Ngô', 'nguyenngothanhdinh.hvt@gmail.com', NULL, '#', 'https://lh3.googleusercontent.com/a/ACg8ocKYNfyZ4lXvrH2w4nQ1Xwu7AVk-pHcwzF5R3AmxuazRfliC_GM=s96-c', NULL, 'user', 'active', '2025-11-23 03:04:45', '2025-11-23 03:04:45'),
-(47, 'admin1', 'admin1@example.com', '0329944649', '$2b$10$rvT23fNdcAhCQ7GHUGxUOe/BNBIxk3dBUad2U9P5Er7u8NYP/6LhS', '/uploads/avatars/avatar-1763870616661-108530077.jpg', '1989-12-31', 'admin', 'active', '2025-11-23 03:58:15', '2025-12-05 06:09:26'),
 (48, 'Đình Thanh', 'dangthanhdinh.1806@gmail.com', NULL, '#', 'https://lh3.googleusercontent.com/a/ACg8ocI-qcPPlV369oRzT9J0EGoqU8jrfHxLFfTdue7czOSzHRWLtA=s96-c', NULL, 'user', 'active', '2025-12-05 09:50:25', '2025-12-05 09:50:25'),
-(49, 'Nguyễn Hồng Huy Bảo', 'huybaonguyenhong@gmail.com', NULL, '$2a$10$GOOGLE_OAUTH_USER_NO_PASSWORD_HASH_PLACEHOLDER', 'https://lh3.googleusercontent.com/a/ACg8ocJV4KAFwgJWm_3xNMcT3zT9w7CwEWizjzsKwwkTkgXwcjuxQoFh=s96-c', NULL, 'user', 'active', '2025-12-09 03:38:47', '2025-12-19 17:48:38'),
-(50, 'Nguyen Huy Bao', 'huybaonguyen2004@gmail.com', NULL, '$2a$10$GOOGLE_OAUTH_USER_NO_PASSWORD_HASH_PLACEHOLDER', 'https://lh3.googleusercontent.com/a/ACg8ocLLZvAeSvdwNdFrUEqw7lrMfTWItaavMQGUg3w9SbTmYqQr8w=s96-c', NULL, 'user', 'active', '2025-12-10 01:42:28', '2025-12-10 01:42:28'),
-(51, NULL, 'nammo@gmail.com', NULL, '$2b$10$WFfH419Boj.o9Z4NfS.Z7OEhjEEQbaJ5tBmUMya6EMh6QaHyz703a', NULL, NULL, 'user', 'active', '2025-12-20 09:12:13', '2025-12-20 09:12:13');
+(49, 'admin1', 'admin1@example.com', '0329944649', '$2b$10$7qj7fCw.XklpRSYlb/QKNuvRszjpxLkw7lJfWCVZOYUg2vLD51GGi', 'https://icons.iconarchive.com/icons/papirus-team/papirus-status/512/avatar-default-icon.png', '1990-01-01', 'admin', 'active', '2025-12-10 03:22:27', '2025-12-20 03:12:15'),
+(50, 'Thanh Đình', 'thanhdinh1806.tphcm@gmail.com', NULL, '#', 'https://lh3.googleusercontent.com/a/ACg8ocLB1hb9PlcCAsBXVLL5121WlKlpe8hulQkAyto4nEYhPJjpcQ=s96-c', NULL, 'user', 'active', '2025-12-20 02:50:20', '2025-12-20 02:50:20'),
+(51, 'Nguyễn Hồng Huy Bảo', 'huybaonguyenhong@gmail.com', NULL, '$2a$10$GOOGLE_OAUTH_USER_NO_PASSWORD_HASH_PLACEHOLDER', 'https://lh3.googleusercontent.com/a/ACg8ocJV4KAFwgJWm_3xNMcT3zT9w7CwEWizjzsKwwkTkgXwcjuxQoFh=s96-c', NULL, 'user', 'active', '2025-12-21 13:33:22', '2025-12-21 13:33:22');
 
 -- --------------------------------------------------------
 
@@ -1149,11 +1106,9 @@ CREATE TABLE `user_artists_follow` (
 --
 
 INSERT INTO `user_artists_follow` (`id`, `user_id`, `artist_id`, `created_at`) VALUES
-(7, 32, 2, '2025-11-19 02:31:03'),
-(8, 32, 14, '2025-11-19 02:31:38'),
 (10, 46, 14, '2025-12-05 10:40:02'),
 (11, 48, 126, '2025-12-09 03:17:55'),
-(13, 49, 2, '2025-12-20 11:07:08');
+(19, 46, 2, '2025-12-17 13:41:17');
 
 -- --------------------------------------------------------
 
@@ -1173,15 +1128,15 @@ CREATE TABLE `user_favorite_artists` (
 --
 
 INSERT INTO `user_favorite_artists` (`id`, `user_id`, `artist_id`, `created_at`) VALUES
-(60, 32, 11, '2025-11-16 16:48:03'),
-(61, 32, 12, '2025-11-16 16:48:03'),
-(62, 32, 14, '2025-11-16 16:48:03'),
 (107, 46, 11, '2025-11-26 19:50:30'),
 (108, 46, 12, '2025-11-26 19:50:30'),
 (109, 46, 14, '2025-11-26 19:50:30'),
 (110, 48, 11, '2025-12-05 10:53:54'),
 (111, 48, 12, '2025-12-05 10:53:54'),
-(112, 48, 14, '2025-12-05 10:53:54');
+(112, 48, 14, '2025-12-05 10:53:54'),
+(113, 50, 11, '2025-12-20 02:50:39'),
+(114, 50, 12, '2025-12-20 02:50:39'),
+(115, 50, 1, '2025-12-20 02:50:39');
 
 -- --------------------------------------------------------
 
@@ -1215,9 +1170,9 @@ CREATE TABLE `user_subscriptions` (
 --
 
 INSERT INTO `user_subscriptions` (`id`, `user_id`, `subscription_plan_id`, `start_date`, `duration_days`, `adjusted_duration_days`, `status`, `renewal_count`, `auto_renew`, `last_renewal_date`, `payment_status`, `payment_method_token`, `payment_gateway`, `prorated_amount`, `created_at`, `updated_at`) VALUES
-(1, 32, 3, '2025-12-02 22:12:28', 365, NULL, 'active', 0, 0, NULL, 'completed', NULL, 'vnpay', 0.00, '2025-12-02 22:12:28', '2025-12-02 22:12:28'),
 (2, 46, 1, '2025-12-04 04:18:19', 30, NULL, 'active', 0, 0, NULL, 'completed', NULL, 'vnpay', 0.00, '2025-12-04 04:18:19', '2025-12-04 04:18:19'),
-(3, 50, 3, '2025-12-10 01:43:18', 365, NULL, 'canceled', 0, 0, NULL, 'failed', NULL, 'vnpay', 0.00, '2025-12-10 01:43:18', '2025-12-10 02:19:23');
+(4, 48, 2, '2025-12-18 08:15:43', 90, NULL, 'active', 0, 0, NULL, 'completed', NULL, 'vnpay', 0.00, '2025-12-18 08:15:43', '2025-12-18 08:15:43'),
+(5, 50, 1, '2025-12-20 03:04:09', 30, NULL, 'active', 0, 0, NULL, 'completed', NULL, 'vnpay', 0.00, '2025-12-20 03:04:09', '2025-12-20 03:04:09');
 
 --
 -- Indexes for dumped tables
@@ -1227,7 +1182,8 @@ INSERT INTO `user_subscriptions` (`id`, `user_id`, `subscription_plan_id`, `star
 -- Indexes for table `ads_songs`
 --
 ALTER TABLE `ads_songs`
-  ADD PRIMARY KEY (`ad_id`);
+  ADD PRIMARY KEY (`ad_id`),
+  ADD KEY `fk_ads_song` (`song_id`);
 
 --
 -- Indexes for table `albums`
@@ -1288,6 +1244,12 @@ ALTER TABLE `listening_history`
   ADD KEY `song_id` (`song_id`);
 
 --
+-- Indexes for table `music_providers`
+--
+ALTER TABLE `music_providers`
+  ADD PRIMARY KEY (`provider_id`);
+
+--
 -- Indexes for table `playlists`
 --
 ALTER TABLE `playlists`
@@ -1306,7 +1268,8 @@ ALTER TABLE `playlist_songs`
 --
 ALTER TABLE `songs`
   ADD PRIMARY KEY (`song_id`),
-  ADD KEY `genre_id` (`genre_id`);
+  ADD KEY `genre_id` (`genre_id`),
+  ADD KEY `fk_song_provider` (`provider_id`);
 
 --
 -- Indexes for table `song_artists`
@@ -1375,25 +1338,25 @@ ALTER TABLE `ads_songs`
 -- AUTO_INCREMENT for table `albums`
 --
 ALTER TABLE `albums`
-  MODIFY `album_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=21;
+  MODIFY `album_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=19;
 
 --
 -- AUTO_INCREMENT for table `artists`
 --
 ALTER TABLE `artists`
-  MODIFY `artist_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=139;
+  MODIFY `artist_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=147;
 
 --
 -- AUTO_INCREMENT for table `downloaded_songs`
 --
 ALTER TABLE `downloaded_songs`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
 
 --
 -- AUTO_INCREMENT for table `favorite_albums`
 --
 ALTER TABLE `favorite_albums`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
 
 --
 -- AUTO_INCREMENT for table `genres`
@@ -1405,7 +1368,13 @@ ALTER TABLE `genres`
 -- AUTO_INCREMENT for table `listening_history`
 --
 ALTER TABLE `listening_history`
-  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=325;
+  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=345;
+
+--
+-- AUTO_INCREMENT for table `music_providers`
+--
+ALTER TABLE `music_providers`
+  MODIFY `provider_id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT for table `playlists`
@@ -1417,7 +1386,7 @@ ALTER TABLE `playlists`
 -- AUTO_INCREMENT for table `songs`
 --
 ALTER TABLE `songs`
-  MODIFY `song_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=96;
+  MODIFY `song_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=100;
 
 --
 -- AUTO_INCREMENT for table `song_artists`
@@ -1429,7 +1398,7 @@ ALTER TABLE `song_artists`
 -- AUTO_INCREMENT for table `subscription_plans`
 --
 ALTER TABLE `subscription_plans`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT for table `users`
@@ -1441,23 +1410,29 @@ ALTER TABLE `users`
 -- AUTO_INCREMENT for table `user_artists_follow`
 --
 ALTER TABLE `user_artists_follow`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=14;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=22;
 
 --
 -- AUTO_INCREMENT for table `user_favorite_artists`
 --
 ALTER TABLE `user_favorite_artists`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=113;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=116;
 
 --
 -- AUTO_INCREMENT for table `user_subscriptions`
 --
 ALTER TABLE `user_subscriptions`
-  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
 
 --
 -- Constraints for dumped tables
 --
+
+--
+-- Constraints for table `ads_songs`
+--
+ALTER TABLE `ads_songs`
+  ADD CONSTRAINT `fk_ads_song` FOREIGN KEY (`song_id`) REFERENCES `songs` (`song_id`) ON DELETE SET NULL;
 
 --
 -- Constraints for table `albums`
@@ -1517,6 +1492,7 @@ ALTER TABLE `playlist_songs`
 -- Constraints for table `songs`
 --
 ALTER TABLE `songs`
+  ADD CONSTRAINT `fk_song_provider` FOREIGN KEY (`provider_id`) REFERENCES `music_providers` (`provider_id`) ON DELETE SET NULL,
   ADD CONSTRAINT `songs_ibfk_2` FOREIGN KEY (`genre_id`) REFERENCES `genres` (`genre_id`);
 
 --

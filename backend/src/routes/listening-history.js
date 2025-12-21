@@ -9,6 +9,7 @@ router.get('/', verifyToken, async (req, res) => {
   try {
     const { limit = 20, offset = 0 } = req.query;
     
+    // Lấy lịch sử nghe nhạc cùng danh sách nghệ sĩ (nhiều nghệ sĩ)
     const query = `
       SELECT 
         lh.id,
@@ -18,15 +19,17 @@ router.get('/', verifyToken, async (req, res) => {
         s.duration,
         s.audio_url,
         s.cover_url,
-        s.artist_id,
-        a.name as artist_name,
         s.genre_id,
-        g.name as genre_name
+        g.name as genre_name,
+        GROUP_CONCAT(a.artist_id) as artist_ids,
+        GROUP_CONCAT(a.name) as artist_names
       FROM listening_history lh
       JOIN songs s ON lh.song_id = s.song_id
-      LEFT JOIN artists a ON s.artist_id = a.artist_id
+      LEFT JOIN song_artists sa ON sa.song_id = s.song_id
+      LEFT JOIN artists a ON sa.artist_id = a.artist_id
       LEFT JOIN genres g ON s.genre_id = g.genre_id
       WHERE lh.user_id = ?
+      GROUP BY lh.id, lh.song_id, lh.listened_at, s.title, s.duration, s.audio_url, s.cover_url, s.genre_id, g.name
       ORDER BY lh.listened_at DESC
       LIMIT ? OFFSET ?
     `;
@@ -39,8 +42,12 @@ router.get('/', verifyToken, async (req, res) => {
         id: item.id,
         song_id: item.song_id,
         title: item.title,
-        artist: item.artist_name,
-        artist_id: item.artist_id,
+        artists: item.artist_ids && item.artist_names
+          ? item.artist_ids.split(',').map((id, idx) => ({
+              artist_id: id,
+              name: item.artist_names.split(',')[idx]
+            }))
+          : [],
         genre: item.genre_name,
         genre_id: item.genre_id,
         duration: item.duration,
