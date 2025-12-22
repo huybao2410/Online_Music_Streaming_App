@@ -406,13 +406,15 @@ router.get('/:userId/check-premium', async (req, res) => {
     return res.status(400).json({ success: false, message: 'Thiếu userId' });
   }
   try {
-    // Kiểm tra bảng user_subscriptions
+    // Lấy trạng thái premium và ngày bắt đầu/kết thúc
     const [subs] = await pool.query(
-      'SELECT status FROM user_subscriptions WHERE user_id = ? ORDER BY start_date DESC LIMIT 1',
+      'SELECT status, start_date, end_date FROM user_subscriptions WHERE user_id = ? ORDER BY start_date DESC LIMIT 1',
       [userId]
     );
     const is_premium = subs.length > 0 && subs[0].status === 'active';
-    return res.json({ success: true, is_premium });
+    const start_date = subs.length > 0 ? subs[0].start_date : null;
+    const end_date = subs.length > 0 ? subs[0].end_date : null;
+    return res.json({ success: true, is_premium, start_date, end_date });
   } catch (error) {
     console.error('Error checking premium:', error);
     return res.status(500).json({ success: false, message: 'Lỗi khi kiểm tra premium' });

@@ -1,12 +1,48 @@
 /* Fix heart icon size in footer */
-.like-btn svg {
-  font-size: 2rem !important;
-  width: 2rem;
-  height: 2rem;
-  display: block;
+/* Nút tim mới */
+.like-btn-new {
+  background: transparent;
+  border: none;
+  padding: 6px;
+  border-radius: 50%;
+  cursor: pointer;
+  transition: background 0.2s, box-shadow 0.2s;
+  margin-right: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
-/* Xóa ghi đè kích thước icon trái tim, dùng inline style ở JSX */
-/* ==================== 🎵 FOOTER CHUNG ==================== */
+.like-btn-new:hover {
+  background: rgba(255,75,75,0.08);
+  box-shadow: 0 2px 8px rgba(255,75,75,0.12);
+}
+
+/* Nút tim mới */
+.like-btn-new {
+  background: none;
+  border: none;
+  outline: none;
+  cursor: pointer;
+  padding: 0;
+  margin-right: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: filter 0.2s;
+}
+.like-btn-new svg {
+  font-size: 22px;
+  transition: color 0.2s, transform 0.15s cubic-bezier(.4,2,.6,1);
+}
+.like-btn-new.liked svg {
+  color: #e74c3c;
+  filter: drop-shadow(0 2px 8px #e74c3c33);
+  transform: scale(1.15);
+}
+.like-btn-new:not(.liked):hover svg {
+  color: #e74c3c;
+  transform: scale(1.1);
+}
 .footer {
   position: relative;
   background-size: cover;

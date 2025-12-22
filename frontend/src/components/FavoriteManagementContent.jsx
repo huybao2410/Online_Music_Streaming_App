@@ -69,7 +69,6 @@ export default function FavoriteManagementContent() {
 
       {/* ================= TOP LIST ================= */}
       <div style={styles.topGrid}>
-        <TopList title="🎵 Bài hát nghe nhiều nhất" items={data.topSongs} valueKey="play_count" />
         <TopList title="💿 Album được thích nhiều" items={data.topAlbums} valueKey="likes" />
         <TopList title="🎤 Nghệ sĩ được thích nhiều" items={data.topArtists} valueKey="likes" />
       </div>

@@ -7,8 +7,14 @@ import "./EditProfileModal.css";
 
 export default function EditProfileModal({ isOpen, onClose, currentUser, onSuccess }) {
   const [username, setUsername] = useState(currentUser?.username || "");
-  const [email, setEmail] = useState(currentUser?.email || "");
-  const [phone, setPhone] = useState(currentUser?.phone || "");
+  const [email, setEmail] = useState(currentUser?.email ?? "");
+  const [phone, setPhone] = useState(currentUser?.phone ?? "");
+    // Always sync email/phone when currentUser changes (for edit modal re-open)
+    React.useEffect(() => {
+      setUsername(currentUser?.username || "");
+      setEmail(currentUser?.email ?? "");
+      setPhone(currentUser?.phone ?? "");
+    }, [currentUser]);
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -152,11 +158,13 @@ export default function EditProfileModal({ isOpen, onClose, currentUser, onSucce
       onSuccess({ username, email, phone, avatar: avatarUrl });
       onClose();
     } catch (err) {
-      setError(
-        err.response?.data?.message ||
-        err.response?.data?.errors?.[0]?.msg ||
-        "Lỗi khi cập nhật thông tin"
-      );
+      // Hiển thị chi tiết lỗi nếu có
+      let detail = err.response?.data?.message || err.response?.data?.errors?.[0]?.msg;
+      // Nếu là lỗi duplicate entry, show rõ trường bị trùng
+      if (err.response?.data?.sqlMessage && err.response?.data?.code === 'ER_DUP_ENTRY') {
+        detail = `Lỗi: ${err.response.data.sqlMessage}`;
+      }
+      setError(detail || err.message || "Lỗi khi cập nhật thông tin");
     } finally {
       setIsLoading(false);
     }

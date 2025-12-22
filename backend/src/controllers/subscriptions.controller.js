@@ -1,3 +1,36 @@
+// POST /api/subscriptions/cancel
+exports.cancelMySubscription = async (req, res) => {
+  try {
+    const userId = req.user?.id;
+    if (!userId) {
+      return res.status(401).json({ success: false, message: "Unauthorized" });
+    }
+    // Tìm gói active mới nhất
+    const [rows] = await pool.query(
+      `SELECT id, subscription_plan_id FROM user_subscriptions WHERE user_id = ? AND status = 'active' ORDER BY start_date DESC LIMIT 1`,
+      [userId]
+    );
+    if (!rows.length) {
+      return res.status(400).json({ success: false, message: "Bạn không có gói Premium đang hoạt động." });
+    }
+    const subId = rows[0].id;
+    const planId = rows[0].subscription_plan_id;
+    // Xóa tất cả bản ghi user_subscriptions với user_id, planId, id khác subId để tránh trùng unique
+    await pool.query(
+      `DELETE FROM user_subscriptions WHERE user_id = ? AND subscription_plan_id = ? AND id != ?`,
+      [userId, planId, subId]
+    );
+    // Cập nhật trạng thái và ngày kết thúc, đảm bảo status là duy nhất
+    await pool.query(
+      `UPDATE user_subscriptions SET status = CONCAT('cancelled_', id), end_date = NOW() WHERE id = ?`,
+      [subId]
+    );
+    return res.json({ success: true, message: "Đã hủy gói Premium thành công." });
+  } catch (err) {
+    console.error("cancelMySubscription error:", err);
+    return res.status(500).json({ success: false, message: "Server error" });
+  }
+};
 const pool = require("../config/db");
 // POST /api/subscriptions/plans (admin)
 exports.addPlan = async (req, res) => {
@@ -50,7 +83,11 @@ exports.getMySubscription = async (req, res) => {
     const end = new Date(sub.end_date);
     const now = new Date();
 
-    const daysLeft = Math.ceil((end - now) / (1000 * 60 * 60 * 24));
+    // Kiểm tra ngày hợp lệ
+    const isValidDate = d => d instanceof Date && !isNaN(d);
+    const startISO = isValidDate(start) ? start.toISOString() : null;
+    const endISO = isValidDate(end) ? end.toISOString() : null;
+    const daysLeft = isValidDate(end) ? Math.ceil((end - now) / (1000 * 60 * 60 * 24)) : 0;
 
     return res.json({
       success: true,
@@ -58,8 +95,8 @@ exports.getMySubscription = async (req, res) => {
         is_premium: daysLeft > 0,
         plan_id: sub.subscription_plan_id,
         plan_name: sub.plan_name,
-        start_date: start.toISOString(),
-        end_date: end.toISOString(),
+        start_date: startISO,
+        end_date: endISO,
         days_left: daysLeft
       }
     });

@@ -12,6 +12,7 @@ import { AiOutlineHeart, AiFillHeart, AiOutlinePlus } from "react-icons/ai";
 import { IoVolumeHigh, IoVolumeMute } from "react-icons/io5";
 import AdOverlay from "../components/AdOverlay";
 import AddToPlaylistModal from "../components/AddToPlaylistModal";
+import CreatePlaylistModal from "../components/CreatePlaylistModal";
 import axios from "axios";
 import "./Footer.css";
 
@@ -42,6 +43,7 @@ export default function Footer() {
   const [showAd, setShowAd] = useState(false);
   const [adTriggered, setAdTriggered] = useState(false);
   const [showPlaylistModal, setShowPlaylistModal] = useState(false);
+  const [showCreatePlaylist, setShowCreatePlaylist] = useState(false);
 
   const [isPremium, setIsPremium] = useState(false);
 
@@ -174,6 +176,8 @@ export default function Footer() {
       );
       setIsLiked(true);
     }
+    // Phát sự kiện để sidebar reload lại số lượng bài hát yêu thích
+    window.dispatchEvent(new Event("favoriteSongsChanged"));
   };
 
   /* ================= UI HELPERS ================= */
@@ -229,10 +233,19 @@ export default function Footer() {
     <>
       {showAd && <AdOverlay onClose={() => setShowAd(false)} />}
 
+
       <AddToPlaylistModal
         isOpen={showPlaylistModal}
         onClose={() => setShowPlaylistModal(false)}
         songId={currentSong.id}
+        onCreateNew={() => setShowCreatePlaylist(true)}
+      />
+
+      {/* Modal tạo playlist giống sidebar */}
+      <CreatePlaylistModal
+        isOpen={showCreatePlaylist}
+        onClose={() => setShowCreatePlaylist(false)}
+        onSuccess={() => setShowCreatePlaylist(false)}
       />
 
       <footer
@@ -309,13 +322,43 @@ export default function Footer() {
 
           {/* RIGHT */}
           <div className="footer-right">
+
+            {/* Nút tim mới: to, đẹp, hiệu ứng rõ ràng */}
             <button
-              className={`action-btn like-btn ${
-                isLiked ? "liked" : ""
-              }`}
+              className={`like-btn-new${isLiked ? " liked" : ""}`}
               onClick={toggleLike}
+              aria-label={isLiked ? "Bỏ thích" : "Thích"}
+              style={{
+                background: "none",
+                border: "none",
+                outline: "none",
+                cursor: "pointer",
+                padding: 0,
+                marginRight: 16,
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center"
+              }}
             >
-              {isLiked ? <AiFillHeart /> : <AiOutlineHeart />}
+              {isLiked ? (
+                <AiFillHeart
+                  style={{
+                    color: "#e74c3c",
+                    fontSize: 22,
+                    filter: "drop-shadow(0 2px 8px #e74c3c33)",
+                    transition: "transform 0.15s cubic-bezier(.4,2,.6,1)",
+                    transform: isLiked ? "scale(1.15)" : "scale(1)"
+                  }}
+                />
+              ) : (
+                <AiOutlineHeart
+                  style={{
+                    color: "#aaa",
+                    fontSize: 22,
+                    transition: "color 0.2s, transform 0.15s cubic-bezier(.4,2,.6,1)",
+                  }}
+                />
+              )}
             </button>
 
             <button onClick={() => setShowPlaylistModal(true)}>

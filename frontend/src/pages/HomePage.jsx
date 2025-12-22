@@ -267,8 +267,8 @@ const HomePage = () => {
             setRecommendations(
               Array.from({ length: 4 }).map((_, i) => ({
                 id: i + 1,
-                name: ["Top Hits", "Nhạc Việt", "Chill", "Party"][i],
-                description: ["Hot nhất", "V-Pop", "Cuối tuần", "Sôi động"][i],
+                name: ["Top Hits", "Sôi Động", "Chill", "Party"][i],
+                description: ["Hot nhất", "Daily", "Cuối tuần", "Sôi động"][i],
                 songs: recShuffled.slice(i * size, (i + 1) * size),
                 cover: recShuffled[i * size]?.cover,
               }))
@@ -506,7 +506,7 @@ const HomePage = () => {
               />
               {/* Top 50 Nhạc Hoa */}
               <TopChartBox
-                title="Top 50 Nhạc Hoa"
+                title="Top 50 Nhạc Hàn"
                 apiUrl="http://localhost:8081/music_API/online_music/song/get_top_songs_web.php?genre_name=K-Pop"
                 color="#3a3a5c"
               />

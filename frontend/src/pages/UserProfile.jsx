@@ -77,9 +77,9 @@ export default function UserProfile() {
           user_id: user.user_id,
           username: user.username,
           email: user.email || '',
-          phone: user.phone || '',
+          phone: user.phone || user.phone_number || '',
           role: user.role || 'user',
-          memberType: isPremium ? 'Premium' : 'Free',
+          memberType: isPremium ? 'Premium' : 'Miễn phí',
           isPremium: isPremium,
           subscriptionEndDate: subscriptionEndDate,
           followers: 0,
@@ -401,7 +401,7 @@ export default function UserProfile() {
           >
             <RiPlayListLine size={20} />
             <span>Playlist đã tạo</span>
-            <span className="tab-count">(0)</span>
+            <span className="tab-count"></span>
           </button>
         </div>
 

@@ -8,8 +8,9 @@ import AdminProfileContent from "../components/AdminProfileContent";
 import GenreManagementContent from "../components/GenreManagementContent";
 import axios from "axios";
 import AdminAlbums from "./AdminAlbums";
+
 import AdminStatistics from "../components/AdminStatistics";
-import AdminTopSongs from "../components/AdminTopSongs";
+import ProviderManagementContent from "../components/ProviderManagementContent";
 
 import ServicePlanManagement from "../components/ServicePlanManagement";
 import PlaylistManagementContent from "../components/PlaylistManagementContent";
@@ -198,13 +199,6 @@ const AdminDashboard = () => {
 
           <div className="nav-section">
             <h4 className="nav-section-title">QUẢN LÝ</h4>
-            <button
-              className={`nav-item ${activeTab === "top_songs" ? "active" : ""}`}
-              onClick={() => setActiveTab("top_songs")}
-            >
-              <FaFire style={{ color: "#fff" }} />
-              <span>Top Songs</span>
-            </button>
 
             <button
               className={`nav-item ${activeTab === "songs" ? "active" : ""}`}
@@ -227,12 +221,21 @@ const AdminDashboard = () => {
               <MdPeopleAlt style={{ color: "#fff" }} />
               <span>Nghệ sĩ</span>
             </button>
+
             <button
               className={`nav-item ${activeTab === "genres" ? "active" : ""}`}
               onClick={() => setActiveTab("genres")}
             >
               <FaMusic style={{ color: "#fff" }} />
               <span>Thể loại</span>
+            </button>
+
+            <button
+              className={`nav-item ${activeTab === "providers" ? "active" : ""}`}
+              onClick={() => setActiveTab("providers")}
+            >
+              <FaCompactDisc style={{ color: "#fff" }} />
+              <span>Nhà Cung Cấp</span>
             </button>
 
             {/* Tab Playlist đã bị ẩn */}
@@ -272,10 +275,7 @@ const AdminDashboard = () => {
       <div className="admin-main">
         <header className="admin-top-header">
           <div className="header-actions-bar">
-            <button className="notification-btn">
-              <IoMdNotifications size={20} />
-              <div className="notification-badge"></div>
-            </button>
+            {/* Notification icon removed */}
             <div
               className="user-profile-section"
               onClick={() => setShowProfileDropdown(!showProfileDropdown)}
@@ -426,14 +426,15 @@ const AdminDashboard = () => {
           {activeTab === "songs" && <div className="tab-content"><SongManagementContent setActiveTab={setActiveTab} openArtistAddModal={() => { setActiveTab('artists'); setShowArtistModal(true); }} /></div>}
           {activeTab === "albums" && <div className="tab-content"><AdminAlbums /></div>}
           {activeTab === "artists" && <div className="tab-content"><ArtistManagementContent showModal={showArtistModal} setShowModal={setShowArtistModal} /></div>}
-          {activeTab === "top_songs" && (
-            <div className="tab-content">
-              <AdminTopSongs />
-            </div>
-          )}
           {activeTab === "favorites" && (
             <div className="tab-content">
               <FavoriteManagementContent />
+            </div>
+          )}
+
+          {activeTab === "providers" && (
+            <div className="tab-content">
+              <ProviderManagementContent />
             </div>
           )}
 

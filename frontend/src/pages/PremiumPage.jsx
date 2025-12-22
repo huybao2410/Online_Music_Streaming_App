@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import PremiumInfoModal from '../components/PremiumInfoModal';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { BsCheckCircleFill } from 'react-icons/bs';
 import { MdMusicNote, MdCloudDownload, MdBlock } from 'react-icons/md';
@@ -143,12 +144,19 @@ export default function PremiumPage() {
     { icon: <MdCloudDownload size={32} />, title: 'Tải nhạc', description: 'Nghe offline mọi lúc' },
   ];
 
+
+  // Show loading spinner while loading
   if (loading) return (
     <div className="premium-loading">
       <div className="loading-spinner" />
       <p>Đang tải...</p>
     </div>
   );
+
+  // If user is premium, show PremiumInfoModal instead of PremiumPage
+  if (subscription.is_premium) {
+    return <PremiumInfoModal />;
+  }
 
   return (
     <div className="premium-page">

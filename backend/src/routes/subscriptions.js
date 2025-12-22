@@ -3,7 +3,9 @@ const router = express.Router();
 
 // import middlewares and controllers first
 const { authenticate } = require("../middlewares/auth");
-const { getMySubscription, getPlans, addPlan , deletePlan } = require("../controllers/subscriptions.controller");
+const { getMySubscription, getPlans, addPlan , deletePlan, cancelMySubscription } = require("../controllers/subscriptions.controller");
+// Huỷ gói Premium của user hiện tại
+router.post("/cancel", authenticate, cancelMySubscription);
 
 // // Middleware kiểm tra quyền admin
 // const isAdmin = (req, res, next) => {

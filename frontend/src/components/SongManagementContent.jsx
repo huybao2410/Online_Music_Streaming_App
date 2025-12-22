@@ -74,7 +74,11 @@ export default function SongManagementContent({ setActiveTab, openArtistAddModal
     try {
       const res = await axios.get(`${NODE_API_URL}/providers`);
       if (res.data.success) {
-        setProviders(res.data.providers);
+        // Lọc chỉ các nhà cung cấp hoạt động
+        const activeProviders = res.data.providers.filter(
+          p => Number(p.status) === 1 || p.status === 'active' || p.status === 'ACTIVE'
+        );
+        setProviders(activeProviders);
       }
     } catch (err) {
       console.error("Fetch providers error", err);

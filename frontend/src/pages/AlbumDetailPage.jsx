@@ -14,7 +14,7 @@ const fixUrl = (url) => (url ? url.replace("10.0.2.2", "localhost") : "");
 const AlbumDetailPage = () => {
   const { albumId } = useParams();
   const navigate = useNavigate();
-  const { setPlaylist, setCurrentSong, showAd, setShowAd } = useContext(PlayerContext);
+  const { setPlaylist, setCurrentSong, showAd, setShowAd, isPremium } = useContext(PlayerContext);
 
   const [songs, setSongs] = useState([]);
   const [albumInfo, setAlbumInfo] = useState(null);
@@ -47,16 +47,19 @@ const AlbumDetailPage = () => {
         id: data.album.album_id,
         name: data.album.name,
         artist: data.album.artist,
+        artist_id: data.album.artist_id,
         cover: fixUrl(data.album.cover_url),
         description: data.album.description,
+        release_date: data.album.release_date,
+        song_count: data.album.song_count
       });
 
       // 🟢 SONGS (FORMAT CHUẨN GIỐNG HOME PAGE)
       const normalized = data.songs.map((s) => ({
         id: s.song_id,
         title: s.title,
-        artist: s.artist || (s.artists && s.artists.join(', ')) || '',
-        genre: s.genre || (s.genres && s.genres.join(', ')) || '',
+        artist: s.artists || s.artist || '',
+        genre: s.genres || s.genre || '',
         url: fixUrl(s.audio_url || s.audio || s.url),
         cover: fixUrl(s.cover_url || s.cover),
         duration: s.duration || 0,
@@ -148,7 +151,7 @@ const AlbumDetailPage = () => {
 
   return (
     <div className="album-detail-page fade-in">
-      {showAd && <AdOverlay onClose={() => setShowAd(false)} />}
+      {showAd && !isPremium && <AdOverlay onClose={() => setShowAd(false)} />}
       {/* Nút quay lại */}
       <button className="back-button" onClick={() => navigate(-1)}>
         <HiArrowLeft size={24} />
@@ -164,18 +167,22 @@ const AlbumDetailPage = () => {
           onError={(e) => (e.target.src = "https://placehold.co/300x300")}
         />
         <div style={{flex: 1}}>
-          <div style={{fontSize: 18, color: '#b3b3b3', fontWeight: 500, marginBottom: 4}}>Album · {songs.length} Bài hát</div>
-          <h1 style={{fontSize: 44, fontWeight: 800, color: '#fff', margin: 0}}>{albumInfo.name}</h1> 
-          <div style={{display: 'flex', alignItems: 'center', gap: 16, marginTop: 12}}>
-            <button className="favorite-button" onClick={handleToggleFavorite} disabled={favoriteLoading} style={{background: 'none', border: 'none', cursor: 'pointer'}}>
-              {favoriteLoading ? (
-                <span className="favorite-loading">...</span>
-              ) : isFavorite ? (
-                <HiHeart size={38} className="heart-active" style={{color: '#00e0ff'}} />
-              ) : (
-                <HiOutlineHeart size={38} style={{color: '#fff'}} />
-              )}
-            </button>
+          <div style={{fontSize: 18, color: '#b3b3b3', fontWeight: 500, marginBottom: 4}}>
+            Album · {albumInfo.song_count || songs.length} Bài hát
+            {albumInfo.release_date && (
+              <span style={{marginLeft: 16, fontSize: 15, color: '#aaa'}}>
+                Phát hành: {albumInfo.release_date}
+              </span>
+            )}
+          </div>
+          <h1 style={{fontSize: 44, fontWeight: 800, color: '#fff', margin: 0}}>{albumInfo.name}</h1>
+          <div style={{fontSize: 20, color: '#00e0ff', fontWeight: 600, margin: '8px 0 0 0'}}>
+            {albumInfo.artist}
+          </div>
+          {albumInfo.description && (
+            <div style={{fontSize: 16, color: '#b3b3b3', marginTop: 8, maxWidth: 500}}>{albumInfo.description}</div>
+          )}
+          <div style={{display: 'flex', alignItems: 'center', gap: 16, marginTop: 18}}>
             <button
               className="play-all-btn"
               style={{
@@ -203,7 +210,6 @@ const AlbumDetailPage = () => {
               <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M8 5v14l11-7L8 5z" fill="#222"/></svg>
               Phát tất cả
             </button>
-            {/* Bỏ nút tải xuống */}
           </div>
         </div>
       </div>

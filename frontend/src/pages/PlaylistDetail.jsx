@@ -6,9 +6,11 @@ import { BiPlay, BiPause, BiTime } from "react-icons/bi";
 import { RiPlayListLine, RiGlobalLine, RiLock2Line } from "react-icons/ri";
 import { FiEdit2 } from "react-icons/fi";
 import axios from "axios";
+import { deletePlaylist } from "../services/playlistService";
 import { PlayerContext } from "../context/PLayerContext";
 import AddSongToPlaylistModal from "../components/AddSongToPlaylistModal";
 import EditPlaylistSongsModal from "../components/EditPlaylistSongsModal";
+import EditPlaylistModal from "../components/EditPlaylistModal";
 import "./PlaylistDetail.css";
 
 /* ---------------------- FIX URL TỰ ĐỘNG ---------------------- */
@@ -275,6 +277,19 @@ export default function PlaylistDetail() {
             <button className="icon-button" onClick={() => setShowEditModal(true)}>
               <FiEdit2 size={22} />
             </button>
+
+            <button className="icon-button" onClick={async () => {
+              if (!window.confirm('Bạn có chắc muốn xóa playlist này?')) return;
+              try {
+                await deletePlaylist(id);
+                alert('Đã xóa playlist!');
+                navigate('/');
+              } catch (err) {
+                alert('Xóa playlist thất bại!');
+              }
+            }} title="Xóa playlist" style={{color:'#ff4d4f'}}>
+              <AiOutlineDelete size={22} />
+            </button>
           </>
         )}
       </div>
@@ -364,12 +379,21 @@ export default function PlaylistDetail() {
       )}
 
       {showEditModal && (
-        <EditPlaylistSongsModal
+        <EditPlaylistModal
           isOpen={showEditModal}
           onClose={() => setShowEditModal(false)}
-          playlistId={id}
-          songs={playlist.songs}
-          onSongsRemoved={loadPlaylist}
+          playlist={playlist}
+          onSave={async (data) => {
+            try {
+              const token = localStorage.getItem('token');
+              await axios.put(`http://localhost:5000/api/playlists/${id}`, data, {
+                headers: { Authorization: `Bearer ${token}` }
+              });
+              loadPlaylist();
+            } catch (err) {
+              alert('Cập nhật playlist thất bại!');
+            }
+          }}
         />
       )}
     </div>

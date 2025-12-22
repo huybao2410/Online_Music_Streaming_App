@@ -63,10 +63,17 @@ try {
             s.audio_url,
             s.cover_url,
             s.duration,
-            als.track_number
+            als.track_number,
+            GROUP_CONCAT(DISTINCT ar.name SEPARATOR ', ') AS artists,
+            GROUP_CONCAT(DISTINCT g.name SEPARATOR ', ') AS genres
         FROM album_songs als
         JOIN songs s ON als.song_id = s.song_id
+        LEFT JOIN song_artists sa ON s.song_id = sa.song_id
+        LEFT JOIN artists ar ON sa.artist_id = ar.artist_id
+        LEFT JOIN song_genres sg ON s.song_id = sg.song_id
+        LEFT JOIN genres g ON sg.genre_id = g.genre_id
         WHERE als.album_id = ?
+        GROUP BY s.song_id, als.track_number
         ORDER BY als.track_number ASC, s.song_id ASC
     ";
 
@@ -82,7 +89,9 @@ try {
             "audio_url"    => $song["audio_url"],
             "cover_url"    => $song["cover_url"],
             "duration"     => (int)$song["duration"],
-            "track_number" => (int)$song["track_number"]
+            "track_number" => (int)$song["track_number"],
+            "artists"      => $song["artists"] ?? "",
+            "genres"       => $song["genres"] ?? ""
         ];
     }
 

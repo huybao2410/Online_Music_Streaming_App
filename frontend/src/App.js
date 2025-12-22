@@ -21,7 +21,6 @@ import PaymentCallback from "./pages/PaymentCallback";
 import PremiumSuccess from "./pages/PremiumSuccess";
 import PremiumStatusPage from "./pages/PremiumStatusPage";
 import AlbumDetail from "./pages/AlbumDetailPage";
-import "./components/AdminTopSongs.css";
 
 // Component redirect dựa trên role khi vào trang chủ
 function RoleBasedRedirect() {

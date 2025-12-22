@@ -70,6 +70,7 @@ export default function Sidebar({ isLoginOpen, setIsLoginOpen }) {
     }
   };
 
+
   // Fetch liked songs count
   const fetchLikedSongs = async () => {
     try {
@@ -88,6 +89,13 @@ export default function Sidebar({ isLoginOpen, setIsLoginOpen }) {
       setLikedCount(0);
     }
   };
+
+  // Lắng nghe sự kiện favoriteSongsChanged để reload số lượng bài hát yêu thích
+  useEffect(() => {
+    const handler = () => fetchLikedSongs();
+    window.addEventListener("favoriteSongsChanged", handler);
+    return () => window.removeEventListener("favoriteSongsChanged", handler);
+  }, []);
 
   /* -------------------------------
       LOAD GENRES WHEN SWITCH TAB

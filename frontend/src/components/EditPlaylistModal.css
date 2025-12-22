@@ -1,0 +1,51 @@
+/* EditPlaylistModal.css - clone from CreatePlaylistModal.css for consistent UI */
+@import './CreatePlaylistModal.css';
+
+.edit-modal-title {
+  font-size: 24px;
+  font-weight: 700;
+  margin: 0 0 24px 0;
+  text-align: left;
+}
+
+.edit-modal-footer {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  margin-top: 32px;
+}
+
+.edit-btn-cancel {
+  background: transparent;
+  color: #fff;
+  border: 1.5px solid rgba(255,255,255,0.3);
+  border-radius: 24px;
+  padding: 12px 24px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+.edit-btn-cancel:hover:not(:disabled) {
+  border-color: #fff;
+  background: rgba(255,255,255,0.1);
+}
+
+.edit-btn-save {
+  background: #1db954;
+  color: #fff;
+  border: none;
+  border-radius: 24px;
+  padding: 12px 24px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+.edit-btn-save:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.edit-btn-save:hover:not(:disabled) {
+  background: #169c46;
+}
