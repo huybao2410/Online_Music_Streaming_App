@@ -199,14 +199,6 @@ const AdminDashboard = () => {
           <div className="nav-section">
             <h4 className="nav-section-title">QUẢN LÝ</h4>
             <button
-              className={`nav-item ${activeTab === "top_songs" ? "active" : ""}`}
-              onClick={() => setActiveTab("top_songs")}
-            >
-              <FaFire style={{ color: "#fff" }} />
-              <span>Top Songs</span>
-            </button>
-
-            <button
               className={`nav-item ${activeTab === "songs" ? "active" : ""}`}
               onClick={() => setActiveTab("songs")}
             >
